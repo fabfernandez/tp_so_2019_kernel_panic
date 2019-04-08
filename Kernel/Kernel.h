@@ -16,20 +16,13 @@
 #include <readline/readline.h>
 #include <stdint.h>
 #include <time.h>
-#include "../Global/utils.c"
+#include <Global/utils.h>
+//#include "../Global/interface_procesos.h"
 
 
 							// ******* TIPOS NECESARIOS ******* //
 t_log* logger;
 t_config* archivoconfig;
-typedef enum consistencias { 			// CONSISTENCIAS
-	STRONG, STRONG_HASH, EVENTUAL
-} t_consistencia;
-typedef struct metadata { 				// METADATA DE TABLAS
-	char* nombre;
-	t_consistencia consistencia;
-	int n_particiones;
-} t_metadata;
 
 
 typedef char* t_valor;					// VALOR QUE DEVUELVE EL SELECT(TODAVIA NO SABEMOS QUE ALMACENA EN TABLAS?)

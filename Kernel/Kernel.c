@@ -6,13 +6,11 @@
  */
 #include "Kernel.h"
 
-
 int main(void)
 {
 	int conexionAMemoria;
 	char* IP_MEMORIA;
 	char* PUERTO_MEMORIA;
-
 	iniciar_logger(); // creamos log
 	leer_config(); // abrimos config
 
@@ -22,8 +20,12 @@ int main(void)
 
 	// enviar_mensaje("TESTINGGGGG", conexionAMemoria); // Mensaje de prueba
 
+	while (1) {
+
+	}
 	terminar_programa(conexionAMemoria); // termina conexion, destroy log y destroy config.
 }
+
 
 void iniciar_logger() { 								// CREACION DE LOG
 	logger = log_create("/home/utnso/tp-2019-1c-Los-Dinosaurios-Del-Libro/Kernel/kernel.log", "kernel", 1, LOG_LEVEL_INFO);
@@ -40,6 +42,4 @@ void terminar_programa(int conexion)
 	config_destroy(archivoconfig);
 	//Y por ultimo, para cerrar, hay que liberar lo que utilizamos (conexion, log y config) con las funciones de las commons y del TP mencionadas en el enunciado
 }
-
-
 
