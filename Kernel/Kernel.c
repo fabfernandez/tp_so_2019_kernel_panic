@@ -6,23 +6,40 @@
  */
 #include "Kernel.h"
 
+
 int main(void)
 {
 	int conexionAMemoria;
 	char* IP_MEMORIA;
 	char* PUERTO_MEMORIA;
-	t_log* logger;
-	t_config* config;
 
-	logger = iniciar_logger(); // creamos log
-	config = leer_config(); // abrimos config
+	iniciar_logger(); // creamos log
+	leer_config(); // abrimos config
 
-	IP_MEMORIA = config_get_string_value(config, "IP_MEMORIA"); // asignamos IP de memoria a conectar desde CONFIG
-	PUERTO_MEMORIA = config_get_string_value(config, "PUERTO_MEMORIA"); // asignamos puerto desde CONFIG
-
+	IP_MEMORIA = config_get_string_value(archivoconfig, "IP_MEMORIA"); // asignamos IP de memoria a conectar desde CONFIG
+	PUERTO_MEMORIA = config_get_string_value(archivoconfig, "PUERTO_MEMORIA"); // asignamos puerto desde CONFIG
 	conexionAMemoria = crear_conexion(IP_MEMORIA,PUERTO_MEMORIA); // --> VER <--
 
 	// enviar_mensaje("TESTINGGGGG", conexionAMemoria); // Mensaje de prueba
 
-	terminar_programa(conexionAMemoria,logger,config); // termina conexion, destroy log y destroy config.
+	terminar_programa(conexionAMemoria); // termina conexion, destroy log y destroy config.
 }
+
+void iniciar_logger() { 								// CREACION DE LOG
+	logger = log_create("/home/utnso/tp-2019-1c-Los-Dinosaurios-Del-Libro/Kernel/kernel.log", "kernel", 1, LOG_LEVEL_INFO);
+}
+
+void leer_config() {								// APERTURA DE CONFIG
+	archivoconfig = config_create("/home/utnso/tp-2019-1c-Los-Dinosaurios-Del-Libro/Kernel/kernel.config");
+}
+
+void terminar_programa(int conexion)
+{
+	liberar_conexion(conexion);
+	log_destroy(logger);
+	config_destroy(archivoconfig);
+	//Y por ultimo, para cerrar, hay que liberar lo que utilizamos (conexion, log y config) con las funciones de las commons y del TP mencionadas en el enunciado
+}
+
+
+

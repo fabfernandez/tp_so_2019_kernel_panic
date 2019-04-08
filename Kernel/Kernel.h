@@ -10,15 +10,18 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <commons/log.h>
-#include <commons/string.h>
-#include <commons/config.h>
+#include<commons/log.h>
+#include<commons/string.h>
+#include<commons/config.h>
 #include <readline/readline.h>
 #include <stdint.h>
 #include <time.h>
+#include "../Global/utils.c"
+
 
 							// ******* TIPOS NECESARIOS ******* //
-
+t_log* logger;
+t_config* archivoconfig;
 typedef enum consistencias { 			// CONSISTENCIAS
 	STRONG, STRONG_HASH, EVENTUAL
 } t_consistencia;
@@ -27,6 +30,7 @@ typedef struct metadata { 				// METADATA DE TABLAS
 	t_consistencia consistencia;
 	int n_particiones;
 } t_metadata;
+
 
 typedef char* t_valor;					// VALOR QUE DEVUELVE EL SELECT(TODAVIA NO SABEMOS QUE ALMACENA EN TABLAS?)
 
@@ -51,44 +55,14 @@ int add(int memoria, t_consistencia consistencia);		// ADD PROTOTIPO	(8)
 
 							// ******* DEFINICION DE FUNCIONES A UTILIZAR ******* //
 
-t_log* iniciar_logger() { 								// CREACION DE LOG
-	return log_create("kernel.log", "KERNEL", 1, LOG_LEVEL_INFO);
-}
-
-t_config* leer_config() {								// APERTURA DE CONFIG
-	return config_create("kernel.config");
-}
-void terminar_programa(int conexion, t_log* logger, t_config* config)
-{
-	liberar_conexion(conexion);
-	log_destroy(logger);
-	config_destroy(config);
-}
+void iniciar_logger(void);
+void leer_config(void);
+void terminar_programa(int conexion);
 
 
 //				***** REVISAR COMO CREAR LAS CONEXIONES *****					//
 
-int crear_conexion(char *ip, char* puerto)				// CREAR CONEXIONES - REVISAR
-{
-	struct addrinfo hints; // VER!
-	struct addrinfo *server_info;
 
-	memset(&hints, 0, sizeof(hints));
-	hints.ai_family = AF_UNSPEC;
-	hints.ai_socktype = SOCK_STREAM;
-	hints.ai_flags = AI_PASSIVE;
-
-	getaddrinfo(ip, puerto, &hints, &server_info);
-
-	int socket_cliente = socket(server_info->ai_family, server_info->ai_socktype, server_info->ai_protocol);
-
-	if(connect(socket_cliente, server_info->ai_addr, server_info->ai_addrlen) == -1)
-		printf("error");
-
-	freeaddrinfo(server_info);
-
-	return socket_cliente;
-}
 					// ******* FIN DEFINICION DE FUNCIONES A UTILIZAR ******* //
 
 #endif /* TP0_H_ */
