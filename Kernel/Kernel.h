@@ -16,8 +16,9 @@
 #include <readline/readline.h>
 #include <stdint.h>
 #include <time.h>
-#include <Global/utils.h>
-//#include "../Global/interface_procesos.h"
+#include "../Global/utils.h"
+#include "../Global/utils.c"
+#include "../Global/interface_procesos.h"
 
 
 							// ******* TIPOS NECESARIOS ******* //
