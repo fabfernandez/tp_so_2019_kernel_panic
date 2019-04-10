@@ -17,7 +17,6 @@
 #include <stdint.h>
 #include <time.h>
 
-
 							// ******* TIPOS NECESARIOS ******* //
 t_log* logger;
 t_config* archivoconfig;
