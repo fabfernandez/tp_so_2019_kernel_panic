@@ -16,11 +16,10 @@
 #include <commons/config.h>
 #include <readline/readline.h>
 
-#include "../Global/interface_procesos.h"
-#include "../Global/utils.h"
 #include <stdint.h>
 
 #include <time.h>
+#include <global/utils.h>
 
 
 							// ******* TIPOS NECESARIOS ******* //

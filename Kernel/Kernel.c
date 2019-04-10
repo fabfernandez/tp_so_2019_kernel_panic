@@ -18,11 +18,13 @@ int main(void)
 	PUERTO_MEMORIA = config_get_string_value(archivoconfig, "PUERTO_MEMORIA"); // asignamos puerto desde CONFIG
 	conexionAMemoria = crear_conexion(IP_MEMORIA,PUERTO_MEMORIA); // --> VER <--
 
-	// enviar_mensaje("TESTINGGGGG", conexionAMemoria); // Mensaje de prueba
-
-	while (1) {
-
+	enviar_mensaje("TESTINGGGGG", conexionAMemoria); // Mensaje de prueba
+	if(recibir_operacion(conexionAMemoria) == 100){
+		log_info(logger, "Me conecté a Memoria exitosamente");
+	}else{
+		log_error(logger, "Error al recibir operacion");
 	}
+
 	terminar_programa(conexionAMemoria); // termina conexion, destroy log y destroy config.
 }
 

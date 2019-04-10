@@ -1,7 +1,3 @@
-################################################################################
-# Automatically-generated file. Do not edit!
-################################################################################
-
 -include ../makefile.init
 
 RM := rm -rf
@@ -25,18 +21,16 @@ endif
 all: Kernel
 
 # Tool invocations
-Kernel: $(OBJS) $(USER_OBJS)
+Kernel:
 	@echo 'Building target: $@'
 	@echo 'Invoking: GCC C Linker'
-	gcc  -o "Kernel" $(OBJS) $(USER_OBJS) $(LIBS)
+	gcc -L/home/utnso/tp-2019-1c-Los-Dinosaurios-Del-Libro/global/ -o "Kernel" -lcommons -lglobal
 	@echo 'Finished building target: $@'
 	@echo ' '
 
 # Other Targets
-clean:
-	-$(RM) $(EXECUTABLES)$(OBJS)$(C_DEPS) Kernel
-	-@echo ' '
 
 .PHONY: all clean dependents
 
 -include ../makefile.targets
+export LD_LIBRARY_PATH=/home/utnso/tp-2019-1c-Los-Dinosaurios-Del-Libro/global/Debug:$LD_LIBRARY_PATH

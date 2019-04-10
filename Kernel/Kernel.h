@@ -7,7 +7,7 @@
 
 #ifndef KERNEL_H_
 #define KERNEL_H_
-
+#include <global/utils.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include<commons/log.h>
@@ -16,8 +16,6 @@
 #include <readline/readline.h>
 #include <stdint.h>
 #include <time.h>
-#include <Global/utils.h>
-//#include "../Global/interface_procesos.h"
 
 
 							// ******* TIPOS NECESARIOS ******* //
