@@ -11,23 +11,39 @@ int main(void)
 	int conexionAMemoria;
 	char* IP_MEMORIA;
 	char* PUERTO_MEMORIA;
+	int socketKernel;
 	iniciar_logger(); // creamos log
 	leer_config(); // abrimos config
 
 	IP_MEMORIA = config_get_string_value(archivoconfig, "IP_MEMORIA"); // asignamos IP de memoria a conectar desde CONFIG
 	PUERTO_MEMORIA = config_get_string_value(archivoconfig, "PUERTO_MEMORIA"); // asignamos puerto desde CONFIG
-	conexionAMemoria = crear_conexion(IP_MEMORIA,PUERTO_MEMORIA); // --> VER <--
 
-	enviar_mensaje("TESTINGGGGG", conexionAMemoria); // Mensaje de prueba
-	if(recibir_operacion(conexionAMemoria) == 100){
-		log_info(logger, "Me conecté a Memoria exitosamente");
-	}else{
-		log_error(logger, "Error al recibir operacion");
-	}
+	// CREO SOCKET DESCRIPTOR KERNEL //
 
+	socketKernel = socket(AF_INET,SOCK_STREAM,0);
+
+	// SETEO SERVIDOR AL QUE ME VOY A CONECTAR
+
+	struct sockaddr_in destino_addr; // direccion a la que me voy a conectar(este caso memoria)
+	 destino_addr.sin_family = AF_INET; // por defecto aca va siempre AF_INET(ver beej)
+	 destino_addr.sin_port = htons(PUERTO_MEMORIA); // PUERTO EN EL QUE ESCUCHA LA MEMORIA -> PERO LO PASAMOS A ORDENACION DE RED
+	 destino_addr.sin_addr.s_addr = inet_addr(IP_MEMORIA); // IP DE LA MEMORIA
+	 memset(&(destino_addr.sin_zero), '\0', 8); // PONE EN CERO EL RESTO DE LA ESTRUCTURA(SIEMPRE, VER BEEJ)
+
+	// CONECTO!
+	crear_conexion(socketKernel, IP_MEMORIA,PUERTO_MEMORIA); // conecto el socketKernel(ESTE PROCESO) con la memoria
+
+	while(1) {};
+	close(socketKernel);
 	terminar_programa(conexionAMemoria); // termina conexion, destroy log y destroy config.
 }
 
+/*void chequearSocket(int socketin){
+	if(socketin == -1){ printf("Error creacion de socket"); }
+	else { printf("Socket creado exitosamente: %i", socketin);
+			//exit(-1);
+	}
+};*/
 
 void iniciar_logger() { 								// CREACION DE LOG
 	logger = log_create("/home/utnso/tp-2019-1c-Los-Dinosaurios-Del-Libro/Kernel/kernel.log", "kernel", 1, LOG_LEVEL_INFO);

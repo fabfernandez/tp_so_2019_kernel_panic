@@ -23,7 +23,7 @@ void* serializar_paquete(t_paquete* paquete, int bytes)
 	return magic;
 }
 
-int crear_conexion(char *ip, char* puerto)
+int crear_conexion(int socket_cliente, char *ip, char* puerto) // conecta el socket
 {
 	struct addrinfo hints;
 	struct addrinfo *server_info;
@@ -35,11 +35,10 @@ int crear_conexion(char *ip, char* puerto)
 
 	getaddrinfo(ip, puerto, &hints, &server_info);
 
-	int socket_cliente = socket(server_info->ai_family, server_info->ai_socktype, server_info->ai_protocol);
+	//int socket_cliente = socket(server_info->ai_family, server_info->ai_socktype, server_info->ai_protocol);
 
 	if(connect(socket_cliente, server_info->ai_addr, server_info->ai_addrlen) == -1)
 		printf("error");
-
 	freeaddrinfo(server_info);
 
 	return socket_cliente;

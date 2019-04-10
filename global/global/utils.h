@@ -62,7 +62,7 @@ int create(char* tabla, t_consistencia consistencia, int maximo_particiones, lon
 
 t_metadata describe(char* tabla);
 
-int crear_conexion(char* ip, char* puerto);
+int crear_conexion(int socket_cliente, char* ip, char* puerto);
 void enviar_mensaje(char* mensaje, int socket_cliente);
 t_paquete* crear_paquete(void);
 t_paquete* crear_super_paquete(void);

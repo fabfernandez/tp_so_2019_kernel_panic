@@ -27,7 +27,6 @@ typedef char* t_valor;					// VALOR QUE DEVUELVE EL SELECT(TODAVIA NO SABEMOS QU
 						// ******* FIN VARIABLES NECESARIAS ******* //
 
 
-
 							// ******* API KERNEL ******* //
 
 int insert(char* tabla, uint16_t key, long timestamp); 	// INSERT PROTOTIPO (1)
@@ -44,7 +43,7 @@ int add(int memoria, t_consistencia consistencia);		// ADD PROTOTIPO	(8)
 
 
 							// ******* DEFINICION DE FUNCIONES A UTILIZAR ******* //
-
+void chequearSocket(int socketin);
 void iniciar_logger(void);
 void leer_config(void);
 void terminar_programa(int conexion);
