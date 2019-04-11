@@ -1,0 +1,73 @@
+[INFO] 23:05:10:326 kernel/(26631:26631): Memoria lista para recibir a peticiones de Kernel
+[INFO] 23:05:10:330 kernel/(26631:26631): Memoria espera peticiones
+[INFO] 23:08:11:418 kernel/(26736:26736): Creada la conexion para la memoria
+[INFO] 23:08:11:418 kernel/(26736:26736): Trato de realizar un hasdshake
+[INFO] 23:12:07:681 kernel/(26882:26882): Memoria lista para recibir a peticiones de Kernel
+[INFO] 23:12:07:682 kernel/(26882:26882): Memoria espera peticiones
+[INFO] 23:12:11:462 kernel/(26883:26883): Creada la conexion para la memoria
+[INFO] 23:12:11:462 kernel/(26883:26883): Trato de realizar un hasdshake
+[INFO] 23:21:18:706 kernel/(27282:27282): La IP de la memoria es 127.0.0.2
+[INFO] 23:21:18:710 kernel/(27282:27282): El puerto de la memoria es 4444
+[INFO] 23:21:18:711 kernel/(27282:27282): Memoria lista para recibir a peticiones de Kernel
+[INFO] 23:21:18:711 kernel/(27282:27282): Memoria espera peticiones
+[INFO] 23:21:28:918 kernel/(27283:27283): La IP de la memoria es 127.0.0.2
+[INFO] 23:21:28:918 kernel/(27283:27283): El puerto de la memoria es 4444
+[INFO] 23:21:28:919 kernel/(27282:27282): Memoria se conectó con Kernel
+[INFO] 23:21:28:919 kernel/(27283:27283): Creada la conexion para la memoria
+[INFO] 23:21:28:919 kernel/(27283:27283): Trato de realizar un hasdshake
+[INFO] 23:21:28:919 kernel/(27282:27282): Inicia handshake con Kernel
+[WARNING] 23:21:28:919 kernel/(27282:27282): Operacion desconocida.
+[INFO] 23:22:35:522 kernel/(27304:27304): La IP de la memoria es 127.0.0.2
+[INFO] 23:22:35:523 kernel/(27304:27304): El puerto de la memoria es 4444
+[INFO] 23:22:35:526 kernel/(27304:27304): Memoria lista para recibir a peticiones de Kernel
+[INFO] 23:22:35:526 kernel/(27304:27304): Memoria espera peticiones
+[INFO] 23:22:39:160 kernel/(27305:27305): La IP de la memoria es 127.0.0.2
+[INFO] 23:22:39:160 kernel/(27305:27305): El puerto de la memoria es 4444
+[INFO] 23:22:39:161 kernel/(27304:27304): Memoria se conectó con Kernel
+[INFO] 23:22:39:162 kernel/(27305:27305): Creada la conexion para la memoria
+[INFO] 23:22:39:162 kernel/(27305:27305): Trato de realizar un hasdshake
+[INFO] 23:22:39:162 kernel/(27304:27304): Inicia handshake con Kernel
+[WARNING] 23:22:39:163 kernel/(27304:27304): Operacion desconocida.
+[INFO] 23:54:03:691 kernel/(28635:28635): La IP de la memoria es 127.0.0.2
+[INFO] 23:54:03:691 kernel/(28635:28635): El puerto de la memoria es 4444
+[INFO] 23:54:03:692 kernel/(28635:28635): Memoria lista para recibir a peticiones de Kernel
+[INFO] 23:54:03:692 kernel/(28635:28635): Memoria espera peticiones
+[INFO] 23:54:11:976 kernel/(28637:28637): La IP de la memoria es 127.0.0.2
+[INFO] 23:54:11:977 kernel/(28637:28637): El puerto de la memoria es 4444
+[INFO] 23:54:11:978 kernel/(28635:28635): Memoria se conectó con Kernel
+[INFO] 23:54:11:978 kernel/(28637:28637): Creada la conexion para la memoria
+[INFO] 23:54:11:978 kernel/(28637:28637): Trato de realizar un hasdshake
+[INFO] 23:54:11:979 kernel/(28635:28635): Inicia handshake con Kernel
+[INFO] 23:54:11:979 kernel/(28635:28635): Me llego el mensaje Hola, me conecto, soy el Kernel
+[INFO] 23:54:11:979 kernel/(28635:28635): Conexion exitosa con kernel
+[INFO] 23:54:11:979 kernel/(28637:28637): Se envió el mensaje Hola, me conecto, soy el Kernel
+[WARNING] 23:54:12:455 kernel/(28635:28635): Operacion desconocida.
+[INFO] 00:01:08:684 kernel/(28853:28853): La IP de la memoria es 127.0.0.2
+[INFO] 00:01:08:685 kernel/(28853:28853): El puerto de la memoria es 4444
+[INFO] 00:01:08:685 kernel/(28853:28853): Memoria lista para recibir a peticiones de Kernel
+[INFO] 00:01:08:685 kernel/(28853:28853): Memoria espera peticiones
+[INFO] 00:02:37:598 kernel/(28959:28959): La IP de la memoria es 127.0.0.2
+[INFO] 00:02:37:598 kernel/(28959:28959): El puerto de la memoria es 4444
+[INFO] 00:02:37:598 kernel/(28959:28959): Creada la conexion para la memoria
+[INFO] 00:02:37:598 kernel/(28853:28853): Memoria se conectó con Kernel
+[INFO] 00:02:37:598 kernel/(28959:28959): Trato de realizar un hasdshake
+[INFO] 00:02:37:598 kernel/(28959:28959): Se envió el mensaje Hola, me conecto, soy el Kernel
+[INFO] 00:02:37:598 kernel/(28853:28853): Inicia handshake con Kernel
+[INFO] 00:02:37:598 kernel/(28853:28853): Me llego el mensaje Hola, me conecto, soy el Kernel
+[INFO] 00:02:37:599 kernel/(28853:28853): Conexion exitosa con kernel
+[WARNING] 00:04:53:897 kernel/(28853:28853): Operacion desconocida.
+[INFO] 00:11:07:408 kernel/(29707:29707): La IP de la memoria es 127.0.0.2
+[INFO] 00:11:07:410 kernel/(29707:29707): El puerto de la memoria es 4444
+[INFO] 00:11:07:411 kernel/(29707:29707): Memoria lista para recibir a peticiones de Kernel
+[INFO] 00:11:07:411 kernel/(29707:29707): Memoria espera peticiones
+[INFO] 00:11:11:805 kernel/(29708:29708): La IP de la memoria es 127.0.0.2
+[INFO] 00:11:11:806 kernel/(29708:29708): El puerto de la memoria es 4444
+[INFO] 00:11:11:806 kernel/(29707:29707): Memoria se conectó con Kernel
+[INFO] 00:11:11:807 kernel/(29708:29708): Creada la conexion para la memoria
+[INFO] 00:11:11:807 kernel/(29708:29708): Trato de realizar un hasdshake
+[INFO] 00:11:11:807 kernel/(29707:29707): Inicia handshake con Kernel
+[INFO] 00:11:11:807 kernel/(29707:29707): Me llego el mensaje Hola, me conecto, soy el Kernel
+[INFO] 00:11:11:807 kernel/(29707:29707): Conexion exitosa con kernel
+[INFO] 00:11:11:808 kernel/(29708:29708): Se envió el mensaje Hola, me conecto, soy el Kernel
+[INFO] 00:11:11:808 kernel/(29708:29708): Me llego el mensaje OK
+[ERROR] 00:12:57:117 kernel/(29707:29707): el cliente se desconecto. Terminando servidor
