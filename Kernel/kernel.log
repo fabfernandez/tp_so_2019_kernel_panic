@@ -189,3 +189,10 @@
 [INFO] 22:33:52:301 kernel/(11353:11353): Conexion exitosa con Memoria
 [INFO] 22:34:09:98 kernel/(11353:11353): La operacion tiene codigo: 2
 [INFO] 22:35:08:2 kernel/(11353:11353): La operacion tiene codigo: 8
+[INFO] 20:46:30:18 kernel/(17170:17170): La IP de la memoria es 127.0.0.2
+[INFO] 20:46:30:26 kernel/(17170:17170): El puerto de la memoria es 4444
+[INFO] 20:46:30:26 kernel/(17170:17170): Creada la conexion para la memoria
+[INFO] 20:46:30:26 kernel/(17170:17170): Trato de realizar un hasdshake
+[INFO] 20:46:30:26 kernel/(17170:17170): Se envió el mensaje Hola, me conecto, soy el Kernel
+[INFO] 20:46:30:27 kernel/(17170:17170): Me llego el mensaje OK
+[INFO] 20:46:30:27 kernel/(17170:17170): Conexion exitosa con Memoria

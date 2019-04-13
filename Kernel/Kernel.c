@@ -44,11 +44,44 @@ int main(void)
 	while(1){
 		char* linea = readline("Consola kernel>");
 		t_instruccion_lql instruccion =parsear_linea(linea);
-		//ejecutar_instruccion(instruccion);
+		ejecutar_instruccion(instruccion, socket_memoria);
 		free(linea);
 	}
 	close(socket_memoria);
 	terminar_programa(socket_memoria); // termina conexion, destroy log y destroy config.
+}
+
+void ejecutar_instruccion(t_instruccion_lql instruccion, int socket_memoria){
+	t_operacion operacion = instruccion.operacion;
+	switch(operacion) {
+		case SELECT:
+			log_info(logger, "Se solicita SELECT a memoria");
+			//resolver_select(instruccion, socket_memoria);
+			break;
+		case INSERT:
+			log_info(logger, "Kernel solicitó INSERT");
+			//aca debería enviarse el mensaje a LFS con INSERT
+			break;
+		case CREATE:
+			log_info(logger, "Kernel solicitó CREATE");
+			//aca debería enviarse el mensaje a LFS con CREATE
+			break;
+		case DESCRIBE:
+			log_info(logger, "Kernel solicitó DESCRIBE");
+			//aca debería enviarse el mensaje a LFS con DESCRIBE
+			break;
+		case DROP:
+			log_info(logger, "Kernel solicitó DROP");
+			//aca debería enviarse el mensaje a LFS con DROP
+			break;
+		case RUN:
+			log_info(logger, "Kernel solicitó DROP");
+			//aca debería enviarse el mensaje a LFS con DROP
+			break;
+		default:
+			log_warning(logger, "Operacion desconocida.");
+			break;
+		}
 }
 
 /*void chequearSocket(int socketin){
@@ -58,7 +91,18 @@ int main(void)
 	}
 };*/
 
-void iniciar_logger() { 								// CREACION DE LOG
+void resolver_select(t_instruccion_lql instruccion, int socket_memoria){
+
+	t_paquete_select* paquete_select = crear_paquete_select(instruccion);
+	int tamanio_paquete = paquete_select->nombre_tabla->size + sizeof(uint16_t)+ sizeof(t_operacion);
+	void* a_enviar = serializar_paquete_select(paquete_select, tamanio_paquete);
+	send(socket_memoria, a_enviar, tamanio_paquete, 0);
+	free(a_enviar);
+}
+
+
+
+void iniciar_logger() { 							// CREACION DE LOG
 	logger = log_create("/home/utnso/tp-2019-1c-Los-Dinosaurios-Del-Libro/Kernel/kernel.log", "kernel", 1, LOG_LEVEL_INFO);
 }
 

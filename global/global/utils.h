@@ -17,27 +17,23 @@
 #include<string.h>
 #include<commons/log.h>
 
-typedef enum
-{
-	MENSAJE,
-	PAQUETE
-}op_code;
-
 typedef struct
 {
 	int size;
-	void* stream;
+	char* stream;
 } t_buffer;
-
-typedef struct
-{
-	op_code codigo_operacion;
-	t_buffer* buffer;
-} t_paquete;
 
 typedef enum operaciones {
 	INSERT,SELECT,CREATE,DESCRIBE,DROP, JOURNAL,ADD,METRICS,RUN, HANDSHAKE
 }t_operacion;
+
+
+typedef struct
+{
+	t_operacion codigo_operacion;
+	t_buffer* buffer;
+} t_paquete;
+
 
 typedef enum consistencias{
 	STRONG, STRONG_HASH, EVENTUAL

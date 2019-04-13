@@ -10,6 +10,7 @@
 #include <readline/readline.h>
 #include <global/parser.h>
 #include <global/utils.h>
+#include <global/protocolos.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include<commons/log.h>

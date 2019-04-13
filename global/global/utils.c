@@ -123,15 +123,6 @@ int esperar_cliente(int socket_servidor)
 	return socket_cliente;
 }
 
-
-t_paquete* crear_paquete(void)
-{
-	t_paquete* paquete = malloc(sizeof(t_paquete));
-	paquete->codigo_operacion = PAQUETE;
-	crear_buffer(paquete);
-	return paquete;
-}
-
 void agregar_a_paquete(t_paquete* paquete, void* valor, int tamanio)
 {
 	paquete->buffer->stream = realloc(paquete->buffer->stream, paquete->buffer->size + tamanio + sizeof(int));
