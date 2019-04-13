@@ -35,9 +35,8 @@ typedef struct
 	t_buffer* buffer;
 } t_paquete;
 
-
 typedef enum operaciones {
-	INSERT,SELECT,CREATE,DESCRIBE,DROP, HANDSHAKE
+	INSERT,SELECT,CREATE,DESCRIBE,DROP, JOURNAL,ADD,METRICS,RUN, HANDSHAKE
 }t_operacion;
 
 typedef enum consistencias{

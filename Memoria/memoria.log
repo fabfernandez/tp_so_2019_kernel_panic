@@ -1,0 +1,140 @@
+[INFO] 19:44:25:533 Memoria/(7723:7723): La IP de la memoria es 127.0.0.2
+[INFO] 19:44:25:533 Memoria/(7723:7723): El puerto de la memoria es (null)
+[INFO] 19:44:25:534 Memoria/(7723:7723): Memoria lista para recibir a peticiones de Kernel
+[INFO] 19:44:25:534 Memoria/(7723:7723): Memoria espera peticiones
+[INFO] 19:49:33:281 Memoria/(7874:7874): La IP de la memoria es 127.0.0.2
+[INFO] 19:49:33:281 Memoria/(7874:7874): El puerto de la memoria es (null)
+[INFO] 19:49:33:281 Memoria/(7874:7874): Memoria lista para recibir a peticiones de Kernel
+[INFO] 19:49:33:281 Memoria/(7874:7874): Memoria espera peticiones
+[INFO] 19:52:20:895 Memoria/(7956:7956): La IP de la memoria es 127.0.0.2
+[INFO] 19:52:20:896 Memoria/(7956:7956): El puerto de la memoria es (null)
+[INFO] 19:52:20:897 Memoria/(7956:7956): Memoria lista para recibir a peticiones de Kernel
+[INFO] 19:52:20:897 Memoria/(7956:7956): Memoria espera peticiones
+[INFO] 19:55:29:492 Memoria/(8076:8076): La IP de la memoria es 127.0.0.2
+[INFO] 19:55:29:492 Memoria/(8076:8076): El puerto de la memoria es 4444
+[INFO] 19:55:29:492 Memoria/(8076:8076): Memoria lista para recibir a peticiones de Kernel
+[INFO] 19:55:29:493 Memoria/(8076:8076): Memoria espera peticiones
+[INFO] 19:55:57:38 Memoria/(8076:8076): Memoria se conectó con Kernel
+[INFO] 19:56:08:273 Memoria/(8076:8076): Inicia handshake con Kernel
+[INFO] 19:56:08:273 Memoria/(8076:8076): Me llego el mensaje Hola, me conecto, soy el Kernel
+[INFO] 19:56:08:274 Memoria/(8076:8076): Conexion exitosa con kernel
+[ERROR] 20:01:41:679 Memoria/(8076:8076): el cliente se desconecto. Terminando servidor
+[INFO] 20:03:07:343 Memoria/(8307:8307): La IP de la memoria es 127.0.0.2
+[INFO] 20:03:07:344 Memoria/(8307:8307): El puerto de la memoria es 4444
+[INFO] 20:03:07:344 Memoria/(8307:8307): Memoria lista para recibir a peticiones de Kernel
+[INFO] 20:03:07:344 Memoria/(8307:8307): Memoria espera peticiones
+[INFO] 20:03:27:47 Memoria/(8307:8307): Memoria se conectó con Kernel
+[INFO] 20:03:28:116 Memoria/(8307:8307): Inicia handshake con Kernel
+[INFO] 20:03:28:116 Memoria/(8307:8307): Me llego el mensaje Hola, me conecto, soy el Kernel
+[INFO] 20:03:28:116 Memoria/(8307:8307): Conexion exitosa con kernel
+[ERROR] 20:10:37:944 Memoria/(8307:8307): el cliente se desconecto. Terminando servidor
+[INFO] 20:29:08:518 Memoria/(8991:8991): La IP de la memoria es 127.0.0.2
+[INFO] 20:29:08:529 Memoria/(8991:8991): El puerto de la memoria es 4444
+[INFO] 20:29:08:529 Memoria/(8991:8991): Memoria lista para recibir a peticiones de Kernel
+[INFO] 20:29:08:529 Memoria/(8991:8991): Memoria espera peticiones
+[INFO] 20:31:26:804 Memoria/(8991:8991): Memoria se conectó con Kernel
+[INFO] 20:31:27:325 Memoria/(8991:8991): Inicia handshake con Kernel
+[INFO] 20:31:27:325 Memoria/(8991:8991): Me llego el mensaje Hola, me conecto, soy el Kernel
+[INFO] 20:31:27:325 Memoria/(8991:8991): Conexion exitosa con kernel
+[ERROR] 21:15:54:255 Memoria/(8991:8991): el cliente se desconecto. Terminando servidor
+[INFO] 21:19:11:730 Memoria/(9414:9414): La IP de la memoria es 127.0.0.2
+[INFO] 21:19:11:730 Memoria/(9414:9414): El puerto de la memoria es 4444
+[INFO] 21:19:11:731 Memoria/(9414:9414): Memoria lista para recibir a peticiones de Kernel
+[INFO] 21:19:11:731 Memoria/(9414:9414): Memoria espera peticiones
+[INFO] 21:19:41:58 Memoria/(9414:9414): Memoria se conectó con Kernel
+[INFO] 21:19:41:59 Memoria/(9414:9414): Inicia handshake con Kernel
+[INFO] 21:19:41:59 Memoria/(9414:9414): Me llego el mensaje Hola, me conecto, soy el Kernel
+[INFO] 21:19:41:59 Memoria/(9414:9414): Conexion exitosa con kernel
+[ERROR] 21:21:15:325 Memoria/(9414:9414): el cliente se desconecto. Terminando servidor
+[INFO] 21:21:34:715 Memoria/(9579:9579): La IP de la memoria es 127.0.0.2
+[INFO] 21:21:34:716 Memoria/(9579:9579): El puerto de la memoria es 4444
+[INFO] 21:21:34:716 Memoria/(9579:9579): Memoria lista para recibir a peticiones de Kernel
+[INFO] 21:21:34:717 Memoria/(9579:9579): Memoria espera peticiones
+[INFO] 21:21:38:80 Memoria/(9579:9579): Memoria se conectó con Kernel
+[INFO] 21:21:38:81 Memoria/(9579:9579): Inicia handshake con Kernel
+[INFO] 21:21:38:81 Memoria/(9579:9579): Me llego el mensaje Hola, me conecto, soy el Kernel
+[INFO] 21:21:38:82 Memoria/(9579:9579): Conexion exitosa con kernel
+[ERROR] 21:21:41:630 Memoria/(9579:9579): el cliente se desconecto. Terminando servidor
+[INFO] 21:23:00:569 Memoria/(9606:9606): La IP de la memoria es 127.0.0.2
+[INFO] 21:23:00:570 Memoria/(9606:9606): El puerto de la memoria es 4444
+[INFO] 21:23:00:570 Memoria/(9606:9606): Memoria lista para recibir a peticiones de Kernel
+[INFO] 21:23:00:570 Memoria/(9606:9606): Memoria espera peticiones
+[INFO] 21:23:28:439 Memoria/(9606:9606): Memoria se conectó con Kernel
+[INFO] 21:23:30:442 Memoria/(9606:9606): Inicia handshake con Kernel
+[INFO] 21:23:30:443 Memoria/(9606:9606): Me llego el mensaje Hola, me conecto, soy el Kernel
+[INFO] 21:23:30:443 Memoria/(9606:9606): Conexion exitosa con kernel
+[ERROR] 21:24:12:612 Memoria/(9606:9606): el cliente se desconecto. Terminando servidor
+[INFO] 21:24:37:752 Memoria/(9701:9701): La IP de la memoria es 127.0.0.2
+[INFO] 21:24:37:754 Memoria/(9701:9701): El puerto de la memoria es 4444
+[INFO] 21:24:37:754 Memoria/(9701:9701): Memoria lista para recibir a peticiones de Kernel
+[INFO] 21:24:37:754 Memoria/(9701:9701): Memoria espera peticiones
+[INFO] 21:24:50:236 Memoria/(9762:9762): La IP de la memoria es 127.0.0.2
+[INFO] 21:24:50:236 Memoria/(9762:9762): El puerto de la memoria es 4444
+[INFO] 21:24:50:237 Memoria/(9762:9762): Memoria lista para recibir a peticiones de Kernel
+[INFO] 21:24:50:237 Memoria/(9762:9762): Memoria espera peticiones
+[INFO] 21:24:54:734 Memoria/(9762:9762): Memoria se conectó con Kernel
+[INFO] 21:24:54:736 Memoria/(9762:9762): Inicia handshake con Kernel
+[INFO] 21:24:54:736 Memoria/(9762:9762): Me llego el mensaje Hola, me conecto, soy el Kernel
+[INFO] 21:24:54:736 Memoria/(9762:9762): Conexion exitosa con kernel
+[ERROR] 21:24:56:824 Memoria/(9762:9762): el cliente se desconecto. Terminando servidor
+[INFO] 21:38:44:529 Memoria/(10155:10155): La IP de la memoria es 127.0.0.2
+[INFO] 21:38:44:529 Memoria/(10155:10155): El puerto de la memoria es 4444
+[INFO] 21:38:44:530 Memoria/(10155:10155): Memoria lista para recibir a peticiones de Kernel
+[INFO] 21:38:44:530 Memoria/(10155:10155): Memoria espera peticiones
+[INFO] 21:38:47:240 Memoria/(10155:10155): Memoria se conectó con Kernel
+[INFO] 21:38:47:241 Memoria/(10155:10155): Inicia handshake con Kernel
+[INFO] 21:38:47:241 Memoria/(10155:10155): Me llego el mensaje Hola, me conecto, soy el Kernel
+[INFO] 21:38:47:241 Memoria/(10155:10155): Conexion exitosa con kernel
+[INFO] 21:55:58:138 Memoria/(10511:10511): La IP de la memoria es 127.0.0.2
+[INFO] 21:55:58:139 Memoria/(10511:10511): El puerto de la memoria es 4444
+[INFO] 21:55:58:140 Memoria/(10511:10511): Memoria lista para recibir a peticiones de Kernel
+[INFO] 21:55:58:140 Memoria/(10511:10511): Memoria espera peticiones
+[INFO] 21:55:58:140 Memoria/(10511:10511): Memoria se conectó con Kernel
+[WARNING] 21:55:58:140 Memoria/(10511:10511): Operacion desconocida.
+[INFO] 21:56:01:706 Memoria/(10512:10512): La IP de la memoria es 127.0.0.2
+[INFO] 21:56:01:707 Memoria/(10512:10512): El puerto de la memoria es 4444
+[INFO] 21:56:01:707 Memoria/(10512:10512): Memoria lista para recibir a peticiones de Kernel
+[INFO] 21:56:01:708 Memoria/(10512:10512): Memoria espera peticiones
+[INFO] 21:56:01:708 Memoria/(10512:10512): Memoria se conectó con Kernel
+[WARNING] 21:56:01:709 Memoria/(10512:10512): Operacion desconocida.
+[INFO] 21:56:34:43 Memoria/(10535:10535): La IP de la memoria es 127.0.0.2
+[INFO] 21:56:34:44 Memoria/(10535:10535): El puerto de la memoria es 4444
+[INFO] 21:56:34:44 Memoria/(10535:10535): Memoria lista para recibir a peticiones de Kernel
+[INFO] 21:56:34:45 Memoria/(10535:10535): Memoria espera peticiones
+[INFO] 21:56:34:45 Memoria/(10535:10535): Memoria se conectó con Kernel
+[WARNING] 21:56:34:46 Memoria/(10535:10535): Operacion desconocida.
+[INFO] 21:58:58:422 Memoria/(10681:10681): La IP de la memoria es 127.0.0.2
+[INFO] 21:58:58:422 Memoria/(10681:10681): El puerto de la memoria es 4444
+[INFO] 21:58:58:424 Memoria/(10681:10681): Memoria lista para recibir a peticiones de Kernel
+[INFO] 21:58:58:424 Memoria/(10681:10681): Memoria espera peticiones
+[INFO] 21:59:03:517 Memoria/(10681:10681): Memoria se conectó con Kernel
+[INFO] 21:59:03:519 Memoria/(10681:10681): Inicia handshake con Kernel
+[INFO] 21:59:03:519 Memoria/(10681:10681): Me llego el mensaje Hola, me conecto, soy el Kernel
+[INFO] 21:59:03:526 Memoria/(10681:10681): Conexion exitosa con kernel
+[ERROR] 22:08:16:610 Memoria/(10681:10681): el cliente se desconecto. Terminando servidor
+[INFO] 22:08:21:544 Memoria/(10795:10795): La IP de la memoria es 127.0.0.2
+[INFO] 22:08:21:544 Memoria/(10795:10795): El puerto de la memoria es 4444
+[INFO] 22:08:21:545 Memoria/(10795:10795): Memoria lista para recibir a peticiones de Kernel
+[INFO] 22:08:21:545 Memoria/(10795:10795): Memoria espera peticiones
+[INFO] 22:08:44:324 Memoria/(10795:10795): Memoria se conectó con Kernel
+[INFO] 22:08:45:224 Memoria/(10795:10795): Inicia handshake con Kernel
+[INFO] 22:08:45:224 Memoria/(10795:10795): Me llego el mensaje Hola, me conecto, soy el Kernel
+[INFO] 22:08:45:225 Memoria/(10795:10795): Conexion exitosa con kernel
+[ERROR] 22:13:16:617 Memoria/(10795:10795): el cliente se desconecto. Terminando servidor
+[INFO] 22:14:02:292 Memoria/(11003:11003): La IP de la memoria es 127.0.0.2
+[INFO] 22:14:02:293 Memoria/(11003:11003): El puerto de la memoria es 4444
+[INFO] 22:14:02:295 Memoria/(11003:11003): Memoria lista para recibir a peticiones de Kernel
+[INFO] 22:14:02:295 Memoria/(11003:11003): Memoria espera peticiones
+[INFO] 22:14:06:480 Memoria/(11003:11003): Memoria se conectó con Kernel
+[INFO] 22:14:06:481 Memoria/(11003:11003): Inicia handshake con Kernel
+[INFO] 22:14:06:481 Memoria/(11003:11003): Me llego el mensaje Hola, me conecto, soy el Kernel
+[INFO] 22:14:06:481 Memoria/(11003:11003): Conexion exitosa con kernel
+[ERROR] 22:14:32:445 Memoria/(11003:11003): el cliente se desconecto. Terminando servidor
+[INFO] 22:33:47:954 Memoria/(11352:11352): La IP de la memoria es 127.0.0.2
+[INFO] 22:33:47:956 Memoria/(11352:11352): El puerto de la memoria es 4444
+[INFO] 22:33:47:956 Memoria/(11352:11352): Memoria lista para recibir a peticiones de Kernel
+[INFO] 22:33:47:956 Memoria/(11352:11352): Memoria espera peticiones
+[INFO] 22:33:52:301 Memoria/(11352:11352): Memoria se conectó con Kernel
+[INFO] 22:33:52:301 Memoria/(11352:11352): Inicia handshake con Kernel
+[INFO] 22:33:52:301 Memoria/(11352:11352): Me llego el mensaje Hola, me conecto, soy el Kernel
+[INFO] 22:33:52:301 Memoria/(11352:11352): Conexion exitosa con kernel

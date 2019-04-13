@@ -45,7 +45,8 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/global/Debug}&quot;"/>
 								</option>
 								<option id="gnu.c.link.option.libs.1153659595" name="Libraries (-l)" superClass="gnu.c.link.option.libs" useByScannerDiscovery="false" valueType="libs">
-									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="global"/>
+									<listOptionValue builtIn="false" value="global"/>
+									<listOptionValue builtIn="false" value="readline"/>
 									<listOptionValue builtIn="false" value="commons"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.c.linker.input.776331088" superClass="cdt.managedbuild.tool.gnu.c.linker.input">

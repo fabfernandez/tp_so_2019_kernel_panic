@@ -45,7 +45,7 @@ int main(void)
 	char* ip_lfs;
 	char* puerto_lfs;
 	iniciar_logger(); // creamos log
-	leer_config(); // abrimos config
+	leer_config("asda"); // abrimos config
 
 	ip_memoria = config_get_string_value(archivoconfig, "IP_MEMORIA"); // asignamos IP de memoria a conectar desde CONFIG
 	log_info(logger, "La IP de la memoria es %s",ip_memoria );
@@ -110,11 +110,11 @@ int main(void)
 
 
  void iniciar_logger() { 								// CREACION DE LOG
-	logger = log_create("/home/utnso/tp-2019-1c-Los-Dinosaurios-Del-Libro/Kernel/kernel.log", "kernel", 1, LOG_LEVEL_INFO);
+	logger = log_create("/home/utnso/tp-2019-1c-Los-Dinosaurios-Del-Libro/Memoria/memoria.log", "Memoria", 1, LOG_LEVEL_INFO);
 }
 
 void leer_config(char * nombre_config) {								// APERTURA DE CONFIG
-	archivoconfig = config_create("/home/utnso/tp-2019-1c-Los-Dinosaurios-Del-Libro/Kernel/kernel.config");
+	archivoconfig = config_create("/home/utnso/tp-2019-1c-Los-Dinosaurios-Del-Libro/Memoria/memoria.config");
 }
 
 void terminar_programa(int conexionKernel, int conexionALFS)

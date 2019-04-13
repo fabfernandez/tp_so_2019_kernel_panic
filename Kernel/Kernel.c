@@ -41,7 +41,12 @@ int main(void)
 		recibir_handshake(logger, socket_memoria);
 		log_info(logger,"Conexion exitosa con Memoria");
 	}
-	while(1){}
+	while(1){
+		char* linea = readline("Consola kernel>");
+		t_instruccion_lql instruccion =parsear_linea(linea);
+		//ejecutar_instruccion(instruccion);
+		free(linea);
+	}
 	close(socket_memoria);
 	terminar_programa(socket_memoria); // termina conexion, destroy log y destroy config.
 }
