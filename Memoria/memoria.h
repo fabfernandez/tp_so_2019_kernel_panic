@@ -24,7 +24,7 @@ t_config* archivoconfig;
 
 typedef char* t_valor;	//valor que devuelve el select
 
-
+void leer_config();
 int insert(char* tabla, uint16_t key, long timestamp);
 
 t_valor select_(char* tabla, uint16_t key);

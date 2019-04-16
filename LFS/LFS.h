@@ -31,7 +31,7 @@ typedef char* t_valor;	//valor que devuelve el select
 // ******* DEFINICION DE FUNCIONES A UTILIZAR ******* //
 void chequearSocket(int socketin);
 void iniciar_logger(void);
-void leer_config(void);
+void leer_config();
 void terminar_programa(int conexion);
 					// ******* TIPOS NECESARIOS ******* //
 t_log* logger;

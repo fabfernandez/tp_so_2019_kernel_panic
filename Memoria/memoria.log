@@ -169,3 +169,98 @@
 [INFO] 01:18:00:580 Memoria/(16098:16098): El puerto de la memoria es (null)
 [INFO] 01:18:31:786 Memoria/(16155:16155): La IP de la memoria es (null)
 [INFO] 01:18:31:787 Memoria/(16155:16155): El puerto de la memoria es (null)
+[INFO] 12:33:56:58 Memoria/(4383:4383): La IP de la memoria es (null)
+[INFO] 12:33:56:58 Memoria/(4383:4383): El puerto de la memoria es (null)
+[INFO] 12:39:57:300 Memoria/(4647:4647): La IP de la memoria es (null)
+[INFO] 12:40:20:55 Memoria/(4647:4647): El puerto de la memoria es (null)
+[INFO] 12:41:59:276 Memoria/(4814:4814): La IP de la memoria es 127.0.0.2
+[INFO] 12:41:59:276 Memoria/(4814:4814): El puerto de la memoria es 4444
+[INFO] 12:41:59:277 Memoria/(4814:4814): La IP del LFS es (null)
+[INFO] 12:41:59:277 Memoria/(4814:4814): El puerto del LFS es (null)
+[INFO] 12:46:34:988 Memoria/(5007:5007): La IP de la memoria es 127.0.0.2
+[INFO] 12:46:34:988 Memoria/(5007:5007): El puerto de la memoria es 4444
+[INFO] 12:46:34:988 Memoria/(5007:5007): La IP del LFS es (null)
+[INFO] 12:46:34:988 Memoria/(5007:5007): El puerto del LFS es (null)
+[INFO] 12:53:44:853 Memoria/(5110:5110): La IP de la memoria es 127.0.0.2
+[INFO] 12:53:44:854 Memoria/(5110:5110): El puerto de la memoria es 4444
+[INFO] 12:53:44:854 Memoria/(5110:5110): La IP del LFS es 127.0.0.3
+[INFO] 12:53:44:854 Memoria/(5110:5110): El puerto del LFS es 6445
+[INFO] 12:53:44:855 Memoria/(5110:5110): Creada la conexion para LFS
+[INFO] 12:53:44:855 Memoria/(5110:5110): Trato de realizar un hasdshake
+[INFO] 12:53:44:855 Memoria/(5110:5110): Se envió el mensaje Hola, me conecto, soy la memoria
+[INFO] 12:53:44:865 Memoria/(5110:5110): Me llego el mensaje OK
+[INFO] 12:53:44:865 Memoria/(5110:5110): Conexion exitosa con Memoria
+[INFO] 12:53:44:865 Memoria/(5110:5110): Memoria lista para recibir a peticiones de Kernel
+[INFO] 12:53:44:865 Memoria/(5110:5110): Memoria espera peticiones
+[INFO] 12:54:16:475 Memoria/(5110:5110): Memoria se conectó con Kernel
+[INFO] 12:54:16:476 Memoria/(5110:5110): Inicia handshake con Kernel
+[INFO] 12:54:16:476 Memoria/(5110:5110): Me llego el mensaje Hola, me conecto, soy el Kernel
+[INFO] 12:54:16:476 Memoria/(5110:5110): Conexion exitosa con kernel
+[INFO] 12:56:10:659 Memoria/(5188:5188): La IP de la memoria es 127.0.0.2
+[INFO] 12:56:10:659 Memoria/(5188:5188): El puerto de la memoria es 4444
+[INFO] 12:56:10:660 Memoria/(5188:5188): La IP del LFS es 127.0.0.3
+[INFO] 12:56:10:660 Memoria/(5188:5188): El puerto del LFS es 6445
+[INFO] 12:56:10:661 Memoria/(5188:5188): Creada la conexion para LFS
+[INFO] 12:56:10:661 Memoria/(5188:5188): Trato de realizar un hasdshake
+[INFO] 12:56:10:662 Memoria/(5188:5188): Se envió el mensaje Hola, me conecto, soy la memoria
+[INFO] 12:56:10:662 Memoria/(5188:5188): Me llego el mensaje OK
+[INFO] 12:56:10:663 Memoria/(5188:5188): Conexion exitosa con Memoria
+[INFO] 12:56:10:663 Memoria/(5188:5188): Memoria lista para recibir a peticiones de Kernel
+[INFO] 12:56:10:663 Memoria/(5188:5188): Memoria espera peticiones
+[INFO] 12:56:15:794 Memoria/(5188:5188): Memoria se conectó con Kernel
+[INFO] 12:56:15:795 Memoria/(5188:5188): Inicia handshake con Kernel
+[INFO] 12:56:15:795 Memoria/(5188:5188): Me llego el mensaje Hola, me conecto, soy el Kernel
+[INFO] 12:56:15:795 Memoria/(5188:5188): Conexion exitosa con kernel
+[INFO] 12:57:02:52 Memoria/(5231:5231): La IP de la memoria es 127.0.0.2
+[INFO] 12:57:02:53 Memoria/(5231:5231): El puerto de la memoria es 4444
+[INFO] 12:57:02:53 Memoria/(5231:5231): La IP del LFS es 127.0.0.3
+[INFO] 12:57:02:53 Memoria/(5231:5231): El puerto del LFS es 6445
+[INFO] 12:57:02:54 Memoria/(5231:5231): Creada la conexion para LFS
+[INFO] 12:57:02:54 Memoria/(5231:5231): Trato de realizar un hasdshake
+[INFO] 12:57:02:55 Memoria/(5231:5231): Se envió el mensaje Hola, me conecto, soy la memoria
+[INFO] 12:57:02:55 Memoria/(5231:5231): Me llego el mensaje OK
+[INFO] 12:57:02:56 Memoria/(5231:5231): Conexion exitosa con LFS
+[INFO] 12:57:02:57 Memoria/(5231:5231): Memoria lista para recibir a peticiones de Kernel
+[INFO] 12:57:02:57 Memoria/(5231:5231): Memoria espera peticiones
+[INFO] 12:57:02:57 Memoria/(5231:5231): Memoria se conectó con Kernel
+[WARNING] 12:57:02:57 Memoria/(5231:5231): Operacion desconocida.
+[INFO] 12:57:09:642 Memoria/(5232:5232): La IP de la memoria es 127.0.0.2
+[INFO] 12:57:09:643 Memoria/(5232:5232): El puerto de la memoria es 4444
+[INFO] 12:57:09:643 Memoria/(5232:5232): La IP del LFS es 127.0.0.3
+[INFO] 12:57:09:643 Memoria/(5232:5232): El puerto del LFS es 6445
+[INFO] 12:57:09:644 Memoria/(5232:5232): Creada la conexion para LFS
+[INFO] 12:57:09:644 Memoria/(5232:5232): Trato de realizar un hasdshake
+[INFO] 12:57:22:319 Memoria/(5236:5236): La IP de la memoria es 127.0.0.2
+[INFO] 12:57:22:319 Memoria/(5236:5236): El puerto de la memoria es 4444
+[INFO] 12:57:22:319 Memoria/(5236:5236): La IP del LFS es 127.0.0.3
+[INFO] 12:57:22:320 Memoria/(5236:5236): El puerto del LFS es 6445
+[INFO] 12:57:22:320 Memoria/(5236:5236): Creada la conexion para LFS
+[INFO] 12:57:22:321 Memoria/(5236:5236): Trato de realizar un hasdshake
+[INFO] 12:57:22:321 Memoria/(5236:5236): Se envió el mensaje Hola, me conecto, soy la memoria
+[INFO] 12:57:22:322 Memoria/(5236:5236): Me llego el mensaje OK
+[INFO] 12:57:22:322 Memoria/(5236:5236): Conexion exitosa con LFS
+[INFO] 12:57:22:322 Memoria/(5236:5236): Memoria lista para recibir a peticiones de Kernel
+[INFO] 12:57:22:323 Memoria/(5236:5236): Memoria espera peticiones
+[INFO] 12:57:22:323 Memoria/(5236:5236): Memoria se conectó con Kernel
+[WARNING] 12:57:22:323 Memoria/(5236:5236): Operacion desconocida.
+[INFO] 12:59:07:999 Memoria/(5269:5269): La IP de la memoria es 127.0.0.2
+[INFO] 12:59:07:0 Memoria/(5269:5269): El puerto de la memoria es 4444
+[INFO] 12:59:07:0 Memoria/(5269:5269): La IP del LFS es 127.0.0.3
+[INFO] 12:59:07:0 Memoria/(5269:5269): El puerto del LFS es 6445
+[INFO] 12:59:07:1 Memoria/(5269:5269): Creada la conexion para LFS
+[INFO] 12:59:07:1 Memoria/(5269:5269): Trato de realizar un hasdshake
+[INFO] 12:59:18:42 Memoria/(5271:5271): La IP de la memoria es 127.0.0.2
+[INFO] 12:59:18:43 Memoria/(5271:5271): El puerto de la memoria es 4444
+[INFO] 12:59:18:43 Memoria/(5271:5271): La IP del LFS es 127.0.0.3
+[INFO] 12:59:18:43 Memoria/(5271:5271): El puerto del LFS es 6445
+[INFO] 12:59:18:44 Memoria/(5271:5271): Creada la conexion para LFS
+[INFO] 12:59:18:45 Memoria/(5271:5271): Trato de realizar un hasdshake
+[INFO] 12:59:18:45 Memoria/(5271:5271): Se envió el mensaje Hola, me conecto, soy la memoria
+[INFO] 12:59:18:46 Memoria/(5271:5271): Me llego el mensaje OK
+[INFO] 12:59:18:46 Memoria/(5271:5271): Conexion exitosa con LFS
+[INFO] 12:59:18:47 Memoria/(5271:5271): Memoria lista para recibir a peticiones de Kernel
+[INFO] 12:59:18:47 Memoria/(5271:5271): Memoria espera peticiones
+[INFO] 12:59:27:741 Memoria/(5271:5271): Memoria se conectó con Kernel
+[INFO] 12:59:27:742 Memoria/(5271:5271): Inicia handshake con Kernel
+[INFO] 12:59:27:742 Memoria/(5271:5271): Me llego el mensaje Hola, me conecto, soy el Kernel
+[INFO] 12:59:27:742 Memoria/(5271:5271): Conexion exitosa con kernel

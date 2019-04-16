@@ -8,34 +8,32 @@
 int main(void)
 {
 	int conexionALFS;
-	char* ip_memoria;
-	char* puerto_memoria;
-	char* ip__lfs;
-	char* puerto__lfs;
+	char* ip_memoria = string_new();
+	char* puerto_memoria = string_new();
+	char* ip__lfs = string_new();
+	char* puerto__lfs =string_new();
 
 	iniciar_logger(); // creamos log
 	leer_config(); // abrimos config
-
-	ip__lfs = config_get_string_value(archivoconfig, "IPLFS"); // asignamos IP de memoria a conectar desde CONFIG
-	log_info(logger, "La IP de la memoria es %s", ip__lfs);
-	puerto__lfs = config_get_string_value(archivoconfig, "PUERTOLFS"); // asignamos puerto desde CONFIG
-	log_info(logger, "El puerto de la memoria es %s", puerto__lfs);
-	int socket_conexion_lfs = crear_conexion(ip__lfs,puerto__lfs);
-	log_info(logger,"Creada la conexion para LFS");
-		char *mensaje = "Hola, me conecto, soy la memoria";
-		log_info(logger, "Trato de realizar un hasdshake");
-		if (enviar_handshake(socket_conexion_lfs,mensaje)){
-			log_info(logger, "Se envió el mensaje %s", mensaje);
-
-			recibir_handshake(logger, socket_conexion_lfs);
-			log_info(logger,"Conexion exitosa con Memoria");
-		}
 
 	ip_memoria = config_get_string_value(archivoconfig, "IP_MEMORIA"); // asignamos IP de memoria a conectar desde CONFIG
 	log_info(logger, "La IP de la memoria es %s",ip_memoria );
 	puerto_memoria = config_get_string_value(archivoconfig, "PUERTO_MEMORIA"); // asignamos puerto desde CONFIG
 	log_info(logger, "El puerto de la memoria es %s",puerto_memoria);
+	ip__lfs = config_get_string_value(archivoconfig, "IP_LFS"); // asignamos IP de memoria a conectar desde CONFIG
+	log_info(logger, "La IP del LFS es %s", ip__lfs);
+	puerto__lfs = config_get_string_value(archivoconfig, "PUERTO_LFS"); // asignamos puerto desde CONFIG
+	log_info(logger, "El puerto del LFS es %s", puerto__lfs);
+	int socket_conexion_lfs = crear_conexion(ip__lfs,puerto__lfs);
+	log_info(logger,"Creada la conexion para LFS");
+	char *mensaje = "Hola, me conecto, soy la memoria";
+	log_info(logger, "Trato de realizar un hasdshake");
+	if (enviar_handshake(socket_conexion_lfs,mensaje)){
+		log_info(logger, "Se envió el mensaje %s", mensaje);
 
+		recibir_handshake(logger, socket_conexion_lfs);
+		log_info(logger,"Conexion exitosa con LFS");
+	}
 
 
 	int server_fd = iniciar_servidor(ip_memoria, puerto_memoria);
@@ -54,8 +52,7 @@ int main(void)
 
 	//conexionALFS = crear_conexion(ip_lfs, puerto_lfs); // --> VER <--
 
-	while(1)
-	{
+	while(1){
 		int cod_op = recibir_operacion(socket_kernel_fd);
 		switch(cod_op)
 		{
@@ -93,10 +90,9 @@ int main(void)
 			return EXIT_FAILURE;
 			break;
 		}
-
+	}
 	terminar_programa(socket_kernel_fd, conexionALFS); // termina conexion, destroy log y destroy config.
 	return EXIT_SUCCESS;
-	}
 }
 
  void iniciar_logger() { 								// CREACION DE LOG
