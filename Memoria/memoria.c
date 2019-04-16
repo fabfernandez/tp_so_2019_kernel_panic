@@ -7,52 +7,35 @@
 #include "memoria.h"
 int main(void)
 {
-//	//char* MI_IP;
-////	char* PUERTO;
-//	//iniciar_logger(); // creamos log
-//	//leer_config(); // abrimos config
-////	PUERTO = 4444;
-//	#define IP_MEMORIA	"127.0.0.2"
-//	#define PUERTO	4444
-//	int activado = 1;
-//	int servidorMemoria = socket(AF_INET, SOCK_STREAM, 0);
-//	setsockopt(servidorMemoria, SOL_SOCKET,SO_REUSEADDR, &activado, sizeof(activado)); // PARA QUE SE PUEDAN REUSAR LAS ADDR Y NO QUEDEN BLOQUEADAS
-//
-//	// ---------------------- CONFIGURO SERVIDOR
-//	struct sockaddr_in direccionMemoria; //creo direccion a la que se va a conectar el kernel
-//	direccionMemoria.sin_family = AF_INET;
-//	direccionMemoria.sin_addr.s_addr = inet_addr(IP_MEMORIA); // CUAL ES MI IP?
-//	direccionMemoria.sin_port = htons(PUERTO); // EN QUE PUERTO VOY A RECIBIR CONEXIONES?
-//
-//	if( bind(servidorMemoria,(void*) &direccionMemoria, sizeof(direccionMemoria)) != 0) {
-//		perror("Fallo el bind"); // ME PONGO A ESCUCHAR CONEXIONES ;)
-//		return 1;
-//	}
-//
-//	printf("Estoy escuchando\n"); // NO FALLO EL BIND ASI QUE YA PUEDO RECIBIR
-//	listen(servidorMemoria, 10); // HASTA 10 CONEXIONES
-//
-//	// ---------------------- CONFIGURO CLIENTE
-//
-//	struct sockaddr_in direccionCliente;
-//	unsigned int tamanioDireccion;
-//	int cliente = accept(servidorMemoria, (void*) &direccionCliente, &tamanioDireccion); // ACEPTO CLIENTE Y CONECTO
-//
-//	printf("Recibi una conexion en %d", cliente);
 	int conexionALFS;
 	char* ip_memoria;
 	char* puerto_memoria;
-	char* ip_lfs;
-	char* puerto_lfs;
+	char* ip__lfs;
+	char* puerto__lfs;
+
 	iniciar_logger(); // creamos log
-	leer_config("asda"); // abrimos config
+	leer_config(); // abrimos config
+
+	ip__lfs = config_get_string_value(archivoconfig, "IPLFS"); // asignamos IP de memoria a conectar desde CONFIG
+	log_info(logger, "La IP de la memoria es %s", ip__lfs);
+	puerto__lfs = config_get_string_value(archivoconfig, "PUERTOLFS"); // asignamos puerto desde CONFIG
+	log_info(logger, "El puerto de la memoria es %s", puerto__lfs);
+	int socket_conexion_lfs = crear_conexion(ip__lfs,puerto__lfs);
+	log_info(logger,"Creada la conexion para LFS");
+		char *mensaje = "Hola, me conecto, soy la memoria";
+		log_info(logger, "Trato de realizar un hasdshake");
+		if (enviar_handshake(socket_conexion_lfs,mensaje)){
+			log_info(logger, "Se envió el mensaje %s", mensaje);
+
+			recibir_handshake(logger, socket_conexion_lfs);
+			log_info(logger,"Conexion exitosa con Memoria");
+		}
 
 	ip_memoria = config_get_string_value(archivoconfig, "IP_MEMORIA"); // asignamos IP de memoria a conectar desde CONFIG
 	log_info(logger, "La IP de la memoria es %s",ip_memoria );
 	puerto_memoria = config_get_string_value(archivoconfig, "PUERTO_MEMORIA"); // asignamos puerto desde CONFIG
 	log_info(logger, "El puerto de la memoria es %s",puerto_memoria);
-	ip_lfs = config_get_string_value(archivoconfig, "IP_LFS"); // asignamos IP de memoria a conectar desde CONFIG
-	puerto_lfs = config_get_string_value(archivoconfig, "PUERTO_LFS"); // asignamos puerto desde CONFIG
+
 
 
 	int server_fd = iniciar_servidor(ip_memoria, puerto_memoria);
@@ -60,6 +43,15 @@ int main(void)
 	log_info(logger, "Memoria espera peticiones");
 	int socket_kernel_fd = esperar_cliente(server_fd);
 	log_info(logger, "Memoria se conectó con Kernel");
+	// --------------//
+
+	// conexion a lfs //
+		//close(socket_conexion_lfs);
+		//terminar_programa(socket_conexion_lfs); // termina conexion, destroy log y destroy config.
+
+
+
+
 	//conexionALFS = crear_conexion(ip_lfs, puerto_lfs); // --> VER <--
 
 	while(1)
@@ -101,19 +93,17 @@ int main(void)
 			return EXIT_FAILURE;
 			break;
 		}
-	}
 
-
-	//terminar_programa(socket_kernel_fd, conexionALFS); // termina conexion, destroy log y destroy config.
+	terminar_programa(socket_kernel_fd, conexionALFS); // termina conexion, destroy log y destroy config.
 	return EXIT_SUCCESS;
+	}
 }
-
 
  void iniciar_logger() { 								// CREACION DE LOG
 	logger = log_create("/home/utnso/tp-2019-1c-Los-Dinosaurios-Del-Libro/Memoria/memoria.log", "Memoria", 1, LOG_LEVEL_INFO);
 }
 
-void leer_config(char * nombre_config) {								// APERTURA DE CONFIG
+void leer_config() {				// APERTURA DE CONFIG
 	archivoconfig = config_create("/home/utnso/tp-2019-1c-Los-Dinosaurios-Del-Libro/Memoria/memoria.config");
 }
 

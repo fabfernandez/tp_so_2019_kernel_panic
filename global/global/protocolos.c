@@ -15,10 +15,9 @@ t_paquete_select* crear_paquete_select(t_instruccion_lql instruccion){
 	char* nombre_tabla = instruccion.parametros.SELECT.tabla;
 	paquete_select->nombre_tabla = malloc(sizeof(t_buffer));
 	paquete_select->nombre_tabla->size = strlen(nombre_tabla)+1;
-	paquete_select->nombre_tabla->stream = malloc(paquete_select->nombre_tabla->size);
-	memcpy(paquete_select->nombre_tabla->stream, nombre_tabla, paquete_select->nombre_tabla->size);
+	paquete_select->nombre_tabla->palabra = malloc(paquete_select->nombre_tabla->size);
+	memcpy(paquete_select->nombre_tabla->palabra, nombre_tabla, paquete_select->nombre_tabla->size);
 	return paquete_select;
-
 }
 
 void* serializar_paquete_select(t_paquete_select* paquete_select, int bytes)
@@ -30,7 +29,7 @@ void* serializar_paquete_select(t_paquete_select* paquete_select, int bytes)
 	desplazamiento+= sizeof(int);
 	memcpy(serializado + desplazamiento, &(paquete_select->nombre_tabla->size), sizeof(int));
 	desplazamiento+= sizeof(int);
-	memcpy(serializado + desplazamiento, paquete_select->nombre_tabla->stream, paquete_select->nombre_tabla->size);
+	memcpy(serializado + desplazamiento, paquete_select->nombre_tabla->palabra, paquete_select->nombre_tabla->size);
 	desplazamiento+= paquete_select->nombre_tabla->size;
 	memcpy(serializado + desplazamiento, &(paquete_select->key), sizeof(uint16_t));
 		desplazamiento+= sizeof(uint16_t);

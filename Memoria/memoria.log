@@ -138,3 +138,34 @@
 [INFO] 22:33:52:301 Memoria/(11352:11352): Inicia handshake con Kernel
 [INFO] 22:33:52:301 Memoria/(11352:11352): Me llego el mensaje Hola, me conecto, soy el Kernel
 [INFO] 22:33:52:301 Memoria/(11352:11352): Conexion exitosa con kernel
+[INFO] 23:36:57:154 Memoria/(12217:12217): La IP de la memoria es 127.0.0.2
+[INFO] 23:36:57:154 Memoria/(12217:12217): El puerto de la memoria es 4444
+[INFO] 23:36:57:154 Memoria/(12217:12217): Memoria lista para recibir a peticiones de Kernel
+[INFO] 23:36:57:154 Memoria/(12217:12217): Memoria espera peticiones
+[INFO] 23:40:19:945 Memoria/(12217:12217): Memoria se conectó con Kernel
+[INFO] 23:40:19:945 Memoria/(12217:12217): Inicia handshake con Kernel
+[INFO] 23:40:19:945 Memoria/(12217:12217): Me llego el mensaje Hola, me conecto, soy el Kernel
+[INFO] 23:40:19:945 Memoria/(12217:12217): Conexion exitosa con kernel
+[INFO] 00:54:51:771 Memoria/(14885:14885): La IP de la memoria es 127.0.0.2
+[INFO] 00:54:51:773 Memoria/(14885:14885): El puerto de la memoria es 4444
+[INFO] 00:54:51:774 Memoria/(14885:14885): Memoria lista para recibir a peticiones de Kernel
+[INFO] 00:54:51:774 Memoria/(14885:14885): Memoria espera peticiones
+[INFO] 00:55:53:959 Memoria/(14885:14885): Memoria se conectó con Kernel
+[INFO] 00:55:53:959 Memoria/(14885:14885): La IP de la memoria es (null)
+[INFO] 00:55:53:959 Memoria/(14885:14885): El puerto de la memoria es (null)
+[INFO] 01:02:16:554 Memoria/(15416:15416): La IP de la memoria es (null)
+[INFO] 01:02:16:554 Memoria/(15416:15416): El puerto de la memoria es (null)
+[INFO] 01:06:06:452 Memoria/(15513:15513): La IP de la memoria es (null)
+[INFO] 01:06:06:453 Memoria/(15513:15513): El puerto de la memoria es (null)
+[INFO] 01:06:51:502 Memoria/(15541:15541): La IP de la memoria es (null)
+[INFO] 01:06:51:502 Memoria/(15541:15541): El puerto de la memoria es (null)
+[INFO] 01:11:04:241 Memoria/(15811:15811): La IP de la memoria es (null)
+[INFO] 01:11:04:241 Memoria/(15811:15811): El puerto de la memoria es (null)
+[INFO] 01:14:25:895 Memoria/(15948:15948): La IP de la memoria es (null)
+[INFO] 01:14:25:895 Memoria/(15948:15948): El puerto de la memoria es (null)
+[INFO] 01:16:24:582 Memoria/(16050:16050): La IP de la memoria es (null)
+[INFO] 01:16:24:582 Memoria/(16050:16050): El puerto de la memoria es (null)
+[INFO] 01:18:00:580 Memoria/(16098:16098): La IP de la memoria es (null)
+[INFO] 01:18:00:580 Memoria/(16098:16098): El puerto de la memoria es (null)
+[INFO] 01:18:31:786 Memoria/(16155:16155): La IP de la memoria es (null)
+[INFO] 01:18:31:787 Memoria/(16155:16155): El puerto de la memoria es (null)

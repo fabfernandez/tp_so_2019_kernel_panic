@@ -9,41 +9,39 @@
 
 
 #include <stdio.h>
-
 #include <stdlib.h>
-
 #include <commons/log.h>
-
 #include <commons/string.h>
 #include <commons/config.h>
 #include <readline/readline.h>
+#include <stdint.h>
+#include <time.h>
+#include <global/utils.h>
+
 
 
 #include <stdint.h>
 
 #include <time.h>
 
-typedef enum consistencias{
-	STRONG, STRONG_HASH, EVENTUAL
-}t_consistencia;
-
-typedef struct metadata{
-	char* nombre;
-	t_consistencia consistencia;
-	int n_particiones;
-}t_metadata;
 
 typedef char* t_valor;	//valor que devuelve el select
 
 
+// ******* DEFINICION DE FUNCIONES A UTILIZAR ******* //
+void chequearSocket(int socketin);
+void iniciar_logger(void);
+void leer_config(void);
+void terminar_programa(int conexion);
+					// ******* TIPOS NECESARIOS ******* //
+t_log* logger;
+t_config* archivoconfig;
+
+typedef char* t_valor;	//valor que devuelve el select
 int insert(char* tabla, uint16_t key, long timestamp);
-
-t_valor SELECT(char* tabla, uint16_t key);
-
+t_valor select_(char* tabla, uint16_t key);
 int drop(char* tabla);
-
 int create(char* tabla, t_consistencia consistencia, int maximo_particiones, long tiempo_compactacion);
-
-t_metadata describe(char* tabla);
+//t_metadata describe(char* tabla);
 
 #endif /* LFS_H_ */

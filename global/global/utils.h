@@ -20,7 +20,7 @@
 typedef struct
 {
 	int size;
-	char* stream;
+	char* palabra;
 } t_buffer;
 
 typedef enum operaciones {
@@ -28,7 +28,7 @@ typedef enum operaciones {
 }t_operacion;
 
 
-typedef struct
+typedef struct // REVISAR <-
 {
 	t_operacion codigo_operacion;
 	t_buffer* buffer;
