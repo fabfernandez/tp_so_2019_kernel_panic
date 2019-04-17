@@ -184,3 +184,11 @@
 [INFO] 00:39:45:943 Memoria/(13324:13324): Se realiza SELECT
 [INFO] 00:39:45:943 Memoria/(13324:13324): Consulta en la tabla: TABLA3
 [INFO] 00:39:45:943 Memoria/(13324:13324): Consulta por key: 4
+[INFO] 13:56:56:107 Memoria/(24389:24389): La IP de la memoria es 127.0.0.3
+[INFO] 13:56:56:107 Memoria/(24389:24389): El puerto de la memoria es 6445
+[INFO] 13:56:56:107 Memoria/(24389:24389): LFS listo para recibir a peticiones de memoria
+[INFO] 13:56:56:107 Memoria/(24389:24389): LFS espera peticiones
+[INFO] 13:57:02:309 Memoria/(24389:24389): LFS se conectó con memoria
+[INFO] 13:57:02:309 Memoria/(24389:24389): Inicia handshake con memoria
+[INFO] 13:57:02:310 Memoria/(24389:24389): Me llego el mensaje Hola, me conecto, soy la memoria
+[INFO] 13:57:02:310 Memoria/(24389:24389): Conexion exitosa con memoria

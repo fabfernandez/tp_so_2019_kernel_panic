@@ -483,3 +483,14 @@
 [INFO] 00:39:45:942 Memoria/(13359:13359): Se realiza SELECT
 [INFO] 00:39:45:942 Memoria/(13359:13359): Consulta en la tabla: TABLA3
 [INFO] 00:39:45:942 Memoria/(13359:13359): Consulta por key: 4
+[INFO] 13:57:02:309 Memoria/(24446:24446): La IP de la memoria es 127.0.0.2
+[INFO] 13:57:02:309 Memoria/(24446:24446): El puerto de la memoria es 4444
+[INFO] 13:57:02:309 Memoria/(24446:24446): La IP del LFS es 127.0.0.3
+[INFO] 13:57:02:309 Memoria/(24446:24446): El puerto del LFS es 6445
+[INFO] 13:57:02:309 Memoria/(24446:24446): Creada la conexion para LFS
+[INFO] 13:57:02:309 Memoria/(24446:24446): Trato de realizar un hasdshake
+[INFO] 13:57:02:310 Memoria/(24446:24446): Se envió el mensaje Hola, me conecto, soy la memoria
+[INFO] 13:57:02:310 Memoria/(24446:24446): Me llego el mensaje OK
+[INFO] 13:57:02:310 Memoria/(24446:24446): Conexion exitosa con LFS
+[INFO] 13:57:02:310 Memoria/(24446:24446): Memoria lista para recibir a peticiones de Kernel
+[INFO] 13:57:02:310 Memoria/(24446:24446): Memoria espera peticiones

@@ -22,9 +22,16 @@
 							// ******* TIPOS NECESARIOS ******* //
 t_log* logger;
 t_config* archivoconfig;
-
+int socket_conexion_lfs;
+char* ip_memoria;
+char* puerto_memoria;
+char* ip__lfs;
+char* puerto__lfs;
+int server_memoria;
+int socket_kernel_conexion_entrante;
 typedef char* t_valor;	//valor que devuelve el select
-
+void levantar_datos_memoria();
+int esperar_operaciones();
 void leer_config();
 int insert(char* tabla, uint16_t key, long timestamp);
 
