@@ -1,6 +1,8 @@
 ### C ###
 # Prerequisites
 *.d
+#Logs
+*.log
 
 # Object files
 *.o
