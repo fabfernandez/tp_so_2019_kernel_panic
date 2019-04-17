@@ -14,7 +14,9 @@
 #include<stdlib.h>
 #include<signal.h>
 #include<unistd.h>
+#include <string.h>
 #include <stdbool.h>
+#include "strings.h"
 
 
 typedef enum consistencias{
@@ -104,7 +106,7 @@ typedef struct {
 			char* tabla;
 		} DROP;
 		struct {
-			int numero_memoria;
+			uint16_t numero_memoria;
 			t_consistencia consistencia;
 		} ADD;
 		struct {
@@ -115,5 +117,28 @@ typedef struct {
 	char** _raw; //Para uso de la liberación
 } t_instruccion_lql;
 
+int get_tamanio_paquete_select(t_paquete_select* paquete_select);
+int get_tamanio_paquete_create(t_paquete_create* paquete_create);
+int get_tamanio_paquete_insert(t_paquete_insert* paquete_insert);
+int get_tamanio_paquete_add(t_paquete_add* paquete_add);
+int get_tamanio_paquete_describe_drop(t_paquete_drop_describe* paquete_drop_describe);
+
+t_paquete_add* crear_paquete_add(t_instruccion_lql instruccion);
+t_paquete_select* crear_paquete_select(t_instruccion_lql instruccion);
+t_paquete_create* create_paquete_create(t_instruccion_lql instruccion);
+t_paquete_insert* crear_paquete_insert(t_instruccion_lql instruccion);
+t_paquete_drop_describe* crear_paquete_drop_describe(t_instruccion_lql instruccion);
+
+char* serializar_paquete_select(t_paquete_select* paquete_select, int bytes);
+char* serializar_paquete_create(t_paquete_create* paquete_create, int bytes);
+char* serializar_paquete_insert(t_paquete_insert* paquete_insert, int bytes);
+char* serializar_paquete_add(t_paquete_add* paquete_add, int bytes);
+char* serialiazar_paquete_drop_describe(t_paquete_drop_describe* paquete, int bytes);
+
+t_paquete_select* deserializar_select (int socket_cliente);
+t_paquete_create* deserializar_create (int socket_cliente);
+t_paquete_insert* deserealizar_insert(int socket_cliente);
+t_paquete_add* desearilizar_add(int socket_cliente);
+t_paquete_drop_describe* deserealizar_drop_describe(int socket_cliente);
 
 #endif /* GLOBAL_PROTOCOLOS_H_ */

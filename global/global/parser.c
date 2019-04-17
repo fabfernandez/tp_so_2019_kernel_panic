@@ -93,7 +93,7 @@ t_instruccion_lql parsear_linea(char* line){
 		}
 	} else if(string_equals_ignore_case(keyword, ADD_KEY)){
 		ret.operacion=ADD;
-		if (split[1] != "MEMORY" || split[2]== NULL || split[3]!="TO" || split[4]==NULL){
+		if (!string_equals_ignore_case(split[1],"MEMORY") || split[2]== NULL || !string_equals_ignore_case(split[3],"TO") || split[4]==NULL){
 			return lanzar_error("Formato incorrecto. ADD MEMORY TO CONSISTENCY\n");
 		}
 		ret.parametros.ADD.numero_memoria=atoi(split[2]);
@@ -111,20 +111,20 @@ t_instruccion_lql parsear_linea(char* line){
 t_consistencia get_valor_consistencia(char* consistencia_ingresada){
 
 	t_consistencia result;
-	if(strcmp(consistencia_ingresada,STRONG_HASH_TEXT)==0){
+	if(string_equals_ignore_case(consistencia_ingresada,STRONG_HASH_TEXT)){
 		result= STRONG_HASH;
 	}
-	if (strcmp(consistencia_ingresada,STRONG_TEXT)==0){
+	if (string_equals_ignore_case(consistencia_ingresada,STRONG_TEXT)){
 		result = STRONG;
 	}
-	if (strcmp(consistencia_ingresada,EVENTUAL_TEXT)==0){
+	if (string_equals_ignore_case(consistencia_ingresada,EVENTUAL_TEXT)){
 		result= EVENTUAL;
 	}
 	return result;
 }
 
 int check_consistencia(char* consistencia_ingresada){
-	if ( strcmp(STRONG_TEXT,consistencia_ingresada) != 0 && strcmp(STRONG_HASH_TEXT,consistencia_ingresada)!=0 && strcmp(EVENTUAL_TEXT,consistencia_ingresada)!=0){
+	if ( !string_equals_ignore_case(STRONG_TEXT,consistencia_ingresada) && !string_equals_ignore_case(STRONG_HASH_TEXT,consistencia_ingresada) && !string_equals_ignore_case(EVENTUAL_TEXT,consistencia_ingresada)){
 		return false;
 	}
 	return true;
