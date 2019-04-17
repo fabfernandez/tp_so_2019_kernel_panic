@@ -21,6 +21,19 @@ typedef enum consistencias{
 	STRONG, STRONG_HASH, EVENTUAL
 }t_consistencia;
 
+typedef enum estado {
+	CONECTADA, DESCONECTADA
+}t_estado;
+
+struct memoria_Gossip {
+	int descriptorMemoria;
+	char* IP;
+	char* PUERTO;
+	t_consistencia consistencia;
+	t_estado estado;
+};
+
+struct memoriaGossip tablaGossip[];
 
 typedef enum operaciones {
 	INSERT,SELECT,CREATE,DESCRIBE,DROP, JOURNAL,ADD,METRICS,RUN, HANDSHAKE
