@@ -27,7 +27,6 @@ struct memoriaGossip {
 	int descriptorMemoria;
 	char* IP;
 	char* PUERTO;
-	t_consistencia consistencia;
 	t_estado estado;
 };
 typedef enum estado {
@@ -50,7 +49,6 @@ struct tablaMemoriaGossip crearElementoParaTablaDeConsistencias(struct tablaMemo
 	// memogossip.descriptorMemoria = (seteo descriptor de la nueva memoria)
 	// memogossip.IP = (seteo ip de la nueva memoria)
 	// memogossip.PUERTO = (seteo puerto de la nueva memoria)
-	// memogossip.consistencia = (seteo consistencia)
 	// memogossip.estado= (seteo estado)
 	// memogossip.siguiente=null;
 	elementoCreado.memoria = &memogossip;
