@@ -45,6 +45,7 @@ int main(void)
 			break;
 		case SELECT:
 			log_info(logger, "memoria solicitó SELECT");
+			resolver_select(socket_memoria_entrante);
 			//aca debería enviarse el mensaje a LFS con SELECT
 			break;
 		case INSERT:
@@ -76,6 +77,12 @@ int main(void)
 	return EXIT_SUCCESS;
 }
 
+void resolver_select (int socket_memoria){
+	t_paquete_select* consulta_select = deserializar_select(socket_memoria);
+	log_info(logger, "Se realiza SELECT");
+	log_info(logger, "Consulta en la tabla: %s", consulta_select->nombre_tabla->palabra);
+	log_info(logger, "Consulta por key: %d", consulta_select->key);
+}
 
  void iniciar_logger() { 								// CREACION DE LOG
 	logger = log_create("/home/utnso/tp-2019-1c-Los-Dinosaurios-Del-Libro/LFS/lfs.log", "Memoria", 1, LOG_LEVEL_INFO);

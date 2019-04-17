@@ -8,6 +8,7 @@
 #ifndef UTILS_H_
 #define UTILS_H_
 
+
 #include<stdio.h>
 #include<stdlib.h>
 #include<signal.h>
@@ -16,28 +17,13 @@
 #include<netdb.h>
 #include<string.h>
 #include<commons/log.h>
-
-typedef struct
-{
-	int size;
-	char* palabra;
-} t_buffer;
-
-typedef enum operaciones {
-	INSERT,SELECT,CREATE,DESCRIBE,DROP, JOURNAL,ADD,METRICS,RUN, HANDSHAKE
-}t_operacion;
-
+#include "protocolos.h"
 
 typedef struct // REVISAR <-
 {
 	t_operacion codigo_operacion;
 	t_buffer* buffer;
 } t_paquete;
-
-
-typedef enum consistencias{
-	STRONG, STRONG_HASH, EVENTUAL
-}t_consistencia;
 
 typedef struct metadata{
 	char* nombre;

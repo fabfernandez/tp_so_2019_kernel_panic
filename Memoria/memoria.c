@@ -64,6 +64,7 @@ int main(void)
 			break;
 		case SELECT:
 			log_info(logger, "Kernel solicitó SELECT");
+			resolver_select(socket_kernel_fd, socket_conexion_lfs);
 			//aca debería enviarse el mensaje a LFS con SELECT
 			break;
 		case INSERT:
@@ -93,6 +94,16 @@ int main(void)
 	}
 	terminar_programa(socket_kernel_fd, conexionALFS); // termina conexion, destroy log y destroy config.
 	return EXIT_SUCCESS;
+}
+
+void resolver_select (int socket_kernel_fd, int socket_conexion_lfs){
+	t_paquete_select* consulta_select = deserializar_select(socket_kernel_fd);
+	consulta_select->codigo_operacion = SELECT;
+	log_info(logger, "Se realiza SELECT");
+	log_info(logger, "Consulta en la tabla: %s", consulta_select->nombre_tabla->palabra);
+	log_info(logger, "Consulta por key: %d", consulta_select->key);
+
+	enviar_paquete_select(socket_conexion_lfs, consulta_select);
 }
 
  void iniciar_logger() { 								// CREACION DE LOG

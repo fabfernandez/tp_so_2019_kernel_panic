@@ -56,7 +56,7 @@ void ejecutar_instruccion(t_instruccion_lql instruccion, int socket_memoria){
 	switch(operacion) {
 		case SELECT:
 			log_info(logger, "Se solicita SELECT a memoria");
-			//resolver_select(instruccion, socket_memoria);
+			resolver_select(instruccion, socket_memoria);
 			break;
 		case INSERT:
 			log_info(logger, "Kernel solicitó INSERT");
@@ -94,13 +94,8 @@ void ejecutar_instruccion(t_instruccion_lql instruccion, int socket_memoria){
 void resolver_select(t_instruccion_lql instruccion, int socket_memoria){
 
 	t_paquete_select* paquete_select = crear_paquete_select(instruccion);
-	int tamanio_paquete = paquete_select->nombre_tabla->size + sizeof(uint16_t)+ sizeof(t_operacion);
-	void* a_enviar = serializar_paquete_select(paquete_select, tamanio_paquete);
-	send(socket_memoria, a_enviar, tamanio_paquete, 0);
-	free(a_enviar);
+	enviar_paquete_select(socket_memoria, paquete_select);
 }
-
-
 
 void iniciar_logger() { 							// CREACION DE LOG
 	logger = log_create("/home/utnso/tp-2019-1c-Los-Dinosaurios-Del-Libro/Kernel/kernel.log", "kernel", 1, LOG_LEVEL_INFO);

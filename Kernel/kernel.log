@@ -231,3 +231,107 @@
 [INFO] 12:59:27:742 kernel/(5275:5275): Se envió el mensaje Hola, me conecto, soy el Kernel
 [INFO] 12:59:27:743 kernel/(5275:5275): Me llego el mensaje OK
 [INFO] 12:59:27:743 kernel/(5275:5275): Conexion exitosa con Memoria
+[INFO] 17:16:48:647 kernel/(7643:7643): La IP de la memoria es 127.0.0.2
+[INFO] 17:16:48:649 kernel/(7643:7643): El puerto de la memoria es 4444
+[INFO] 17:16:48:650 kernel/(7643:7643): Creada la conexion para la memoria
+[INFO] 17:16:48:650 kernel/(7643:7643): Trato de realizar un hasdshake
+[INFO] 17:16:48:651 kernel/(7643:7643): Se envió el mensaje Hola, me conecto, soy el Kernel
+[INFO] 17:16:48:651 kernel/(7643:7643): Me llego el mensaje OK
+[INFO] 17:16:48:652 kernel/(7643:7643): Conexion exitosa con Memoria
+[INFO] 17:17:08:49 kernel/(7643:7643): Se solicita SELECT a memoria
+[INFO] 17:23:10:285 kernel/(7749:7749): La IP de la memoria es 127.0.0.2
+[INFO] 17:23:10:287 kernel/(7749:7749): El puerto de la memoria es 4444
+[INFO] 17:23:10:289 kernel/(7749:7749): Creada la conexion para la memoria
+[INFO] 17:23:10:289 kernel/(7749:7749): Trato de realizar un hasdshake
+[INFO] 17:23:10:290 kernel/(7749:7749): Se envió el mensaje Hola, me conecto, soy el Kernel
+[INFO] 17:23:10:290 kernel/(7749:7749): Me llego el mensaje OK
+[INFO] 17:23:10:291 kernel/(7749:7749): Conexion exitosa con Memoria
+[INFO] 17:23:17:938 kernel/(7749:7749): Se solicita SELECT a memoria
+[INFO] 17:25:30:721 kernel/(7871:7871): La IP de la memoria es 127.0.0.2
+[INFO] 17:25:30:722 kernel/(7871:7871): El puerto de la memoria es 4444
+[INFO] 17:25:30:722 kernel/(7871:7871): Creada la conexion para la memoria
+[INFO] 17:25:30:722 kernel/(7871:7871): Trato de realizar un hasdshake
+[INFO] 17:25:30:723 kernel/(7871:7871): Se envió el mensaje Hola, me conecto, soy el Kernel
+[INFO] 17:25:30:723 kernel/(7871:7871): Me llego el mensaje OK
+[INFO] 17:25:30:723 kernel/(7871:7871): Conexion exitosa con Memoria
+[INFO] 17:25:41:164 kernel/(7871:7871): Se solicita SELECT a memoria
+[INFO] 20:30:27:859 kernel/(8925:8925): La IP de la memoria es 127.0.0.2
+[INFO] 20:30:27:860 kernel/(8925:8925): El puerto de la memoria es 4444
+[INFO] 20:30:27:861 kernel/(8925:8925): Creada la conexion para la memoria
+[INFO] 20:30:27:861 kernel/(8925:8925): Trato de realizar un hasdshake
+[INFO] 20:30:27:861 kernel/(8925:8925): Se envió el mensaje Hola, me conecto, soy el Kernel
+[INFO] 20:30:27:861 kernel/(8925:8925): Me llego el mensaje OK
+[INFO] 20:30:27:861 kernel/(8925:8925): Conexion exitosa con Memoria
+[INFO] 20:30:34:786 kernel/(8925:8925): Se solicita SELECT a memoria
+[INFO] 23:21:45:125 kernel/(9778:9778): La IP de la memoria es 127.0.0.2
+[INFO] 23:21:45:126 kernel/(9778:9778): El puerto de la memoria es 4444
+[INFO] 23:21:45:127 kernel/(9778:9778): Creada la conexion para la memoria
+[INFO] 23:21:45:128 kernel/(9778:9778): Trato de realizar un hasdshake
+[INFO] 23:21:45:128 kernel/(9778:9778): Se envió el mensaje Hola, me conecto, soy el Kernel
+[INFO] 23:21:45:128 kernel/(9778:9778): Me llego el mensaje OK
+[INFO] 23:21:45:129 kernel/(9778:9778): Conexion exitosa con Memoria
+[INFO] 23:21:55:780 kernel/(9778:9778): Se solicita SELECT a memoria
+[INFO] 23:28:36:453 kernel/(10068:10068): La IP de la memoria es 127.0.0.2
+[INFO] 23:28:36:457 kernel/(10068:10068): El puerto de la memoria es 4444
+[INFO] 23:28:36:459 kernel/(10068:10068): Creada la conexion para la memoria
+[INFO] 23:28:36:459 kernel/(10068:10068): Trato de realizar un hasdshake
+[INFO] 23:28:36:459 kernel/(10068:10068): Se envió el mensaje Hola, me conecto, soy el Kernel
+[INFO] 23:28:36:459 kernel/(10068:10068): Me llego el mensaje OK
+[INFO] 23:28:36:460 kernel/(10068:10068): Conexion exitosa con Memoria
+[INFO] 23:28:44:442 kernel/(10068:10068): Se solicita SELECT a memoria
+[INFO] 23:30:11:606 kernel/(10125:10125): La IP de la memoria es 127.0.0.2
+[INFO] 23:30:11:614 kernel/(10125:10125): El puerto de la memoria es 4444
+[INFO] 23:30:11:615 kernel/(10125:10125): Creada la conexion para la memoria
+[INFO] 23:30:11:616 kernel/(10125:10125): Trato de realizar un hasdshake
+[INFO] 23:30:11:617 kernel/(10125:10125): Se envió el mensaje Hola, me conecto, soy el Kernel
+[INFO] 23:30:11:617 kernel/(10125:10125): Me llego el mensaje OK
+[INFO] 23:30:11:618 kernel/(10125:10125): Conexion exitosa con Memoria
+[INFO] 23:30:27:597 kernel/(10125:10125): Se solicita SELECT a memoria
+[INFO] 23:46:30:671 kernel/(10603:10603): La IP de la memoria es 127.0.0.2
+[INFO] 23:46:30:671 kernel/(10603:10603): El puerto de la memoria es 4444
+[INFO] 23:46:30:672 kernel/(10603:10603): Creada la conexion para la memoria
+[INFO] 23:46:30:672 kernel/(10603:10603): Trato de realizar un hasdshake
+[INFO] 23:46:30:672 kernel/(10603:10603): Se envió el mensaje Hola, me conecto, soy el Kernel
+[INFO] 23:46:30:672 kernel/(10603:10603): Me llego el mensaje OK
+[INFO] 23:46:30:672 kernel/(10603:10603): Conexion exitosa con Memoria
+[INFO] 23:46:40:803 kernel/(10603:10603): Se solicita SELECT a memoria
+[INFO] 23:48:21:595 kernel/(10715:10715): La IP de la memoria es 127.0.0.2
+[INFO] 23:48:21:603 kernel/(10715:10715): El puerto de la memoria es 4444
+[INFO] 23:48:21:604 kernel/(10715:10715): Creada la conexion para la memoria
+[INFO] 23:48:21:605 kernel/(10715:10715): Trato de realizar un hasdshake
+[INFO] 23:48:21:606 kernel/(10715:10715): Se envió el mensaje Hola, me conecto, soy el Kernel
+[INFO] 23:48:21:606 kernel/(10715:10715): Me llego el mensaje OK
+[INFO] 23:48:21:607 kernel/(10715:10715): Conexion exitosa con Memoria
+[INFO] 23:48:26:893 kernel/(10715:10715): Se solicita SELECT a memoria
+[INFO] 23:54:57:327 kernel/(10957:10957): La IP de la memoria es 127.0.0.2
+[INFO] 23:54:57:350 kernel/(10957:10957): El puerto de la memoria es 4444
+[INFO] 23:54:57:351 kernel/(10957:10957): Creada la conexion para la memoria
+[INFO] 23:54:57:351 kernel/(10957:10957): Trato de realizar un hasdshake
+[INFO] 23:54:57:351 kernel/(10957:10957): Se envió el mensaje Hola, me conecto, soy el Kernel
+[INFO] 23:54:57:353 kernel/(10957:10957): Me llego el mensaje OK
+[INFO] 23:54:57:353 kernel/(10957:10957): Conexion exitosa con Memoria
+[INFO] 23:55:09:257 kernel/(10957:10957): Se solicita SELECT a memoria
+[INFO] 00:29:13:997 kernel/(12994:12994): La IP de la memoria es 127.0.0.2
+[INFO] 00:29:13:998 kernel/(12994:12994): El puerto de la memoria es 4444
+[INFO] 00:29:13:0 kernel/(12994:12994): Creada la conexion para la memoria
+[INFO] 00:29:13:0 kernel/(12994:12994): Trato de realizar un hasdshake
+[INFO] 00:29:13:2 kernel/(12994:12994): Se envió el mensaje Hola, me conecto, soy el Kernel
+[INFO] 00:29:13:2 kernel/(12994:12994): Me llego el mensaje OK
+[INFO] 00:29:13:2 kernel/(12994:12994): Conexion exitosa con Memoria
+[INFO] 00:29:20:20 kernel/(12994:12994): Se solicita SELECT a memoria
+[INFO] 00:34:19:447 kernel/(13148:13148): La IP de la memoria es 127.0.0.2
+[INFO] 00:34:19:448 kernel/(13148:13148): El puerto de la memoria es 4444
+[INFO] 00:34:19:448 kernel/(13148:13148): Creada la conexion para la memoria
+[INFO] 00:34:19:448 kernel/(13148:13148): Trato de realizar un hasdshake
+[INFO] 00:34:19:448 kernel/(13148:13148): Se envió el mensaje Hola, me conecto, soy el Kernel
+[INFO] 00:34:19:457 kernel/(13148:13148): Me llego el mensaje OK
+[INFO] 00:34:19:457 kernel/(13148:13148): Conexion exitosa con Memoria
+[INFO] 00:34:28:819 kernel/(13148:13148): Se solicita SELECT a memoria
+[INFO] 00:39:41:2 kernel/(13367:13367): La IP de la memoria es 127.0.0.2
+[INFO] 00:39:41:3 kernel/(13367:13367): El puerto de la memoria es 4444
+[INFO] 00:39:41:4 kernel/(13367:13367): Creada la conexion para la memoria
+[INFO] 00:39:41:4 kernel/(13367:13367): Trato de realizar un hasdshake
+[INFO] 00:39:41:5 kernel/(13367:13367): Se envió el mensaje Hola, me conecto, soy el Kernel
+[INFO] 00:39:41:6 kernel/(13367:13367): Me llego el mensaje OK
+[INFO] 00:39:41:6 kernel/(13367:13367): Conexion exitosa con Memoria
+[INFO] 00:39:45:941 kernel/(13367:13367): Se solicita SELECT a memoria

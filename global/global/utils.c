@@ -7,6 +7,16 @@
 
 #include "utils.h"
 
+void enviar_paquete_select(int socket_envio, t_paquete_select* consulta_select){
+
+	int bytes = get_tamanio_paquete_select(consulta_select);
+	char* a_enviar = serializar_paquete_select(consulta_select, bytes);
+
+	send(socket_envio, a_enviar, bytes, MSG_WAITALL);
+
+	free(a_enviar);
+}
+
 
 void recibir_handshake(t_log* logger,int socket_fd){
 	int cod_op = recibir_operacion(socket_fd);
