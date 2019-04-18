@@ -23,44 +23,24 @@ typedef enum consistencias{
 	STRONG, STRONG_HASH, EVENTUAL
 }t_consistencia;
 
+typedef enum estado {
+	CONECTADA, DESCONECTADA
+}t_estado;
+
 struct memoriaGossip {
 	int descriptorMemoria;
 	char* IP;
 	char* PUERTO;
 	t_estado estado;
 };
-typedef enum estado {
-	CONECTADA, DESCONECTADA
-}t_estado;
 
 struct tablaMemoriaGossip {
 	struct memoriaGossip memoria;
 	struct tablaMemoriaGossip* siguiente;
 };
-struct tablaMemoriaGossip crearTablaGossip(){
-	struct tablaMemoriaGossip elementoCreado = malloc(sizeof(struct tablaMemoriaGossip));
-	//-- CREAR PRIMER ELEMENTO(MEMORIA A, LA PRIEMRA QUE SE LEVANTA, HAY QUE PASAR POR PARAMETROS LOS DATOS DE LA MISMA--//
-	return &elementoCreado;
-}
-
-struct tablaMemoriaGossip crearElementoParaTablaDeConsistencias(struct tablaMemoriaGossip tabla){ // hay que pasar por parametro un struct con los datos de la nueva memoria
-	struct memoriaGossip memogossip = malloc(sizeof(struct memoriaGossip));
-	struct tablaMemoriaGossip elementoCreado = malloc(sizeof(struct tablaMemoriaGossip));
-	// memogossip.descriptorMemoria = (seteo descriptor de la nueva memoria)
-	// memogossip.IP = (seteo ip de la nueva memoria)
-	// memogossip.PUERTO = (seteo puerto de la nueva memoria)
-	// memogossip.estado= (seteo estado)
-	// memogossip.siguiente=null;
-	elementoCreado.memoria = &memogossip;
-	elementoCreado.siguiente= NULL;
-	return &elementoCreado;
-}
-
-void agregarMemoriaALaTablaGossip(struct tablaMemoriaGossip tabla, struct tablaMemoriaGossip elementoAAgregar){
-	if(tabla->siguiente == NULL){
-		tabla->siguiente=&elementoAAgregar;
-	} else { agregarMemoriaALaTablaGossip(tabla->siguiente,elementoAAgregar); };
-}
+struct tablaMemoriaGossip crearTablaGossip();
+struct tablaMemoriaGossip crearElementoParaTablaDeConsistencias(struct memoriaGossip memoria); // hay que pasar por parametro un struct con los datos de la nueva memoria
+void agregarMemoriaALaTablaGossip(struct tablaMemoriaGossip tabla, struct tablaMemoriaGossip elementoAAgregar);
 
 typedef enum operaciones {
 	INSERT,SELECT,CREATE,DESCRIBE,DROP, JOURNAL,ADD,METRICS,RUN, HANDSHAKE
