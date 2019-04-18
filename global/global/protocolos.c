@@ -264,9 +264,9 @@ struct tablaMemoriaGossip crearElementoParaTablaDeConsistencias(struct memoriaGo
 	return *elementoCreado;
 }
 
-//void agregarMemoriaALaTablaGossip(struct tablaMemoriaGossip tabla, struct tablaMemoriaGossip elementoAAgregar){
-//	if(tabla->siguiente == NULL){
-//		tabla->siguiente = *elementoAAgregar;
-//	} else { agregarMemoriaALaTablaGossip(tabla->siguiente,elementoAAgregar); };
-//}
+void agregarMemoriaALaTablaGossip(struct tablaMemoriaGossip* tabla, struct tablaMemoriaGossip* elementoAAgregar){
+	if(tabla->siguiente == NULL){
+		tabla->siguiente = elementoAAgregar;
+	} else { agregarMemoriaALaTablaGossip(tabla->siguiente,elementoAAgregar); };
+}
 
