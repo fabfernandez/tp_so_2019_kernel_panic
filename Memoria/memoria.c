@@ -120,7 +120,7 @@ void iniciar_servidor_memoria_y_esperar_conexiones_kernel(){
 	socket_kernel_conexion_entrante = esperar_cliente(server_memoria);
 	log_info(logger, "Memoria se conectó con Kernel");
 }
-iniciarTablaDeGossiping(){
+void iniciarTablaDeGossiping(){
 	tablaGossiping = malloc(sizeof(struct tablaMemoriaGossip));
 	tablaGossiping->memoria.IP= ip_memoria;
 	tablaGossiping->memoria.PUERTO= puerto_memoria;

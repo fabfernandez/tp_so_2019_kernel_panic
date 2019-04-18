@@ -31,7 +31,6 @@ char* puerto__lfs;
 int server_memoria;
 int socket_kernel_conexion_entrante;
 typedef char* t_valor;	//valor que devuelve el select
-void inicializarTablaGossiping();
 void levantar_datos_memoria();
 void levantar_datos_lfs();
 int esperar_operaciones();
