@@ -26,10 +26,6 @@ typedef enum consistencias{
 	STRONG, STRONG_HASH, EVENTUAL
 }t_consistencia;
 
-typedef enum estado {
-	CONECTADA, DESCONECTADA
-}t_estado;
-
 struct memoriaGossip {
 	int descriptorMemoria;
 	char* IP;

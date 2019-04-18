@@ -4,17 +4,18 @@
  *  Created on: 11 abr. 2019
  *      Author: utnso
  */
-/*
- * memoria.c
- *
- *  Created on: 7 abr. 2019
- *      Author: utnso
- */
+
 #include "LFS.h"
 int main(void)
 {
 	char* ip_lfs;
 	char* puerto_lfs;
+	fd_set master;    // lista maestra de file descriptor
+	fd_set read_fds;  // lista temporal de file descriptor list para select()
+	int fdmax;        // maxima cantidad de file descriptor
+	int newfd;        // nuevo socket aceptado
+	int fd_index;
+	int cod_op;
 
 	iniciar_logger(); // creamos log
 	leer_config(); // abrimos config
@@ -28,24 +29,71 @@ int main(void)
 	int server_LFS = iniciar_servidor(ip_lfs, puerto_lfs);
 	log_info(logger, "LFS listo para recibir a peticiones de memoria");
 	log_info(logger, "LFS espera peticiones");
-	int socket_memoria_entrante = esperar_cliente(server_LFS); // deberia esperar hilos-multiplexacion <-
+	// añadir listener al conjunto maestro
+	FD_SET(server_LFS, &master);
+	fdmax = server_LFS;
+
+	for(;;) {
+		read_fds = master;
+		if (select(fdmax+1, &read_fds, NULL, NULL, NULL) == -1) {
+			log_error(logger, "Fallo accion select.");
+			exit(1);
+
+		}else{
+			// explorar conexiones existentes en busca de datos que leer
+			for(fd_index = 0; fd_index <= fdmax; fd_index++) {
+				if (FD_ISSET(fd_index, &read_fds)) { //entran nuevos datos
+					if (fd_index == server_LFS) {
+						//Nuevo cliente
+						if (newfd = esperar_cliente(server_LFS) == -1) {
+							log_error(logger, "No pudo aceptarse la conexion del cliente");
+						} else {
+							agregar_cliente(&master, newfd, &fdmax);
+						}
+
+					} else {
+						//Cliente en el set, realizo solicitud
+						cod_op = recibir_operacion(fd_index);
+						resolver_operacion(cod_op);
+					}
+				}
+			}
+
+		}
+	}
+
+	//terminar_programa(socket_memoria_entrante, conexionALFS); // termina conexion, destroy log y destroy config. ???
+	return EXIT_SUCCESS;
+}
+
+void agregar_cliente(fd_set* master, int cliente, int* fdmax){
+	FD_SET(cliente, master);//se agrega nuevo fd al set
 	log_info(logger, "LFS se conectó con memoria");
+	if (cliente > *fdmax)//actualizar el máximo
+		*fdmax = cliente;
+	char *mensaje_handshake = "Conexion aceptada de LFS";
+	if (enviar_handshake(cliente,mensaje_handshake)!=-1){
+		log_info(logger, "Se envió el mensaje %s", mensaje_handshake);
+		recibir_handshake(logger, cliente);
+		log_info(logger,"Conexion exitosa con Memoria");
+	}else{
+		log_error(logger, "No pudo realizarse handshake con el nuevo cliente en el socket %d", cliente);
+	}
 
+}
 
-	while(1)
-	{
-		int cod_op = recibir_operacion(socket_memoria_entrante);
-		switch(cod_op)
+void resolver_operacion(int socket_memoria, t_operacion cod_op){
+	switch(cod_op)
 		{
 		case HANDSHAKE:
 			log_info(logger, "Inicia handshake con memoria");
-			recibir_mensaje(logger, socket_memoria_entrante);
-			enviar_handshake(socket_memoria_entrante, "OK");
+			recibir_mensaje(logger, socket_memoria);
+			enviar_handshake(socket_memoria, "OK");
 			log_info(logger, "Conexion exitosa con memoria");
 			break;
 		case SELECT:
 			log_info(logger, "memoria solicitó SELECT");
-			resolver_select(socket_memoria_entrante);
+			resolver_select(socket_memoria);
 			//aca debería enviarse el mensaje a LFS con SELECT
 			break;
 		case INSERT:
@@ -66,15 +114,11 @@ int main(void)
 			break;
 		case -1:
 			log_error(logger, "el cliente se desconecto. Terminando servidor");
-			return EXIT_FAILURE;
+			break;
 		default:
 			log_warning(logger, "Operacion desconocida.");
-			return EXIT_FAILURE;
 			break;
 		}
-	}
-	//terminar_programa(socket_memoria_entrante, conexionALFS); // termina conexion, destroy log y destroy config. ???
-	return EXIT_SUCCESS;
 }
 
 void resolver_select (int socket_memoria){
