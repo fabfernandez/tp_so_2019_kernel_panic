@@ -251,7 +251,7 @@ struct tablaMemoriaGossip crearTablaGossip(){
 	return *elementoCreado;
 }
 
-struct tablaMemoriaGossip crearElementoParaTablaDeConsistencias(struct memoriaGossip memoria){ // hay que pasar por parametro un struct con los datos de la nueva memoria
+struct tablaMemoriaGossip crearElementoParaTablaDeGossip(struct memoriaGossip memoria){ // hay que pasar por parametro un struct con los datos de la nueva memoria
 	struct memoriaGossip* memogossip = malloc(sizeof(struct memoriaGossip));
 	struct tablaMemoriaGossip* elementoCreado = malloc(sizeof(struct tablaMemoriaGossip));
 	// memogossip.descriptorMemoria = tabla.descriptorMemoria(seteo descriptor de la nueva memoria)

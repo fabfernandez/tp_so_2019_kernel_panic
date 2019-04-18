@@ -39,7 +39,7 @@ struct tablaMemoriaGossip {
 	struct tablaMemoriaGossip* siguiente;
 };
 struct tablaMemoriaGossip crearTablaGossip();
-struct tablaMemoriaGossip crearElementoParaTablaDeConsistencias(struct memoriaGossip memoria); // hay que pasar por parametro un struct con los datos de la nueva memoria
+struct tablaMemoriaGossip crearElementoParaTablaDeGossip(struct memoriaGossip memoria); // hay que pasar por parametro un struct con los datos de la nueva memoria
 void agregarMemoriaALaTablaGossip(struct tablaMemoriaGossip* tabla, struct tablaMemoriaGossip* elementoAAgregar);
 
 typedef enum operaciones {
