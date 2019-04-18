@@ -18,6 +18,9 @@
 #include <stdbool.h>
 #include "strings.h"
 
+typedef enum estado {
+	CONECTADA, DESCONECTADA
+}t_estado;
 
 typedef enum consistencias{
 	STRONG, STRONG_HASH, EVENTUAL
@@ -30,9 +33,7 @@ struct memoriaGossip {
 	t_consistencia consistencia;
 	t_estado estado;
 };
-typedef enum estado {
-	CONECTADA, DESCONECTADA
-}t_estado;
+
 
 struct tablaMemoriaGossip {
 	struct memoriaGossip memoria;
