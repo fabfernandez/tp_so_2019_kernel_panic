@@ -245,3 +245,28 @@ t_paquete_drop_describe* deserealizar_drop_describe(int socket_cliente) {
 	return consulta;//Acordarse de hacer un free despues de usarse
 }
 
+struct tablaMemoriaGossip crearTablaGossip(){
+	struct tablaMemoriaGossip* elementoCreado = malloc(sizeof(struct tablaMemoriaGossip));
+	//-- CREAR PRIMER ELEMENTO(MEMORIA A, LA PRIEMRA QUE SE LEVANTA, HAY QUE PASAR POR PARAMETROS LOS DATOS DE LA MISMA--//
+	return *elementoCreado;
+}
+
+struct tablaMemoriaGossip crearElementoParaTablaDeGossip(struct memoriaGossip memoria){ // hay que pasar por parametro un struct con los datos de la nueva memoria
+	struct memoriaGossip* memogossip = malloc(sizeof(struct memoriaGossip));
+	struct tablaMemoriaGossip* elementoCreado = malloc(sizeof(struct tablaMemoriaGossip));
+	// memogossip.descriptorMemoria = tabla.descriptorMemoria(seteo descriptor de la nueva memoria)
+	// memogossip.IP = tabla.IP(seteo ip de la nueva memoria)
+	// memogossip.PUERTO = tabla.PUERTO(seteo puerto de la nueva memoria)
+	// memogossip.estado= tabla.estado(seteo estado)
+	// memogossip.siguiente=null;
+	elementoCreado->memoria = *memogossip;
+	elementoCreado->siguiente= NULL;
+	return *elementoCreado;
+}
+
+void agregarMemoriaALaTablaGossip(struct tablaMemoriaGossip* tabla, struct tablaMemoriaGossip* elementoAAgregar){
+	if(tabla->siguiente == NULL){
+		tabla->siguiente = elementoAAgregar;
+	} else { agregarMemoriaALaTablaGossip(tabla->siguiente,elementoAAgregar); };
+}
+
