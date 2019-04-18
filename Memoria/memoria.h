@@ -20,6 +20,7 @@
 
 
 							// ******* TIPOS NECESARIOS ******* //
+struct tablaMemoriaGossip* tablaGossiping;
 t_log* logger;
 t_config* archivoconfig;
 int socket_conexion_lfs;
@@ -30,8 +31,11 @@ char* puerto__lfs;
 int server_memoria;
 int socket_kernel_conexion_entrante;
 typedef char* t_valor;	//valor que devuelve el select
+void inicializarTablaGossiping();
 void levantar_datos_memoria();
+void levantar_datos_lfs();
 int esperar_operaciones();
+void iniciarTablaDeGossiping();
 void leer_config();
 int insert(char* tabla, uint16_t key, long timestamp);
 

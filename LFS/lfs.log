@@ -192,3 +192,88 @@
 [INFO] 13:57:02:309 Memoria/(24389:24389): Inicia handshake con memoria
 [INFO] 13:57:02:310 Memoria/(24389:24389): Me llego el mensaje Hola, me conecto, soy la memoria
 [INFO] 13:57:02:310 Memoria/(24389:24389): Conexion exitosa con memoria
+[INFO] 00:42:35:172 Memoria/(4704:4704): La IP de la memoria es 127.0.0.3
+[INFO] 00:42:35:173 Memoria/(4704:4704): El puerto de la memoria es 6445
+[INFO] 00:42:35:173 Memoria/(4704:4704): LFS listo para recibir a peticiones de memoria
+[INFO] 00:42:35:174 Memoria/(4704:4704): LFS espera peticiones
+[INFO] 00:42:45:763 Memoria/(4704:4704): LFS se conectó con memoria
+[INFO] 00:42:45:763 Memoria/(4704:4704): Inicia handshake con memoria
+[INFO] 00:42:45:763 Memoria/(4704:4704): Me llego el mensaje Hola, me conecto, soy la memoria
+[INFO] 00:42:45:763 Memoria/(4704:4704): Conexion exitosa con memoria
+[ERROR] 00:43:05:262 Memoria/(4704:4704): el cliente se desconecto. Terminando servidor
+[INFO] 00:45:40:778 Memoria/(5009:5009): La IP de la memoria es 127.0.0.3
+[INFO] 00:45:40:778 Memoria/(5009:5009): El puerto de la memoria es 6445
+[INFO] 00:45:40:778 Memoria/(5009:5009): LFS listo para recibir a peticiones de memoria
+[INFO] 00:45:40:778 Memoria/(5009:5009): LFS espera peticiones
+[INFO] 00:45:45:968 Memoria/(5009:5009): LFS se conectó con memoria
+[INFO] 00:45:45:968 Memoria/(5009:5009): Inicia handshake con memoria
+[INFO] 00:45:45:968 Memoria/(5009:5009): Me llego el mensaje Hola, me conecto, soy la memoria
+[INFO] 00:45:45:968 Memoria/(5009:5009): Conexion exitosa con memoria
+[ERROR] 00:46:05:943 Memoria/(5009:5009): el cliente se desconecto. Terminando servidor
+[INFO] 00:47:10:861 Memoria/(5238:5238): La IP de la memoria es 127.0.0.3
+[INFO] 00:47:10:861 Memoria/(5238:5238): El puerto de la memoria es 6445
+[INFO] 00:47:10:865 Memoria/(5238:5238): LFS listo para recibir a peticiones de memoria
+[INFO] 00:47:10:865 Memoria/(5238:5238): LFS espera peticiones
+[INFO] 00:49:18:192 Memoria/(5420:5420): La IP de la memoria es 127.0.0.3
+[INFO] 00:49:18:192 Memoria/(5420:5420): El puerto de la memoria es 6445
+[INFO] 00:49:18:193 Memoria/(5420:5420): LFS listo para recibir a peticiones de memoria
+[INFO] 00:49:18:193 Memoria/(5420:5420): LFS espera peticiones
+[INFO] 00:50:09:599 Memoria/(5646:5646): La IP de la memoria es 127.0.0.3
+[INFO] 00:50:09:599 Memoria/(5646:5646): El puerto de la memoria es 6445
+[INFO] 00:50:09:599 Memoria/(5646:5646): LFS listo para recibir a peticiones de memoria
+[INFO] 00:50:09:599 Memoria/(5646:5646): LFS espera peticiones
+[INFO] 00:50:09:599 Memoria/(5646:5646): LFS se conectó con memoria
+[INFO] 00:50:09:599 Memoria/(5646:5646): memoria solicitó INSERT
+[WARNING] 00:50:09:599 Memoria/(5646:5646): Operacion desconocida.
+[INFO] 00:50:23:874 Memoria/(5661:5661): La IP de la memoria es 127.0.0.3
+[INFO] 00:50:23:874 Memoria/(5661:5661): El puerto de la memoria es 6445
+[INFO] 00:50:23:875 Memoria/(5661:5661): LFS listo para recibir a peticiones de memoria
+[INFO] 00:50:23:875 Memoria/(5661:5661): LFS espera peticiones
+[INFO] 00:50:38:983 Memoria/(5661:5661): LFS se conectó con memoria
+[INFO] 00:50:38:983 Memoria/(5661:5661): Inicia handshake con memoria
+[INFO] 00:50:38:983 Memoria/(5661:5661): Me llego el mensaje Hola, me conecto, soy la memoria
+[INFO] 00:50:38:984 Memoria/(5661:5661): Conexion exitosa con memoria
+[ERROR] 00:54:44:625 Memoria/(5661:5661): el cliente se desconecto. Terminando servidor
+[INFO] 00:54:53:169 Memoria/(5981:5981): La IP de la memoria es 127.0.0.3
+[INFO] 00:54:53:169 Memoria/(5981:5981): El puerto de la memoria es 6445
+[INFO] 00:54:53:169 Memoria/(5981:5981): LFS listo para recibir a peticiones de memoria
+[INFO] 00:54:53:169 Memoria/(5981:5981): LFS espera peticiones
+[INFO] 00:55:31:658 Memoria/(6135:6135): La IP de la memoria es 127.0.0.3
+[INFO] 00:55:31:659 Memoria/(6135:6135): El puerto de la memoria es 6445
+[INFO] 00:55:31:659 Memoria/(6135:6135): LFS listo para recibir a peticiones de memoria
+[INFO] 00:55:31:659 Memoria/(6135:6135): LFS espera peticiones
+[INFO] 00:56:20:681 Memoria/(6292:6292): La IP de la memoria es 127.0.0.3
+[INFO] 00:56:20:681 Memoria/(6292:6292): El puerto de la memoria es 6445
+[INFO] 00:56:20:681 Memoria/(6292:6292): LFS listo para recibir a peticiones de memoria
+[INFO] 00:56:20:681 Memoria/(6292:6292): LFS espera peticiones
+[INFO] 00:57:15:119 Memoria/(6292:6292): LFS se conectó con memoria
+[INFO] 00:57:15:119 Memoria/(6292:6292): Inicia handshake con memoria
+[INFO] 00:57:15:119 Memoria/(6292:6292): Me llego el mensaje Hola, me conecto, soy la memoria
+[INFO] 00:57:15:119 Memoria/(6292:6292): Conexion exitosa con memoria
+[ERROR] 00:57:39:72 Memoria/(6292:6292): el cliente se desconecto. Terminando servidor
+[INFO] 00:59:56:265 Memoria/(6526:6526): La IP de la memoria es 127.0.0.3
+[INFO] 00:59:56:265 Memoria/(6526:6526): El puerto de la memoria es 6445
+[INFO] 00:59:56:265 Memoria/(6526:6526): LFS listo para recibir a peticiones de memoria
+[INFO] 00:59:56:265 Memoria/(6526:6526): LFS espera peticiones
+[INFO] 01:13:54:570 Memoria/(6526:6526): LFS se conectó con memoria
+[INFO] 01:13:54:571 Memoria/(6526:6526): Inicia handshake con memoria
+[INFO] 01:13:54:571 Memoria/(6526:6526): Me llego el mensaje Hola, me conecto, soy la memoria
+[INFO] 01:13:54:571 Memoria/(6526:6526): Conexion exitosa con memoria
+[ERROR] 01:18:18:457 Memoria/(6526:6526): el cliente se desconecto. Terminando servidor
+[INFO] 01:18:24:883 Memoria/(8167:8167): La IP de la memoria es 127.0.0.3
+[INFO] 01:18:24:884 Memoria/(8167:8167): El puerto de la memoria es 6445
+[INFO] 01:18:24:884 Memoria/(8167:8167): LFS listo para recibir a peticiones de memoria
+[INFO] 01:18:24:885 Memoria/(8167:8167): LFS espera peticiones
+[INFO] 01:18:34:505 Memoria/(8167:8167): LFS se conectó con memoria
+[INFO] 01:18:34:506 Memoria/(8167:8167): Inicia handshake con memoria
+[INFO] 01:18:34:506 Memoria/(8167:8167): Me llego el mensaje Hola, me conecto, soy la memoria
+[INFO] 01:18:34:506 Memoria/(8167:8167): Conexion exitosa con memoria
+[ERROR] 01:19:27:54 Memoria/(8167:8167): el cliente se desconecto. Terminando servidor
+[INFO] 01:19:35:237 Memoria/(8340:8340): La IP de la memoria es 127.0.0.3
+[INFO] 01:19:35:237 Memoria/(8340:8340): El puerto de la memoria es 6445
+[INFO] 01:19:35:237 Memoria/(8340:8340): LFS listo para recibir a peticiones de memoria
+[INFO] 01:19:35:237 Memoria/(8340:8340): LFS espera peticiones
+[INFO] 01:19:46:138 Memoria/(8340:8340): LFS se conectó con memoria
+[INFO] 01:19:46:139 Memoria/(8340:8340): Inicia handshake con memoria
+[INFO] 01:19:46:139 Memoria/(8340:8340): Me llego el mensaje Hola, me conecto, soy la memoria
+[INFO] 01:19:46:139 Memoria/(8340:8340): Conexion exitosa con memoria

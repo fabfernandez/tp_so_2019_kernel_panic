@@ -7,11 +7,14 @@
 #include "memoria.h"
 int main(void)
 {
-	// ------------------------------------------ INICIO LOGGER, CONFIG Y LEVANTO DATOS
-	iniciar_logger();											//
-	leer_config();												//
-	levantar_datos_memoria();									//
-	levantar_datos_lfs();										//
+	// ------------------------------------------ INICIO LOGGER, CONFIG, LEVANTO DATOS E INICIO SERVER
+	iniciar_logger();												//
+	leer_config();													//
+	levantar_datos_memoria();										//
+	levantar_datos_lfs();											//
+	server_memoria = iniciar_servidor(ip_memoria, puerto_memoria); 	//
+	// ------------------------------------------ INICIO LA TABLA DE GOSSIPING AGREGANDO LA MEMORIA ACTUAL
+	iniciarTablaDeGossiping();
 	// ------------------------------------------ ME CONECTO CON LFS E INTENTO UN HANDSHAKE
 	socket_conexion_lfs = crear_conexion(ip__lfs,puerto__lfs);	//
 	log_info(logger,"Creada la conexion para LFS");				//
@@ -112,12 +115,22 @@ void intentar_handshake_a_lfs(int alguien){
 		}
 }
 void iniciar_servidor_memoria_y_esperar_conexiones_kernel(){
-	server_memoria = iniciar_servidor(ip_memoria, puerto_memoria);
 	log_info(logger, "Memoria lista para recibir a peticiones de Kernel");
 	log_info(logger, "Memoria espera peticiones");
 	socket_kernel_conexion_entrante = esperar_cliente(server_memoria);
 	log_info(logger, "Memoria se conectó con Kernel");
 }
+iniciarTablaDeGossiping(){
+	tablaGossiping = malloc(sizeof(struct tablaMemoriaGossip));
+	tablaGossiping->memoria.IP= ip_memoria;
+	tablaGossiping->memoria.PUERTO= puerto_memoria;
+	tablaGossiping->memoria.estado= CONECTADA;
+	tablaGossiping->memoria.descriptorMemoria=server_memoria;
+	tablaGossiping->siguiente=NULL;							//
+	log_info(logger, "Se inicializo la tabla de Gossiping");
+	log_info(logger, "Se agrego a la tabla de Gossiping la memoria: %i con estado %i de ip: %s y puerto: %s", tablaGossiping->memoria.descriptorMemoria,tablaGossiping->memoria.estado, tablaGossiping->memoria.IP,tablaGossiping->memoria.PUERTO );
+}
+
 
 
 // ANEXO //
