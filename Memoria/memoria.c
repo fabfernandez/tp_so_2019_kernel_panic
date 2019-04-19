@@ -7,23 +7,47 @@
 #include "memoria.h"
 int main(void)
 {
-	// ------------------------------------------ INICIO LOGGER, CONFIG, LEVANTO DATOS E INICIO SERVER
-	iniciar_logger();												//
-	leer_config();													//
-	levantar_datos_memoria();										//
-	levantar_datos_lfs();											//
-	server_memoria = iniciar_servidor(ip_memoria, puerto_memoria); 	//
-	// ------------------------------------------ INICIO LA TABLA DE GOSSIPING AGREGANDO LA MEMORIA ACTUAL
-	iniciarTablaDeGossiping();
-	// ------------------------------------------ ME CONECTO CON LFS E INTENTO UN HANDSHAKE
-	socket_conexion_lfs = crear_conexion(ip__lfs,puerto__lfs);	//
-	log_info(logger,"Creada la conexion para LFS");				//
-	intentar_handshake_a_lfs(socket_conexion_lfs);				//
-	// ------------------------------------------ INICIO SERVIDOR Y ESPERO CONEXION
-	iniciar_servidor_memoria_y_esperar_conexiones_kernel();		//
-	// ------------------------------------------ A ESPERA DE OPERACIONES
-	esperar_operaciones(socket_kernel_conexion_entrante);		// -> ESPERO OPERACIONES DE KERNEL(ACA DEBERIA ESPERAR TAMBIEN DE LFS)
+	// ------------------------------------------ INICIO LOGGER, CONFIG, LEVANTO DATOS E INICIO SERVER ------------	//
+																													//
+	iniciar_logger();																								//
+	leer_config();																									//
+	levantar_datos_memoria();																						// HAY QUE CAMBIAR RUTA A UNA VARIABLE PARA PODER LEVANTAR MEMORIAS CON DIFERENTES CONFIGS
+	levantar_datos_lfs();																							//
+	server_memoria = iniciar_servidor(ip_memoria, puerto_memoria); 													//
+																													//
+	// ------------------------------------------ INICIO LOGGER, CONFIG, LEVANTO DATOS E INICIO SERVER ------------	//
 
+
+	// ------------------------------------------ INICIO LA TABLA DE GOSSIPING AGREGANDO LA MEMORIA ACTUAL			//
+	//puertosSeeds = config_get_array_value(archivoconfig, "PUERTOSEEDS");											//
+	//seeds = config_get_array_value(archivoconfig, "IPSEEDS");														//
+	iniciarTablaDeGossiping();																						//
+	//pthread_create(&thread_gossiping, NULL, &iniciarGossip, &tablaGossiping, &primeraVuelta);						// CREO THREAD DE GOSSIPING
+	// ------------------------------------------ INICIO LA TABLA DE GOSSIPING AGREGANDO LA MEMORIA ACTUAL			//
+
+
+
+	// ------------------------------------------ ME CONECTO CON LFS E INTENTO UN HANDSHAKE -----------------------	// INTENTA CONECTARSE, SI NO PUEDE CORTA LA EJECUCION
+																													//
+	socket_conexion_lfs = crear_conexion(ip__lfs,puerto__lfs);														//
+	log_info(logger,"Creada la conexion para LFS");																	//
+	intentar_handshake_a_lfs(socket_conexion_lfs);																	//
+																													//
+	// ------------------------------------------ ME CONECTO CON LFS E INTENTO UN HANDSHAKE -----------------------	//
+
+
+	// ------------------------------------------ INICIO SERVIDOR Y ESPERO CONEXION	-------------------------------	//
+
+	iniciar_servidor_memoria_y_esperar_conexiones_kernel();															//
+
+	// ------------------------------------------ INICIO SERVIDOR Y ESPERO CONEXION	-------------------------------	//
+
+
+	// ------------------------------------------ A ESPERA DE OPERACIONES -----------------------------------------	//
+
+	esperar_operaciones(socket_kernel_conexion_entrante);															// -> ESPERO OPERACIONES DE KERNEL(ACA DEBERIA ESPERAR TAMBIEN MEMORIAS Y LFS)
+
+	// ------------------------------------------ A ESPERA DE OPERACIONES -----------------------------------------	//
 //	terminar_programa(socket_kernel_fd, conexionALFS); // termina conexion, destroy log y destroy config.
 	return EXIT_SUCCESS;
 }
@@ -49,37 +73,42 @@ void terminar_programa(int conexionKernel, int conexionALFS)
 	log_destroy(logger);
 	config_destroy(archivoconfig);
 }
-int esperar_operaciones(int de_quien){
+int esperar_operaciones(int de_quien){ // MODIFICAR
 	while(1){
 			int cod_op = recibir_operacion(de_quien);
 			switch(cod_op)
 			{
 			case HANDSHAKE:
-				log_info(logger, "Inicia handshake con Kernel");
+				log_info(logger, "Inicia handshake con %i", de_quien);
 				recibir_mensaje(logger, de_quien);
 				enviar_handshake(de_quien, "OK");
-				log_info(logger, "Conexion exitosa con kernel");
+				log_info(logger, "Conexion exitosa con con %i", de_quien);
 				break;
 			case SELECT:
-				log_info(logger, "Kernel solicitó SELECT");
+				log_info(logger, "%i solicitó SELECT", de_quien);
 				resolver_select(de_quien, socket_conexion_lfs);
 				//aca debería enviarse el mensaje a LFS con SELECT
 				break;
 			case INSERT:
-				log_info(logger, "Kernel solicitó INSERT");
+				log_info(logger, "%i solicitó INSERT", de_quien);
 				//aca debería enviarse el mensaje a LFS con INSERT
 				break;
 			case CREATE:
-				log_info(logger, "Kernel solicitó CREATE");
+				log_info(logger, "%i solicitó CREATE", de_quien);
 				//aca debería enviarse el mensaje a LFS con CREATE
 				break;
 			case DESCRIBE:
-				log_info(logger, "Kernel solicitó DESCRIBE");
+				log_info(logger, "%i solicitó DESCRIBE", de_quien);
 				//aca debería enviarse el mensaje a LFS con DESCRIBE
 				break;
 			case DROP:
-				log_info(logger, "Kernel solicitó DROP");
+				log_info(logger, "%i solicitó DROP", de_quien);
 				//aca debería enviarse el mensaje a LFS con DROP
+				break;
+			case GOSSPING:
+				log_info(logger, "La memoria %i solicitó GOSSIPING", de_quien);
+					// realizarGossipingConUnaMemoria(int de_quien);  // paso el socket!
+					// esto deberia solicitar la tabla de gossiping a "de_quien"(quien solicita el gossiping) y enviarle su tabla de gossiping.
 				break;
 			case -1:
 				log_error(logger, "el cliente se desconecto. Terminando servidor");
@@ -130,7 +159,49 @@ void iniciarTablaDeGossiping(){
 	log_info(logger, "Se inicializo la tabla de Gossiping");
 	log_info(logger, "Se agrego a la tabla de Gossiping la memoria: %i con estado %i de ip: %s y puerto: %s", tablaGossiping->memoria.descriptorMemoria,tablaGossiping->memoria.estado, tablaGossiping->memoria.IP,tablaGossiping->memoria.PUERTO );
 }
+char** levantarSeeds(){
+	return config_get_array_value(archivoconfig, "IP_SEEDS");
+}
+char** levantarPuertosSeeds(){
+	return config_get_array_value(archivoconfig, "PUERTO_SEEDS");
+}
+void iniciarGossip(struct tablaMemoriaGossip* tabla, int contador){ // VOY A HAER OSSIPING CON LAS MEMORIAS(PREGUNTARLES QUE MEMORIAS CONECTADAS CONOCE)
+	int pasada = contador;
+	if(pasada==0){ // PRIMER PASADA TIENE UN SLEEP DE 4 UNIDADES DE TIEMPO, SE VA A REPETIR EL GOSSIPING HASTA QUE TERMINE EL PROCESO ED LA MEMORIA
+		while(1){
+			sleep(4);// ESPERO 4 UNIDADES
+			if(tabla->siguiente!=NULL) // HAY MEMORIAS POR RECORRER EN LA TABLA APARTE DE LA QUE YA ESTOY LEYENDO?
+				{ 									// SI HAY UNA MEMORIA PENDIENTE, LEO
+				//realizarGossipingConUnaMemoria(MEMORIA); // no deberia hacer gossiping con ella misma(primer elemento de la tabla es la memoria creadora de la tabla)
+				struct tablaMemoriaGossip* proximo = tabla->siguiente;
+				iniciarGossip(proximo,1); // LLAMO A GOSSIP PARA QUE HAGA GOSSIPING CON LA MEMORIA QUE VIENE, PERO CON 1, ES DECIR, SIN DORMIR EL PROCESO PUES ES PARTE DE ESTE CICLO ACTUAL DE GOSSIPING.
+				}
+			else{ 									// SI NO HAY UNA MEMORIA PENDIENTE, HAGO ULTIMO GOSSIPING DEL CICLO
+				//realizarGossipingConUnaMemoria(tabla->memoria.descriptorMemoria);
+				}
+		}
+	}
+	else
+		{
+		if(tabla->siguiente!=NULL) // ENTRE POR ACÁ POR QUE ESTOY LEYENDO MINIMAMENTE UNA SEGUNDA MEMORIA EN UN MISMO CICLO DE GOSSIP(SIN DORMIR)
+						{ 									// SI HAY UNA MEMORIA PENDIENTE, LEO SIGUIENTE Y HAGO GOSSIP CON LA ACTUAL
+						//realizarGossipingConUnaMemoria(tabla->memoria);
+						struct tablaMemoriaGossip* proximo = tabla->siguiente;
+						iniciarGossip(proximo,1);
+						}
+					else{ 									// SI NO HAY UNA MEMORIA PENDIENTE, HAGO ULTIMO GOSSIPING DEL CICLO
+						//realizarGossipingConUnaMemoria(tabla->memoria);
+						}
+		}
+	}
 
+/*	int seedsCargadas;
+	for(int i=0;sizeof(seeds);i++){
+		log_info(logger, "Se obtuvo la seed a memoria con ip: %s , y puerto: %s",seeds[i],puertosSeeds[i]);
+		seedsCargadas=i+1;
+	}
+	log_info(logger, "Se obtuvieron %i seeds correctamente.",seedsCargadas);
+}*/
 
 
 // ANEXO //

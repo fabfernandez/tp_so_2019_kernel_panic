@@ -277,3 +277,43 @@
 [INFO] 01:19:46:139 Memoria/(8340:8340): Inicia handshake con memoria
 [INFO] 01:19:46:139 Memoria/(8340:8340): Me llego el mensaje Hola, me conecto, soy la memoria
 [INFO] 01:19:46:139 Memoria/(8340:8340): Conexion exitosa con memoria
+[INFO] 01:32:31:830 Memoria/(8825:8825): La IP de la memoria es 127.0.0.3
+[INFO] 01:32:31:830 Memoria/(8825:8825): El puerto de la memoria es 6445
+[INFO] 01:32:31:830 Memoria/(8825:8825): LFS listo para recibir a peticiones de memoria
+[INFO] 01:32:31:830 Memoria/(8825:8825): LFS espera peticiones
+[ERROR] 01:32:31:830 Memoria/(8825:8825): Fallo accion select.
+[ERROR] 01:33:00:988 Memoria/(8340:8340): el cliente se desconecto. Terminando servidor
+[INFO] 10:32:20:421 Memoria/(9641:9641): La IP de la memoria es 127.0.0.3
+[INFO] 10:32:20:433 Memoria/(9641:9641): El puerto de la memoria es 6445
+[INFO] 10:32:20:433 Memoria/(9641:9641): LFS listo para recibir a peticiones de memoria
+[INFO] 10:32:20:433 Memoria/(9641:9641): LFS espera peticiones
+[INFO] 10:33:08:301 Memoria/(9783:9783): La IP de la memoria es 127.0.0.3
+[INFO] 10:33:08:301 Memoria/(9783:9783): El puerto de la memoria es 6445
+[INFO] 10:33:08:302 Memoria/(9783:9783): LFS listo para recibir a peticiones de memoria
+[INFO] 10:33:08:302 Memoria/(9783:9783): LFS espera peticiones
+[INFO] 10:33:19:84 Memoria/(9783:9783): LFS se conectó con memoria
+[ERROR] 10:33:19:84 Memoria/(9783:9783): No pudo realizarse handshake con el nuevo cliente en el socket 0
+[INFO] 10:34:08:809 Memoria/(9989:9989): La IP de la memoria es 127.0.0.3
+[INFO] 10:34:08:810 Memoria/(9989:9989): El puerto de la memoria es 6445
+[INFO] 10:34:08:810 Memoria/(9989:9989): LFS listo para recibir a peticiones de memoria
+[INFO] 10:34:08:810 Memoria/(9989:9989): LFS espera peticiones
+[INFO] 10:35:34:44 Memoria/(9989:9989): LFS se conectó con memoria
+[ERROR] 10:35:34:44 Memoria/(9989:9989): No pudo realizarse handshake con el nuevo cliente en el socket 0
+[INFO] 10:36:04:518 Memoria/(10238:10238): La IP de la memoria es 127.0.0.3
+[INFO] 10:36:04:518 Memoria/(10238:10238): El puerto de la memoria es 6445
+[INFO] 10:36:04:518 Memoria/(10238:10238): LFS listo para recibir a peticiones de memoria
+[INFO] 10:36:04:518 Memoria/(10238:10238): LFS espera peticiones
+[INFO] 10:36:09:870 Memoria/(10238:10238): LFS se conectó con memoria
+[ERROR] 10:36:09:870 Memoria/(10238:10238): No pudo realizarse handshake con el nuevo cliente en el socket 0
+[INFO] 10:38:04:511 Memoria/(10408:10408): La IP de la memoria es 127.0.0.3
+[INFO] 10:38:04:511 Memoria/(10408:10408): El puerto de la memoria es 6445
+[INFO] 10:38:04:511 Memoria/(10408:10408): LFS listo para recibir a peticiones de memoria
+[INFO] 10:38:04:511 Memoria/(10408:10408): LFS espera peticiones
+[INFO] 10:38:11:165 Memoria/(10408:10408): LFS se conectó con memoria
+[ERROR] 10:38:11:165 Memoria/(10408:10408): No pudo realizarse handshake con el nuevo cliente en el socket 0
+[INFO] 10:40:58:389 Memoria/(10631:10631): La IP de la memoria es 127.0.0.3
+[INFO] 10:40:58:389 Memoria/(10631:10631): El puerto de la memoria es 6445
+[INFO] 10:40:58:389 Memoria/(10631:10631): LFS listo para recibir a peticiones de memoria
+[INFO] 10:40:58:389 Memoria/(10631:10631): LFS espera peticiones
+[INFO] 10:41:04:712 Memoria/(10631:10631): LFS se conectó con memoria
+[ERROR] 10:41:04:712 Memoria/(10631:10631): No pudo realizarse handshake con el nuevo cliente en el socket 0

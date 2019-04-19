@@ -42,7 +42,7 @@ struct tablaMemoriaGossip crearElementoParaTablaDeGossip(struct memoriaGossip me
 void agregarMemoriaALaTablaGossip(struct tablaMemoriaGossip* tabla, struct tablaMemoriaGossip* elementoAAgregar);
 
 typedef enum operaciones {
-	INSERT,SELECT,CREATE,DESCRIBE,DROP, JOURNAL,ADD,METRICS,RUN, HANDSHAKE
+	INSERT,SELECT,CREATE,DESCRIBE,DROP, JOURNAL,ADD,METRICS,RUN, HANDSHAKE,GOSSPING
 }t_operacion;
 
 typedef struct

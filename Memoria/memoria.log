@@ -666,3 +666,349 @@
 [INFO] 01:19:46:139 Memoria/(8416:8416): Conexion exitosa con LFS
 [INFO] 01:19:46:139 Memoria/(8416:8416): Memoria lista para recibir a peticiones de Kernel
 [INFO] 01:19:46:139 Memoria/(8416:8416): Memoria espera peticiones
+[INFO] 01:32:45:57 Memoria/(8843:8843): La IP de la memoria es 127.0.0.2
+[INFO] 01:32:45:57 Memoria/(8843:8843): El puerto de la memoria es 4444
+[INFO] 01:32:45:57 Memoria/(8843:8843): La IP del LFS es 127.0.0.3
+[INFO] 01:32:45:57 Memoria/(8843:8843): El puerto del LFS es 6445
+[INFO] 01:32:45:58 Memoria/(8843:8843): Se inicializo la tabla de Gossiping
+[INFO] 01:32:45:58 Memoria/(8843:8843): Se agrego a la tabla de Gossiping la memoria: 4 con estado 0 de ip: 127.0.0.2 y puerto: 4444
+[INFO] 01:32:45:58 Memoria/(8843:8843): Creada la conexion para LFS
+[INFO] 01:32:45:58 Memoria/(8843:8843): Trato de realizar un hasdshake
+[INFO] 01:32:45:58 Memoria/(8843:8843): Se envió el mensaje Hola, me conecto, soy la memoria
+[INFO] 10:32:28:685 Memoria/(9706:9706): La IP de la memoria es 127.0.0.2
+[INFO] 10:32:28:734 Memoria/(9706:9706): El puerto de la memoria es 4444
+[INFO] 10:32:28:734 Memoria/(9706:9706): La IP del LFS es 127.0.0.3
+[INFO] 10:32:28:734 Memoria/(9706:9706): El puerto del LFS es 6445
+[INFO] 10:33:19:84 Memoria/(9859:9859): La IP de la memoria es 127.0.0.2
+[INFO] 10:33:19:84 Memoria/(9859:9859): El puerto de la memoria es 4444
+[INFO] 10:33:19:84 Memoria/(9859:9859): La IP del LFS es 127.0.0.3
+[INFO] 10:33:19:84 Memoria/(9859:9859): El puerto del LFS es 6445
+[INFO] 10:33:19:84 Memoria/(9859:9859): Se inicializo la tabla de Gossiping
+[INFO] 10:33:19:84 Memoria/(9859:9859): Se agrego a la tabla de Gossiping la memoria: 4 con estado 0 de ip: 127.0.0.2 y puerto: 4444
+[INFO] 10:33:19:85 Memoria/(9859:9859): Creada la conexion para LFS
+[INFO] 10:33:19:85 Memoria/(9859:9859): Trato de realizar un hasdshake
+[INFO] 10:33:19:85 Memoria/(9859:9859): Se envió el mensaje Hola, me conecto, soy la memoria
+[INFO] 10:34:15:579 Memoria/(10067:10067): La IP de la memoria es 127.0.0.2
+[INFO] 10:34:15:580 Memoria/(10067:10067): El puerto de la memoria es 4444
+[INFO] 10:34:15:580 Memoria/(10067:10067): La IP del LFS es 127.0.0.3
+[INFO] 10:34:15:580 Memoria/(10067:10067): El puerto del LFS es 6445
+[INFO] 10:35:21:558 Memoria/(10129:10129): La IP de la memoria es 127.0.0.2
+[INFO] 10:35:21:559 Memoria/(10129:10129): El puerto de la memoria es 4444
+[INFO] 10:35:21:559 Memoria/(10129:10129): La IP del LFS es 127.0.0.3
+[INFO] 10:35:21:559 Memoria/(10129:10129): El puerto del LFS es 6445
+[INFO] 10:35:34:44 Memoria/(10169:10169): La IP de la memoria es 127.0.0.2
+[INFO] 10:35:34:44 Memoria/(10169:10169): El puerto de la memoria es 4444
+[INFO] 10:35:34:44 Memoria/(10169:10169): La IP del LFS es 127.0.0.3
+[INFO] 10:35:34:44 Memoria/(10169:10169): El puerto del LFS es 6445
+[INFO] 10:35:34:44 Memoria/(10169:10169): Se inicializo la tabla de Gossiping
+[INFO] 10:35:34:44 Memoria/(10169:10169): Se agrego a la tabla de Gossiping la memoria: 4 con estado 0 de ip: 127.0.0.2 y puerto: 4444
+[INFO] 10:35:34:45 Memoria/(10169:10169): Creada la conexion para LFS
+[INFO] 10:35:34:45 Memoria/(10169:10169): Trato de realizar un hasdshake
+[INFO] 10:35:34:45 Memoria/(10169:10169): Se envió el mensaje Hola, me conecto, soy la memoria
+[INFO] 10:35:42:787 Memoria/(10169:10169): ERROR. No se realizó correctamente el HANDSHAKE
+[INFO] 10:35:42:788 Memoria/(10169:10169): Conexion exitosa con LFS
+[INFO] 10:35:42:788 Memoria/(10169:10169): Memoria lista para recibir a peticiones de Kernel
+[INFO] 10:35:42:788 Memoria/(10169:10169): Memoria espera peticiones
+[INFO] 10:36:09:865 Memoria/(10302:10302): La IP de la memoria es 127.0.0.2
+[INFO] 10:36:09:868 Memoria/(10302:10302): El puerto de la memoria es 4444
+[INFO] 10:36:09:868 Memoria/(10302:10302): La IP del LFS es 127.0.0.3
+[INFO] 10:36:09:868 Memoria/(10302:10302): El puerto del LFS es 6445
+[INFO] 10:36:09:869 Memoria/(10302:10302): Se inicializo la tabla de Gossiping
+[INFO] 10:36:09:869 Memoria/(10302:10302): Se agrego a la tabla de Gossiping la memoria: 4 con estado 0 de ip: 127.0.0.2 y puerto: 4444
+[INFO] 10:36:09:870 Memoria/(10302:10302): Creada la conexion para LFS
+[INFO] 10:36:09:870 Memoria/(10302:10302): Trato de realizar un hasdshake
+[INFO] 10:36:09:870 Memoria/(10302:10302): Se envió el mensaje Hola, me conecto, soy la memoria
+[INFO] 10:38:11:164 Memoria/(10478:10478): La IP de la memoria es 127.0.0.2
+[INFO] 10:38:11:164 Memoria/(10478:10478): El puerto de la memoria es 4444
+[INFO] 10:38:11:164 Memoria/(10478:10478): La IP del LFS es 127.0.0.3
+[INFO] 10:38:11:164 Memoria/(10478:10478): El puerto del LFS es 6445
+[INFO] 10:38:11:165 Memoria/(10478:10478): Se inicializo la tabla de Gossiping
+[INFO] 10:38:11:165 Memoria/(10478:10478): Se agrego a la tabla de Gossiping la memoria: 4 con estado 0 de ip: 127.0.0.2 y puerto: 4444
+[INFO] 10:38:11:165 Memoria/(10478:10478): Creada la conexion para LFS
+[INFO] 10:38:11:165 Memoria/(10478:10478): Trato de realizar un hasdshake
+[INFO] 10:38:11:165 Memoria/(10478:10478): Se envió el mensaje Hola, me conecto, soy la memoria
+[INFO] 10:41:04:710 Memoria/(10695:10695): La IP de la memoria es 127.0.0.2
+[INFO] 10:41:04:711 Memoria/(10695:10695): El puerto de la memoria es 4444
+[INFO] 10:41:04:711 Memoria/(10695:10695): La IP del LFS es 127.0.0.3
+[INFO] 10:41:04:711 Memoria/(10695:10695): El puerto del LFS es 6445
+[INFO] 10:41:04:711 Memoria/(10695:10695): Se inicializo la tabla de Gossiping
+[INFO] 10:41:04:711 Memoria/(10695:10695): Se agrego a la tabla de Gossiping la memoria: 4 con estado 0 de ip: 127.0.0.2 y puerto: 4444
+[INFO] 10:41:04:712 Memoria/(10695:10695): Creada la conexion para LFS
+[INFO] 10:41:04:712 Memoria/(10695:10695): Trato de realizar un hasdshake
+[INFO] 10:41:04:712 Memoria/(10695:10695): Se envió el mensaje Hola, me conecto, soy la memoria
+[INFO] 10:41:40:803 Memoria/(10695:10695): ERROR. No se realizó correctamente el HANDSHAKE
+[INFO] 10:41:40:803 Memoria/(10695:10695): Conexion exitosa con LFS
+[INFO] 10:41:40:803 Memoria/(10695:10695): Memoria lista para recibir a peticiones de Kernel
+[INFO] 10:41:40:803 Memoria/(10695:10695): Memoria espera peticiones
+[INFO] 10:42:02:896 Memoria/(10725:10725): La IP de la memoria es 127.0.0.2
+[INFO] 10:42:02:896 Memoria/(10725:10725): El puerto de la memoria es 4444
+[INFO] 10:42:02:896 Memoria/(10725:10725): La IP del LFS es 127.0.0.3
+[INFO] 10:42:02:896 Memoria/(10725:10725): El puerto del LFS es 6445
+[INFO] 10:42:02:896 Memoria/(10725:10725): Se inicializo la tabla de Gossiping
+[INFO] 10:42:02:896 Memoria/(10725:10725): Se agrego a la tabla de Gossiping la memoria: 4 con estado 0 de ip: 127.0.0.2 y puerto: 4444
+[INFO] 10:42:02:896 Memoria/(10725:10725): Creada la conexion para LFS
+[INFO] 10:42:02:896 Memoria/(10725:10725): Trato de realizar un hasdshake
+[INFO] 10:44:00:754 Memoria/(11012:11012): La IP de la memoria es 127.0.0.2
+[INFO] 10:44:00:755 Memoria/(11012:11012): El puerto de la memoria es 4444
+[INFO] 10:44:00:755 Memoria/(11012:11012): La IP del LFS es 127.0.0.3
+[INFO] 10:44:00:755 Memoria/(11012:11012): El puerto del LFS es 6445
+[INFO] 10:45:55:487 Memoria/(11106:11106): La IP de la memoria es 127.0.0.2
+[INFO] 10:45:55:487 Memoria/(11106:11106): El puerto de la memoria es 4444
+[INFO] 10:45:55:487 Memoria/(11106:11106): La IP del LFS es 127.0.0.3
+[INFO] 10:45:55:487 Memoria/(11106:11106): El puerto del LFS es 6445
+[INFO] 10:56:54:849 Memoria/(11510:11510): La IP de la memoria es 127.0.0.2
+[INFO] 10:56:54:849 Memoria/(11510:11510): El puerto de la memoria es 4444
+[INFO] 10:56:54:849 Memoria/(11510:11510): La IP del LFS es 127.0.0.3
+[INFO] 10:56:54:849 Memoria/(11510:11510): El puerto del LFS es 6445
+[INFO] 10:57:38:376 Memoria/(11576:11576): La IP de la memoria es 127.0.0.2
+[INFO] 10:57:38:376 Memoria/(11576:11576): El puerto de la memoria es 4444
+[INFO] 10:57:38:376 Memoria/(11576:11576): La IP del LFS es 127.0.0.3
+[INFO] 10:57:38:377 Memoria/(11576:11576): El puerto del LFS es 6445
+[INFO] 10:58:02:270 Memoria/(11597:11597): La IP de la memoria es 127.0.0.2
+[INFO] 10:58:02:270 Memoria/(11597:11597): El puerto de la memoria es 4444
+[INFO] 10:58:02:270 Memoria/(11597:11597): La IP del LFS es 127.0.0.3
+[INFO] 10:58:02:270 Memoria/(11597:11597): El puerto del LFS es 6445
+[INFO] 10:58:14:637 Memoria/(11651:11651): La IP de la memoria es 127.0.0.2
+[INFO] 10:58:14:638 Memoria/(11651:11651): El puerto de la memoria es 4444
+[INFO] 10:58:14:638 Memoria/(11651:11651): La IP del LFS es 127.0.0.3
+[INFO] 10:58:14:638 Memoria/(11651:11651): El puerto del LFS es 6445
+[INFO] 10:58:14:638 Memoria/(11651:11651): Se inicializo la tabla de Gossiping
+[INFO] 10:58:14:638 Memoria/(11651:11651): Se agrego a la tabla de Gossiping la memoria: 4 con estado 0 de ip: 127.0.0.2 y puerto: 4444
+[INFO] 10:58:14:638 Memoria/(11651:11651): Creada la conexion para LFS
+[INFO] 10:58:14:638 Memoria/(11651:11651): Trato de realizar un hasdshake
+[INFO] 11:01:23:704 Memoria/(11755:11755): La IP de la memoria es 127.0.0.2
+[INFO] 11:01:23:704 Memoria/(11755:11755): El puerto de la memoria es 4444
+[INFO] 11:01:23:704 Memoria/(11755:11755): La IP del LFS es 127.0.0.3
+[INFO] 11:01:23:704 Memoria/(11755:11755): El puerto del LFS es 6445
+[INFO] 11:02:29:760 Memoria/(11817:11817): La IP de la memoria es 127.0.0.2
+[INFO] 11:02:29:766 Memoria/(11817:11817): El puerto de la memoria es 4444
+[INFO] 11:02:29:767 Memoria/(11817:11817): La IP del LFS es 127.0.0.3
+[INFO] 11:02:29:767 Memoria/(11817:11817): El puerto del LFS es 6445
+[INFO] 11:06:46:272 Memoria/(12048:12048): La IP de la memoria es 127.0.0.2
+[INFO] 11:06:46:287 Memoria/(12048:12048): El puerto de la memoria es 4444
+[INFO] 11:06:46:287 Memoria/(12048:12048): La IP del LFS es 127.0.0.3
+[INFO] 11:06:46:287 Memoria/(12048:12048): El puerto del LFS es 6445
+[INFO] 11:07:06:992 Memoria/(12091:12091): La IP de la memoria es 127.0.0.2
+[INFO] 11:07:06:992 Memoria/(12091:12091): El puerto de la memoria es 4444
+[INFO] 11:07:06:992 Memoria/(12091:12091): La IP del LFS es 127.0.0.3
+[INFO] 11:07:06:992 Memoria/(12091:12091): El puerto del LFS es 6445
+[INFO] 11:07:48:972 Memoria/(12154:12154): La IP de la memoria es 127.0.0.2
+[INFO] 11:07:48:972 Memoria/(12154:12154): El puerto de la memoria es 4444
+[INFO] 11:07:48:972 Memoria/(12154:12154): La IP del LFS es 127.0.0.3
+[INFO] 11:07:48:972 Memoria/(12154:12154): El puerto del LFS es 6445
+[INFO] 11:08:16:851 Memoria/(12199:12199): La IP de la memoria es 127.0.0.2
+[INFO] 11:08:16:852 Memoria/(12199:12199): El puerto de la memoria es 4444
+[INFO] 11:08:16:852 Memoria/(12199:12199): La IP del LFS es 127.0.0.3
+[INFO] 11:08:16:852 Memoria/(12199:12199): El puerto del LFS es 6445
+[INFO] 11:08:16:852 Memoria/(12199:12199): Se inicializo la tabla de Gossiping
+[INFO] 11:08:16:852 Memoria/(12199:12199): Se agrego a la tabla de Gossiping la memoria: 4 con estado 0 de ip: 127.0.0.2 y puerto: 4444
+[INFO] 11:08:16:852 Memoria/(12199:12199): Creada la conexion para LFS
+[INFO] 11:08:16:852 Memoria/(12199:12199): Trato de realizar un hasdshake
+[INFO] 11:09:02:169 Memoria/(12254:12254): La IP de la memoria es 127.0.0.2
+[INFO] 11:09:02:169 Memoria/(12254:12254): El puerto de la memoria es 4444
+[INFO] 11:09:02:169 Memoria/(12254:12254): La IP del LFS es 127.0.0.3
+[INFO] 11:09:02:169 Memoria/(12254:12254): El puerto del LFS es 6445
+[INFO] 11:09:02:170 Memoria/(12254:12254): Se inicializo la tabla de Gossiping
+[INFO] 11:09:02:170 Memoria/(12254:12254): Se agrego a la tabla de Gossiping la memoria: 4 con estado 0 de ip: 127.0.0.2 y puerto: 4444
+[INFO] 11:09:02:170 Memoria/(12254:12254): Creada la conexion para LFS
+[INFO] 11:09:02:170 Memoria/(12254:12254): Trato de realizar un hasdshake
+[INFO] 11:10:01:599 Memoria/(12317:12317): La IP de la memoria es 127.0.0.2
+[INFO] 11:10:01:600 Memoria/(12317:12317): El puerto de la memoria es 4444
+[INFO] 11:10:01:600 Memoria/(12317:12317): La IP del LFS es 127.0.0.3
+[INFO] 11:10:01:600 Memoria/(12317:12317): El puerto del LFS es 6445
+[INFO] 11:10:15:204 Memoria/(12366:12366): La IP de la memoria es 127.0.0.2
+[INFO] 11:10:15:205 Memoria/(12366:12366): El puerto de la memoria es 4444
+[INFO] 11:10:15:205 Memoria/(12366:12366): La IP del LFS es 127.0.0.3
+[INFO] 11:10:15:205 Memoria/(12366:12366): El puerto del LFS es 6445
+[INFO] 11:15:07:994 Memoria/(12513:12513): La IP de la memoria es 127.0.0.2
+[INFO] 11:15:07:994 Memoria/(12513:12513): El puerto de la memoria es 4444
+[INFO] 11:15:07:994 Memoria/(12513:12513): La IP del LFS es 127.0.0.3
+[INFO] 11:15:07:994 Memoria/(12513:12513): El puerto del LFS es 6445
+[INFO] 11:15:59:940 Memoria/(12590:12590): La IP de la memoria es 127.0.0.2
+[INFO] 11:15:59:941 Memoria/(12590:12590): El puerto de la memoria es 4444
+[INFO] 11:15:59:941 Memoria/(12590:12590): La IP del LFS es 127.0.0.3
+[INFO] 11:15:59:941 Memoria/(12590:12590): El puerto del LFS es 6445
+[INFO] 11:17:48:499 Memoria/(12664:12664): La IP de la memoria es 127.0.0.2
+[INFO] 11:17:48:500 Memoria/(12664:12664): El puerto de la memoria es 4444
+[INFO] 11:17:48:500 Memoria/(12664:12664): La IP del LFS es 127.0.0.3
+[INFO] 11:17:48:500 Memoria/(12664:12664): El puerto del LFS es 6445
+[INFO] 11:23:34:577 Memoria/(12819:12819): La IP de la memoria es 127.0.0.2
+[INFO] 11:23:34:577 Memoria/(12819:12819): El puerto de la memoria es 4444
+[INFO] 11:23:34:577 Memoria/(12819:12819): La IP del LFS es 127.0.0.3
+[INFO] 11:23:34:577 Memoria/(12819:12819): El puerto del LFS es 6445
+[INFO] 11:25:24:23 Memoria/(12908:12908): La IP de la memoria es 127.0.0.2
+[INFO] 11:25:24:23 Memoria/(12908:12908): El puerto de la memoria es 4444
+[INFO] 11:25:24:23 Memoria/(12908:12908): La IP del LFS es 127.0.0.3
+[INFO] 11:25:24:23 Memoria/(12908:12908): El puerto del LFS es 6445
+[INFO] 11:26:06:947 Memoria/(12965:12965): La IP de la memoria es 127.0.0.2
+[INFO] 11:26:06:947 Memoria/(12965:12965): El puerto de la memoria es 4444
+[INFO] 11:26:06:947 Memoria/(12965:12965): La IP del LFS es 127.0.0.3
+[INFO] 11:26:06:947 Memoria/(12965:12965): El puerto del LFS es 6445
+[INFO] 11:26:27:439 Memoria/(13019:13019): La IP de la memoria es 127.0.0.2
+[INFO] 11:26:27:439 Memoria/(13019:13019): El puerto de la memoria es 4444
+[INFO] 11:26:27:439 Memoria/(13019:13019): La IP del LFS es 127.0.0.3
+[INFO] 11:26:27:439 Memoria/(13019:13019): El puerto del LFS es 6445
+[INFO] 11:26:51:736 Memoria/(13064:13064): La IP de la memoria es 127.0.0.2
+[INFO] 11:26:51:736 Memoria/(13064:13064): El puerto de la memoria es 4444
+[INFO] 11:26:51:736 Memoria/(13064:13064): La IP del LFS es 127.0.0.3
+[INFO] 11:26:51:736 Memoria/(13064:13064): El puerto del LFS es 6445
+[INFO] 11:26:51:737 Memoria/(13064:13064): Se inicializo la tabla de Gossiping
+[INFO] 11:26:51:737 Memoria/(13064:13064): Se agrego a la tabla de Gossiping la memoria: 4 con estado 0 de ip: 127.0.0.2 y puerto: 4444
+[INFO] 11:26:51:737 Memoria/(13064:13064): Creada la conexion para LFS
+[INFO] 11:26:51:738 Memoria/(13064:13064): Trato de realizar un hasdshake
+[INFO] 13:23:30:974 Memoria/(3619:3619): La IP de la memoria es 127.0.0.2
+[INFO] 13:23:31:134 Memoria/(3619:3619): El puerto de la memoria es 4444
+[INFO] 13:23:31:134 Memoria/(3619:3619): La IP del LFS es 127.0.0.3
+[INFO] 13:23:31:134 Memoria/(3619:3619): El puerto del LFS es 6445
+[INFO] 13:24:04:839 Memoria/(3727:3727): La IP de la memoria es 127.0.0.2
+[INFO] 13:24:04:839 Memoria/(3727:3727): El puerto de la memoria es 4444
+[INFO] 13:24:04:839 Memoria/(3727:3727): La IP del LFS es 127.0.0.3
+[INFO] 13:24:04:839 Memoria/(3727:3727): El puerto del LFS es 6445
+[INFO] 13:24:14:849 Memoria/(3766:3766): La IP de la memoria es 127.0.0.2
+[INFO] 13:24:14:850 Memoria/(3766:3766): El puerto de la memoria es 4444
+[INFO] 13:24:14:850 Memoria/(3766:3766): La IP del LFS es 127.0.0.3
+[INFO] 13:24:14:850 Memoria/(3766:3766): El puerto del LFS es 6445
+[INFO] 13:24:14:850 Memoria/(3766:3766): Se inicializo la tabla de Gossiping
+[INFO] 13:24:14:850 Memoria/(3766:3766): Se agrego a la tabla de Gossiping la memoria: 4 con estado 0 de ip: 127.0.0.2 y puerto: 4444
+[INFO] 13:24:14:850 Memoria/(3766:3766): Creada la conexion para LFS
+[INFO] 13:24:14:850 Memoria/(3766:3766): Trato de realizar un hasdshake
+[INFO] 13:24:44:31 Memoria/(3831:3831): La IP de la memoria es 127.0.0.2
+[INFO] 13:24:44:32 Memoria/(3831:3831): El puerto de la memoria es 4444
+[INFO] 13:24:44:32 Memoria/(3831:3831): La IP del LFS es 127.0.0.3
+[INFO] 13:24:44:32 Memoria/(3831:3831): El puerto del LFS es 6445
+[INFO] 13:25:29:754 Memoria/(3904:3904): La IP de la memoria es 127.0.0.2
+[INFO] 13:25:29:755 Memoria/(3904:3904): El puerto de la memoria es 4444
+[INFO] 13:25:29:755 Memoria/(3904:3904): La IP del LFS es 127.0.0.3
+[INFO] 13:25:29:755 Memoria/(3904:3904): El puerto del LFS es 6445
+[INFO] 13:25:43:360 Memoria/(3936:3936): La IP de la memoria es 127.0.0.2
+[INFO] 13:25:43:360 Memoria/(3936:3936): El puerto de la memoria es 4444
+[INFO] 13:25:43:360 Memoria/(3936:3936): La IP del LFS es 127.0.0.3
+[INFO] 13:25:43:360 Memoria/(3936:3936): El puerto del LFS es 6445
+[INFO] 13:26:12:843 Memoria/(3970:3970): La IP de la memoria es 127.0.0.2
+[INFO] 13:26:12:843 Memoria/(3970:3970): El puerto de la memoria es 4444
+[INFO] 13:26:12:843 Memoria/(3970:3970): La IP del LFS es 127.0.0.3
+[INFO] 13:26:12:843 Memoria/(3970:3970): El puerto del LFS es 6445
+[INFO] 13:26:37:925 Memoria/(4019:4019): La IP de la memoria es 127.0.0.2
+[INFO] 13:26:37:925 Memoria/(4019:4019): El puerto de la memoria es 4444
+[INFO] 13:26:37:925 Memoria/(4019:4019): La IP del LFS es 127.0.0.3
+[INFO] 13:26:37:925 Memoria/(4019:4019): El puerto del LFS es 6445
+[INFO] 13:29:13:963 Memoria/(4090:4090): La IP de la memoria es 127.0.0.2
+[INFO] 13:29:13:964 Memoria/(4090:4090): El puerto de la memoria es 4444
+[INFO] 13:29:13:964 Memoria/(4090:4090): La IP del LFS es 127.0.0.3
+[INFO] 13:29:13:964 Memoria/(4090:4090): El puerto del LFS es 6445
+[INFO] 13:29:26:750 Memoria/(4109:4109): La IP de la memoria es 127.0.0.2
+[INFO] 13:29:26:751 Memoria/(4109:4109): El puerto de la memoria es 4444
+[INFO] 13:29:26:751 Memoria/(4109:4109): La IP del LFS es 127.0.0.3
+[INFO] 13:29:26:751 Memoria/(4109:4109): El puerto del LFS es 6445
+[INFO] 13:29:51:921 Memoria/(4126:4126): La IP de la memoria es 127.0.0.2
+[INFO] 13:29:51:921 Memoria/(4126:4126): El puerto de la memoria es 4444
+[INFO] 13:29:51:921 Memoria/(4126:4126): La IP del LFS es 127.0.0.3
+[INFO] 13:29:51:921 Memoria/(4126:4126): El puerto del LFS es 6445
+[INFO] 15:08:29:728 Memoria/(5981:5981): La IP de la memoria es 127.0.0.2
+[INFO] 15:08:29:729 Memoria/(5981:5981): El puerto de la memoria es 4444
+[INFO] 15:08:29:729 Memoria/(5981:5981): La IP del LFS es 127.0.0.3
+[INFO] 15:08:29:729 Memoria/(5981:5981): El puerto del LFS es 6445
+[INFO] 15:16:50:323 Memoria/(6757:6757): La IP de la memoria es 127.0.0.2
+[INFO] 15:16:50:323 Memoria/(6757:6757): El puerto de la memoria es 4444
+[INFO] 15:16:50:323 Memoria/(6757:6757): La IP del LFS es 127.0.0.3
+[INFO] 15:16:50:323 Memoria/(6757:6757): El puerto del LFS es 6445
+[INFO] 18:00:06:277 Memoria/(9692:9692): La IP de la memoria es 127.0.0.2
+[INFO] 18:00:06:277 Memoria/(9692:9692): El puerto de la memoria es 4444
+[INFO] 18:00:06:277 Memoria/(9692:9692): La IP del LFS es 127.0.0.3
+[INFO] 18:00:06:278 Memoria/(9692:9692): El puerto del LFS es 6445
+[INFO] 18:01:56:919 Memoria/(9791:9791): La IP de la memoria es 127.0.0.2
+[INFO] 18:01:56:919 Memoria/(9791:9791): El puerto de la memoria es 4444
+[INFO] 18:01:56:919 Memoria/(9791:9791): La IP del LFS es 127.0.0.3
+[INFO] 18:01:56:919 Memoria/(9791:9791): El puerto del LFS es 6445
+[INFO] 18:02:22:782 Memoria/(9808:9808): La IP de la memoria es 127.0.0.2
+[INFO] 18:02:22:783 Memoria/(9808:9808): El puerto de la memoria es 4444
+[INFO] 18:02:22:783 Memoria/(9808:9808): La IP del LFS es 127.0.0.3
+[INFO] 18:02:22:783 Memoria/(9808:9808): El puerto del LFS es 6445
+[INFO] 18:02:55:907 Memoria/(9838:9838): La IP de la memoria es 127.0.0.2
+[INFO] 18:02:55:907 Memoria/(9838:9838): El puerto de la memoria es 4444
+[INFO] 18:02:55:907 Memoria/(9838:9838): La IP del LFS es 127.0.0.3
+[INFO] 18:02:55:907 Memoria/(9838:9838): El puerto del LFS es 6445
+[INFO] 18:03:13:191 Memoria/(9874:9874): La IP de la memoria es 127.0.0.2
+[INFO] 18:03:13:191 Memoria/(9874:9874): El puerto de la memoria es 4444
+[INFO] 18:03:13:191 Memoria/(9874:9874): La IP del LFS es 127.0.0.3
+[INFO] 18:03:13:191 Memoria/(9874:9874): El puerto del LFS es 6445
+[INFO] 18:03:24:774 Memoria/(9895:9895): La IP de la memoria es 127.0.0.2
+[INFO] 18:03:24:774 Memoria/(9895:9895): El puerto de la memoria es 4444
+[INFO] 18:03:24:774 Memoria/(9895:9895): La IP del LFS es 127.0.0.3
+[INFO] 18:03:24:775 Memoria/(9895:9895): El puerto del LFS es 6445
+[INFO] 18:04:07:58 Memoria/(9929:9929): La IP de la memoria es 127.0.0.2
+[INFO] 18:04:07:59 Memoria/(9929:9929): El puerto de la memoria es 4444
+[INFO] 18:04:07:59 Memoria/(9929:9929): La IP del LFS es 127.0.0.3
+[INFO] 18:04:07:59 Memoria/(9929:9929): El puerto del LFS es 6445
+[INFO] 18:04:35:823 Memoria/(10013:10013): La IP de la memoria es 127.0.0.2
+[INFO] 18:04:35:823 Memoria/(10013:10013): El puerto de la memoria es 4444
+[INFO] 18:04:35:824 Memoria/(10013:10013): La IP del LFS es 127.0.0.3
+[INFO] 18:04:35:824 Memoria/(10013:10013): El puerto del LFS es 6445
+[INFO] 12:58:52:414 Memoria/(15771:15771): La IP de la memoria es 127.0.0.2
+[INFO] 12:58:52:414 Memoria/(15771:15771): El puerto de la memoria es 4444
+[INFO] 12:58:52:414 Memoria/(15771:15771): La IP del LFS es 127.0.0.3
+[INFO] 12:58:52:414 Memoria/(15771:15771): El puerto del LFS es 6445
+[INFO] 12:59:34:27 Memoria/(15869:15869): La IP de la memoria es 127.0.0.2
+[INFO] 12:59:34:27 Memoria/(15869:15869): El puerto de la memoria es 4444
+[INFO] 12:59:34:27 Memoria/(15869:15869): La IP del LFS es 127.0.0.3
+[INFO] 12:59:34:27 Memoria/(15869:15869): El puerto del LFS es 6445
+[INFO] 13:00:27:19 Memoria/(15915:15915): La IP de la memoria es 127.0.0.2
+[INFO] 13:00:27:19 Memoria/(15915:15915): El puerto de la memoria es 4444
+[INFO] 13:00:37:211 Memoria/(15958:15958): La IP de la memoria es 127.0.0.2
+[INFO] 13:00:37:212 Memoria/(15958:15958): El puerto de la memoria es 4444
+[INFO] 13:53:39:99 Memoria/(17212:17212): La IP de la memoria es 127.0.0.2
+[INFO] 13:53:39:99 Memoria/(17212:17212): El puerto de la memoria es 4444
+[INFO] 13:53:39:99 Memoria/(17212:17212): La IP del LFS es 127.0.0.3
+[INFO] 13:53:39:99 Memoria/(17212:17212): El puerto del LFS es 6445
+[INFO] 13:53:39:99 Memoria/(17212:17212): Se inicializo la tabla de Gossiping
+[INFO] 13:53:39:99 Memoria/(17212:17212): Se agrego a la tabla de Gossiping la memoria: 4 con estado 0 de ip: 127.0.0.2 y puerto: 4444
+[INFO] 13:53:39:99 Memoria/(17212:17212): Creada la conexion para LFS
+[INFO] 13:53:39:99 Memoria/(17212:17212): Trato de realizar un hasdshake
+[INFO] 13:55:38:409 Memoria/(17394:17394): La IP de la memoria es 127.0.0.2
+[INFO] 13:55:38:409 Memoria/(17394:17394): El puerto de la memoria es 4444
+[INFO] 13:55:38:409 Memoria/(17394:17394): La IP del LFS es 127.0.0.3
+[INFO] 13:55:38:409 Memoria/(17394:17394): El puerto del LFS es 6445
+[INFO] 13:55:38:409 Memoria/(17394:17394): Se inicializo la tabla de Gossiping
+[INFO] 13:55:38:409 Memoria/(17394:17394): Se agrego a la tabla de Gossiping la memoria: 4 con estado 0 de ip: 127.0.0.2 y puerto: 4444
+[INFO] 13:55:38:409 Memoria/(17394:17394): Creada la conexion para LFS
+[INFO] 13:55:38:409 Memoria/(17394:17394): Trato de realizar un hasdshake
+[INFO] 13:56:13:323 Memoria/(17450:17450): La IP de la memoria es 127.0.0.2
+[INFO] 13:56:13:324 Memoria/(17450:17450): El puerto de la memoria es 4444
+[INFO] 13:56:13:328 Memoria/(17450:17450): La IP del LFS es 127.0.0.3
+[INFO] 13:56:13:328 Memoria/(17450:17450): El puerto del LFS es 6445
+[INFO] 13:56:13:328 Memoria/(17450:17450): Se inicializo la tabla de Gossiping
+[INFO] 13:56:13:328 Memoria/(17450:17450): Se agrego a la tabla de Gossiping la memoria: 4 con estado 0 de ip: 127.0.0.2 y puerto: 4444
+[INFO] 13:56:13:328 Memoria/(17450:17450): Memoria lista para recibir a peticiones de Kernel
+[INFO] 13:56:13:328 Memoria/(17450:17450): Memoria espera peticiones
+[INFO] 13:56:19:681 Memoria/(17450:17450): Memoria se conectó con Kernel
+[INFO] 13:56:19:682 Memoria/(17450:17450): Inicia handshake con 5
+[INFO] 13:56:19:682 Memoria/(17450:17450): Me llego el mensaje Hola, me conecto, soy el Kernel
+[INFO] 13:56:19:682 Memoria/(17450:17450): Conexion exitosa con con 5
+[INFO] 13:57:03:676 Memoria/(17599:17599): La IP de la memoria es 127.0.0.2
+[INFO] 13:57:03:678 Memoria/(17599:17599): El puerto de la memoria es 4444
+[INFO] 13:57:03:678 Memoria/(17599:17599): La IP del LFS es 127.0.0.3
+[INFO] 13:57:03:678 Memoria/(17599:17599): El puerto del LFS es 6445
+[INFO] 13:57:30:46 Memoria/(17649:17649): La IP de la memoria es 127.0.0.2
+[INFO] 13:57:30:46 Memoria/(17649:17649): El puerto de la memoria es 4444
+[INFO] 13:57:30:46 Memoria/(17649:17649): La IP del LFS es 127.0.0.3
+[INFO] 13:57:30:46 Memoria/(17649:17649): El puerto del LFS es 6445
+[INFO] 14:06:21:279 Memoria/(17896:17896): La IP de la memoria es 127.0.0.2
+[INFO] 14:06:21:279 Memoria/(17896:17896): El puerto de la memoria es 4444
+[INFO] 14:06:21:279 Memoria/(17896:17896): La IP del LFS es 127.0.0.3
+[INFO] 14:06:21:279 Memoria/(17896:17896): El puerto del LFS es 6445
+[INFO] 14:06:21:279 Memoria/(17896:17896): Se inicializo la tabla de Gossiping
+[INFO] 14:06:21:279 Memoria/(17896:17896): Se agrego a la tabla de Gossiping la memoria: 4 con estado 0 de ip: 127.0.0.2 y puerto: 4444
+[INFO] 14:06:21:279 Memoria/(17896:17896): Creada la conexion para LFS
+[INFO] 14:06:21:279 Memoria/(17896:17896): Trato de realizar un hasdshake
+[INFO] 14:07:07:922 Memoria/(17944:17944): La IP de la memoria es 127.0.0.2
+[INFO] 14:07:07:923 Memoria/(17944:17944): El puerto de la memoria es 4444
+[INFO] 14:07:07:923 Memoria/(17944:17944): La IP del LFS es 127.0.0.3
+[INFO] 14:07:07:923 Memoria/(17944:17944): El puerto del LFS es 6445
+[INFO] 14:07:07:923 Memoria/(17944:17944): Se inicializo la tabla de Gossiping
+[INFO] 14:07:07:923 Memoria/(17944:17944): Se agrego a la tabla de Gossiping la memoria: 4 con estado 0 de ip: 127.0.0.2 y puerto: 4444
+[INFO] 14:07:07:924 Memoria/(17944:17944): Creada la conexion para LFS
+[INFO] 14:07:07:924 Memoria/(17944:17944): Trato de realizar un hasdshake
+[INFO] 14:07:31:474 Memoria/(17981:17981): La IP de la memoria es 127.0.0.2
+[INFO] 14:07:31:474 Memoria/(17981:17981): El puerto de la memoria es 4444
+[INFO] 14:07:31:474 Memoria/(17981:17981): La IP del LFS es 127.0.0.3
+[INFO] 14:07:31:474 Memoria/(17981:17981): El puerto del LFS es 6445
