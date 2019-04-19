@@ -1012,3 +1012,176 @@
 [INFO] 14:07:31:474 Memoria/(17981:17981): El puerto de la memoria es 4444
 [INFO] 14:07:31:474 Memoria/(17981:17981): La IP del LFS es 127.0.0.3
 [INFO] 14:07:31:474 Memoria/(17981:17981): El puerto del LFS es 6445
+[INFO] 19:00:01:268 Memoria/(21960:21960): La IP de la memoria es 127.0.0.2
+[INFO] 19:00:01:269 Memoria/(21960:21960): El puerto de la memoria es 4444
+[INFO] 19:00:01:269 Memoria/(21960:21960): La IP del LFS es 127.0.0.3
+[INFO] 19:00:01:269 Memoria/(21960:21960): El puerto del LFS es 6445
+[INFO] 19:01:39:403 Memoria/(22101:22101): La IP de la memoria es 127.0.0.2
+[INFO] 19:01:39:404 Memoria/(22101:22101): El puerto de la memoria es 4444
+[INFO] 19:01:39:404 Memoria/(22101:22101): La IP del LFS es 127.0.0.3
+[INFO] 19:01:39:404 Memoria/(22101:22101): El puerto del LFS es 6445
+[INFO] 19:01:39:404 Memoria/(22101:22101): Se obtuvo la seed a memoria con ip: 128.254.365.122 , y puerto: 8080
+[INFO] 19:01:39:404 Memoria/(22101:22101): Se obtuvo la seed a memoria con ip: 129.254.655.666 , y puerto: 4445
+[INFO] 19:01:39:404 Memoria/(22101:22101): Se obtuvo la seed a memoria con ip: (null) , y puerto: (null)
+[INFO] 19:02:05:394 Memoria/(22148:22148): La IP de la memoria es 127.0.0.2
+[INFO] 19:02:05:395 Memoria/(22148:22148): El puerto de la memoria es 4444
+[INFO] 19:02:05:395 Memoria/(22148:22148): La IP del LFS es 127.0.0.3
+[INFO] 19:02:05:395 Memoria/(22148:22148): El puerto del LFS es 6445
+[INFO] 19:02:05:395 Memoria/(22148:22148): Se obtuvo la seed a memoria con ip: 128.254.365.122 , y puerto: 8080
+[INFO] 19:02:05:395 Memoria/(22148:22148): Se obtuvo la seed a memoria con ip: 129.254.655.666 , y puerto: 4445
+[INFO] 19:02:05:395 Memoria/(22148:22148): Se obtuvo la seed a memoria con ip: (null) , y puerto: (null)
+[INFO] 19:02:17:260 Memoria/(22174:22174): La IP de la memoria es 127.0.0.2
+[INFO] 19:02:17:260 Memoria/(22174:22174): El puerto de la memoria es 4444
+[INFO] 19:02:17:260 Memoria/(22174:22174): La IP del LFS es 127.0.0.3
+[INFO] 19:02:17:260 Memoria/(22174:22174): El puerto del LFS es 6445
+[INFO] 19:02:17:260 Memoria/(22174:22174): Se obtuvo la seed a memoria con ip: 128.254.365.122 , y puerto: 8080
+[INFO] 19:02:17:260 Memoria/(22174:22174): Se obtuvo la seed a memoria con ip: 129.254.655.666 , y puerto: 4445
+[INFO] 19:02:17:260 Memoria/(22174:22174): Se obtuvo la seed a memoria con ip: (null) , y puerto: (null)
+[INFO] 19:02:40:156 Memoria/(22224:22224): La IP de la memoria es 127.0.0.2
+[INFO] 19:02:40:156 Memoria/(22224:22224): El puerto de la memoria es 4444
+[INFO] 19:02:40:156 Memoria/(22224:22224): La IP del LFS es 127.0.0.3
+[INFO] 19:02:40:156 Memoria/(22224:22224): El puerto del LFS es 6445
+[INFO] 19:02:40:156 Memoria/(22224:22224): Se obtuvo la seed a memoria con ip: 128.254.365.122 , y puerto: 8080
+[INFO] 19:02:40:156 Memoria/(22224:22224): Se obtuvo la seed a memoria con ip: 129.254.655.666 , y puerto: 4445
+[INFO] 19:02:40:156 Memoria/(22224:22224): Se obtuvo la seed a memoria con ip: (null) , y puerto: (null)
+[INFO] 19:04:30:317 Memoria/(22366:22366): La IP de la memoria es 127.0.0.2
+[INFO] 19:04:30:317 Memoria/(22366:22366): El puerto de la memoria es 4444
+[INFO] 19:04:30:317 Memoria/(22366:22366): La IP del LFS es 127.0.0.3
+[INFO] 19:04:30:317 Memoria/(22366:22366): El puerto del LFS es 6445
+[INFO] 19:04:30:317 Memoria/(22366:22366): Se obtuvo la seed a memoria con ip: 128.254.365.122 , y puerto: 8080
+[INFO] 19:04:30:317 Memoria/(22366:22366): Se obtuvo la seed a memoria con ip: 129.254.655.666 , y puerto: 4445
+[INFO] 19:04:30:317 Memoria/(22366:22366): Se obtuvo la seed a memoria con ip: (null) , y puerto: (null)
+[INFO] 19:05:08:567 Memoria/(22407:22407): La IP de la memoria es 127.0.0.2
+[INFO] 19:05:08:567 Memoria/(22407:22407): El puerto de la memoria es 4444
+[INFO] 19:05:08:567 Memoria/(22407:22407): La IP del LFS es 127.0.0.3
+[INFO] 19:05:08:567 Memoria/(22407:22407): El puerto del LFS es 6445
+[INFO] 19:05:08:567 Memoria/(22407:22407): Se obtuvo la seed a memoria con ip: 128.254.365.122 , y puerto: 8080
+[INFO] 19:05:08:567 Memoria/(22407:22407): Se obtuvo la seed a memoria con ip: 129.254.655.666 , y puerto: 4445
+[INFO] 19:05:08:567 Memoria/(22407:22407): Se obtuvo la seed a memoria con ip: (null) , y puerto: (null)
+[INFO] 19:05:17:524 Memoria/(22436:22436): La IP de la memoria es 127.0.0.2
+[INFO] 19:05:17:524 Memoria/(22436:22436): El puerto de la memoria es 4444
+[INFO] 19:05:17:524 Memoria/(22436:22436): La IP del LFS es 127.0.0.3
+[INFO] 19:05:17:524 Memoria/(22436:22436): El puerto del LFS es 6445
+[INFO] 19:05:17:524 Memoria/(22436:22436): Se obtuvo la seed a memoria con ip: 128.254.365.122 , y puerto: 8080
+[INFO] 19:05:17:524 Memoria/(22436:22436): Se obtuvo la seed a memoria con ip: 129.254.655.666 , y puerto: 4445
+[INFO] 19:05:17:524 Memoria/(22436:22436): Se obtuvo la seed a memoria con ip: (null) , y puerto: (null)
+[INFO] 19:06:05:922 Memoria/(22492:22492): La IP de la memoria es 127.0.0.2
+[INFO] 19:06:05:923 Memoria/(22492:22492): El puerto de la memoria es 4444
+[INFO] 19:06:05:923 Memoria/(22492:22492): La IP del LFS es 127.0.0.3
+[INFO] 19:06:05:923 Memoria/(22492:22492): El puerto del LFS es 6445
+[INFO] 19:06:05:923 Memoria/(22492:22492): Se obtuvo la seed a memoria con ip: 128.254.365.122 , y puerto: 8080
+[INFO] 19:06:05:923 Memoria/(22492:22492): Se obtuvo la seed a memoria con ip: 129.254.655.666 , y puerto: 4445
+[INFO] 19:06:05:923 Memoria/(22492:22492): Se obtuvo la seed a memoria con ip: (null) , y puerto: (null)
+[INFO] 19:06:34:360 Memoria/(22543:22543): La IP de la memoria es 127.0.0.2
+[INFO] 19:06:34:360 Memoria/(22543:22543): El puerto de la memoria es 4444
+[INFO] 19:06:34:360 Memoria/(22543:22543): La IP del LFS es 127.0.0.3
+[INFO] 19:06:34:360 Memoria/(22543:22543): El puerto del LFS es 6445
+[INFO] 19:06:34:360 Memoria/(22543:22543): Se obtuvo la seed a memoria con ip: 128.254.365.122 , y puerto: 8080
+[INFO] 19:06:34:360 Memoria/(22543:22543): Se obtuvieron 1 seeds correctamente.
+[INFO] 19:06:34:360 Memoria/(22543:22543): Creada la conexion para LFS
+[INFO] 19:06:34:360 Memoria/(22543:22543): Trato de realizar un hasdshake
+[INFO] 19:06:51:483 Memoria/(22591:22591): La IP de la memoria es 127.0.0.2
+[INFO] 19:06:51:484 Memoria/(22591:22591): El puerto de la memoria es 4444
+[INFO] 19:06:51:484 Memoria/(22591:22591): La IP del LFS es 127.0.0.3
+[INFO] 19:06:51:484 Memoria/(22591:22591): El puerto del LFS es 6445
+[INFO] 19:06:51:484 Memoria/(22591:22591): Se obtuvo la seed a memoria con ip: 128.254.365.122 , y puerto: 8080
+[INFO] 19:06:51:484 Memoria/(22591:22591): Se obtuvo la seed a memoria con ip: 129.254.655.666 , y puerto: 4445
+[INFO] 19:06:51:484 Memoria/(22591:22591): Se obtuvieron 2 seeds correctamente.
+[INFO] 19:06:51:484 Memoria/(22591:22591): Creada la conexion para LFS
+[INFO] 19:06:51:484 Memoria/(22591:22591): Trato de realizar un hasdshake
+[INFO] 19:07:21:840 Memoria/(22619:22619): La IP de la memoria es 127.0.0.2
+[INFO] 19:07:21:840 Memoria/(22619:22619): El puerto de la memoria es 4444
+[INFO] 19:07:21:840 Memoria/(22619:22619): La IP del LFS es 127.0.0.3
+[INFO] 19:07:21:840 Memoria/(22619:22619): El puerto del LFS es 6445
+[INFO] 19:07:21:840 Memoria/(22619:22619): Se obtuvo la seed a memoria con ip: 128.254.365.122 , y puerto: 8080
+[INFO] 19:07:21:840 Memoria/(22619:22619): Se obtuvo la seed a memoria con ip: 129.254.655.666 , y puerto: 4445
+[INFO] 19:07:21:840 Memoria/(22619:22619): Se obtuvieron 2 seeds correctamente.
+[INFO] 19:07:21:841 Memoria/(22619:22619): Creada la conexion para LFS
+[INFO] 19:07:21:841 Memoria/(22619:22619): Trato de realizar un hasdshake
+[INFO] 19:07:31:334 Memoria/(22644:22644): La IP de la memoria es 127.0.0.2
+[INFO] 19:07:31:334 Memoria/(22644:22644): El puerto de la memoria es 4444
+[INFO] 19:07:31:334 Memoria/(22644:22644): La IP del LFS es 127.0.0.3
+[INFO] 19:07:31:334 Memoria/(22644:22644): El puerto del LFS es 6445
+[INFO] 19:07:31:334 Memoria/(22644:22644): Se obtuvo la seed a memoria con ip: 128.254.365.122 , y puerto: 8080
+[INFO] 19:07:31:334 Memoria/(22644:22644): Se obtuvo la seed a memoria con ip: 129.254.655.666 , y puerto: 4445
+[INFO] 19:07:31:334 Memoria/(22644:22644): Se obtuvieron 2 seeds correctamente.
+[INFO] 19:07:31:334 Memoria/(22644:22644): Creada la conexion para LFS
+[INFO] 19:07:31:334 Memoria/(22644:22644): Trato de realizar un hasdshake
+[INFO] 19:08:22:636 Memoria/(22703:22703): La IP de la memoria es 127.0.0.2
+[INFO] 19:08:22:636 Memoria/(22703:22703): El puerto de la memoria es 4444
+[INFO] 19:08:22:636 Memoria/(22703:22703): La IP del LFS es 127.0.0.3
+[INFO] 19:08:22:636 Memoria/(22703:22703): El puerto del LFS es 6445
+[INFO] 19:08:22:636 Memoria/(22703:22703): Se obtuvo la seed a memoria con ip: 128.254.365.122 , y puerto: 8080
+[INFO] 19:08:22:636 Memoria/(22703:22703): Se obtuvo la seed a memoria con ip: 129.254.655.666 , y puerto: 4445
+[INFO] 19:08:22:636 Memoria/(22703:22703): Se obtuvo la seed a memoria con ip: 129.254.655.664 , y puerto: 4478
+[INFO] 19:08:22:636 Memoria/(22703:22703): Se obtuvieron 3 seeds correctamente.
+[INFO] 19:08:22:636 Memoria/(22703:22703): Creada la conexion para LFS
+[INFO] 19:08:22:636 Memoria/(22703:22703): Trato de realizar un hasdshake
+[INFO] 19:08:43:98 Memoria/(22730:22730): La IP de la memoria es 127.0.0.2
+[INFO] 19:08:43:99 Memoria/(22730:22730): El puerto de la memoria es 4444
+[INFO] 19:08:43:99 Memoria/(22730:22730): La IP del LFS es 127.0.0.3
+[INFO] 19:08:43:99 Memoria/(22730:22730): El puerto del LFS es 6445
+[INFO] 19:08:43:99 Memoria/(22730:22730): Se obtuvo la seed a memoria con ip: 128.254.365.122 , y puerto: 8080
+[INFO] 19:08:43:99 Memoria/(22730:22730): Se obtuvo la seed a memoria con ip: 129.254.655.666 , y puerto: 4445
+[INFO] 19:08:43:99 Memoria/(22730:22730): Se obtuvo la seed a memoria con ip: (null) , y puerto: (null)
+[INFO] 19:08:43:99 Memoria/(22730:22730): Se obtuvieron 3 seeds correctamente.
+[INFO] 19:08:43:99 Memoria/(22730:22730): Creada la conexion para LFS
+[INFO] 19:08:43:99 Memoria/(22730:22730): Trato de realizar un hasdshake
+[INFO] 19:09:26:239 Memoria/(22780:22780): La IP de la memoria es 127.0.0.2
+[INFO] 19:09:26:239 Memoria/(22780:22780): El puerto de la memoria es 4444
+[INFO] 19:09:26:239 Memoria/(22780:22780): La IP del LFS es 127.0.0.3
+[INFO] 19:09:26:239 Memoria/(22780:22780): El puerto del LFS es 6445
+[INFO] 19:09:26:239 Memoria/(22780:22780): Se obtuvo la seed a memoria con ip: 128.254.365.122 , y puerto: 8080
+[INFO] 19:09:26:239 Memoria/(22780:22780): Se obtuvo la seed a memoria con ip: 129.254.655.666 , y puerto: 4445
+[INFO] 19:09:26:239 Memoria/(22780:22780): Se obtuvieron 2 seeds correctamente.
+[INFO] 19:09:26:239 Memoria/(22780:22780): Creada la conexion para LFS
+[INFO] 19:09:26:239 Memoria/(22780:22780): Trato de realizar un hasdshake
+[INFO] 19:09:37:459 Memoria/(22804:22804): La IP de la memoria es 127.0.0.2
+[INFO] 19:09:37:459 Memoria/(22804:22804): El puerto de la memoria es 4444
+[INFO] 19:09:37:460 Memoria/(22804:22804): La IP del LFS es 127.0.0.3
+[INFO] 19:09:37:460 Memoria/(22804:22804): El puerto del LFS es 6445
+[INFO] 19:09:37:460 Memoria/(22804:22804): Se obtuvo la seed a memoria con ip: 128.254.365.122 , y puerto: 8080
+[INFO] 19:09:37:460 Memoria/(22804:22804): Se obtuvo la seed a memoria con ip: 129.254.655.666 , y puerto: 4445
+[INFO] 19:09:37:460 Memoria/(22804:22804): Se obtuvieron 2 seeds correctamente.
+[INFO] 19:09:37:460 Memoria/(22804:22804): Creada la conexion para LFS
+[INFO] 19:09:37:460 Memoria/(22804:22804): Trato de realizar un hasdshake
+[INFO] 19:11:25:775 Memoria/(22898:22898): La IP de la memoria es 127.0.0.2
+[INFO] 19:11:25:775 Memoria/(22898:22898): El puerto de la memoria es 4444
+[INFO] 19:11:25:776 Memoria/(22898:22898): La IP del LFS es 127.0.0.3
+[INFO] 19:11:25:776 Memoria/(22898:22898): El puerto del LFS es 6445
+[INFO] 19:11:25:776 Memoria/(22898:22898): Se obtuvo la seed a memoria con ip: 128.254.365.122 , y puerto: 8080
+[INFO] 19:11:25:776 Memoria/(22898:22898): Se obtuvo la seed a memoria con ip: 129.254.655.666 , y puerto: 4445
+[INFO] 19:11:25:776 Memoria/(22898:22898): Se obtuvo la seed a memoria con ip: 129.254.655.664 , y puerto: 4478
+[INFO] 19:11:25:776 Memoria/(22898:22898): Se obtuvieron 134516676 seeds correctamente.
+[INFO] 19:11:25:776 Memoria/(22898:22898): Creada la conexion para LFS
+[INFO] 19:11:25:776 Memoria/(22898:22898): Trato de realizar un hasdshake
+[INFO] 19:11:38:817 Memoria/(22944:22944): La IP de la memoria es 127.0.0.2
+[INFO] 19:11:38:818 Memoria/(22944:22944): El puerto de la memoria es 4444
+[INFO] 19:11:38:819 Memoria/(22944:22944): La IP del LFS es 127.0.0.3
+[INFO] 19:11:38:819 Memoria/(22944:22944): El puerto del LFS es 6445
+[INFO] 19:11:38:819 Memoria/(22944:22944): Se obtuvo la seed a memoria con ip: 128.254.365.122 , y puerto: 8080
+[INFO] 19:11:38:819 Memoria/(22944:22944): Se obtuvo la seed a memoria con ip: 129.254.655.666 , y puerto: 4445
+[INFO] 19:11:38:819 Memoria/(22944:22944): Se obtuvo la seed a memoria con ip: 129.254.655.664 , y puerto: 4478
+[INFO] 19:11:38:819 Memoria/(22944:22944): Se obtuvieron 3 seeds correctamente.
+[INFO] 19:11:38:819 Memoria/(22944:22944): Creada la conexion para LFS
+[INFO] 19:11:38:819 Memoria/(22944:22944): Trato de realizar un hasdshake
+[INFO] 19:11:53:377 Memoria/(22969:22969): La IP de la memoria es 127.0.0.2
+[INFO] 19:11:53:377 Memoria/(22969:22969): El puerto de la memoria es 4444
+[INFO] 19:11:53:377 Memoria/(22969:22969): La IP del LFS es 127.0.0.3
+[INFO] 19:11:53:377 Memoria/(22969:22969): El puerto del LFS es 6445
+[INFO] 19:11:53:377 Memoria/(22969:22969): Se obtuvo la seed a memoria con ip: 128.254.365.122 , y puerto: 8080
+[INFO] 19:11:53:377 Memoria/(22969:22969): Se obtuvo la seed a memoria con ip: 129.254.655.666 , y puerto: 4445
+[INFO] 19:11:53:377 Memoria/(22969:22969): Se obtuvieron 2 seeds correctamente.
+[INFO] 19:11:53:377 Memoria/(22969:22969): Creada la conexion para LFS
+[INFO] 19:11:53:377 Memoria/(22969:22969): Trato de realizar un hasdshake
+[INFO] 19:12:31:221 Memoria/(22998:22998): La IP de la memoria es 127.0.0.2
+[INFO] 19:12:31:221 Memoria/(22998:22998): El puerto de la memoria es 4444
+[INFO] 19:12:31:221 Memoria/(22998:22998): La IP del LFS es 127.0.0.3
+[INFO] 19:12:31:221 Memoria/(22998:22998): El puerto del LFS es 6445
+[INFO] 19:12:31:221 Memoria/(22998:22998): Se obtuvo la seed a memoria con ip: 128.254.365.122 , y puerto: 8080
+[INFO] 19:12:31:221 Memoria/(22998:22998): Se obtuvo la seed a memoria con ip: 129.254.655.666 , y puerto: 4445
+[INFO] 19:12:31:221 Memoria/(22998:22998): Se obtuvo la seed a memoria con ip: 128.254.365.121 , y puerto: 4475
+[INFO] 19:12:31:221 Memoria/(22998:22998): Se obtuvo la seed a memoria con ip: 128.254.365.129 , y puerto: 4658
+[INFO] 19:12:31:221 Memoria/(22998:22998): Se obtuvieron 4 seeds correctamente.
+[INFO] 19:12:31:221 Memoria/(22998:22998): Creada la conexion para LFS
+[INFO] 19:12:31:221 Memoria/(22998:22998): Trato de realizar un hasdshake

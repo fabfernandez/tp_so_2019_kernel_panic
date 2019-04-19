@@ -9,20 +9,23 @@ int main(void)
 {
 	// ------------------------------------------ INICIO LOGGER, CONFIG, LEVANTO DATOS E INICIO SERVER ------------	//
 																													//
-	iniciar_logger();																								//
+	iniciar_logger();																								// */
 	leer_config();																									//
 	levantar_datos_memoria();																						// HAY QUE CAMBIAR RUTA A UNA VARIABLE PARA PODER LEVANTAR MEMORIAS CON DIFERENTES CONFIGS
 	levantar_datos_lfs();																							//
 	server_memoria = iniciar_servidor(ip_memoria, puerto_memoria); 													//
-																													//
+																													//*/
 	// ------------------------------------------ INICIO LOGGER, CONFIG, LEVANTO DATOS E INICIO SERVER ------------	//
 
 
-	// ------------------------------------------ INICIO LA TABLA DE GOSSIPING AGREGANDO LA MEMORIA ACTUAL			//
-	//puertosSeeds = config_get_array_value(archivoconfig, "PUERTOSEEDS");											//
-	//seeds = config_get_array_value(archivoconfig, "IPSEEDS");														//
-	iniciarTablaDeGossiping();																						//
+	// ------------------------------------------ INICIO LA TABLA DE GOSSIPING AGREGANDO LA MEMORIA ACTUAL			// GOSSIPING PARA ULTIMA ENTREGA
+																													//
+	seeds = levantarSeeds();
+	puertosSeeds = levantarPuertosSeeds();																							//
+	seedsCargadas();																								//
+	//iniciarTablaDeGossiping();																					//
 	//pthread_create(&thread_gossiping, NULL, &iniciarGossip, &tablaGossiping, &primeraVuelta);						// CREO THREAD DE GOSSIPING
+																													//
 	// ------------------------------------------ INICIO LA TABLA DE GOSSIPING AGREGANDO LA MEMORIA ACTUAL			//
 
 
@@ -38,7 +41,7 @@ int main(void)
 
 	// ------------------------------------------ INICIO SERVIDOR Y ESPERO CONEXION	-------------------------------	//
 
-	iniciar_servidor_memoria_y_esperar_conexiones_kernel();															//
+	iniciar_servidor_memoria_y_esperar_conexiones_kernel();															// puedo esperar de kernel o memoria(tanto conexiones como solicitudes)
 
 	// ------------------------------------------ INICIO SERVIDOR Y ESPERO CONEXION	-------------------------------	//
 
@@ -149,7 +152,7 @@ void iniciar_servidor_memoria_y_esperar_conexiones_kernel(){
 	socket_kernel_conexion_entrante = esperar_cliente(server_memoria);
 	log_info(logger, "Memoria se conectó con Kernel");
 }
-void iniciarTablaDeGossiping(){
+void iniciarTablaDeGossiping(){ /*
 	tablaGossiping = malloc(sizeof(struct tablaMemoriaGossip));
 	tablaGossiping->memoria.IP= ip_memoria;
 	tablaGossiping->memoria.PUERTO= puerto_memoria;
@@ -158,31 +161,32 @@ void iniciarTablaDeGossiping(){
 	tablaGossiping->siguiente=NULL;							//
 	log_info(logger, "Se inicializo la tabla de Gossiping");
 	log_info(logger, "Se agrego a la tabla de Gossiping la memoria: %i con estado %i de ip: %s y puerto: %s", tablaGossiping->memoria.descriptorMemoria,tablaGossiping->memoria.estado, tablaGossiping->memoria.IP,tablaGossiping->memoria.PUERTO );
-}
+ 	 ------------> ver implementacion mas adelante <--------- ENTREGA FINAL */ }
 char** levantarSeeds(){
 	return config_get_array_value(archivoconfig, "IP_SEEDS");
 }
 char** levantarPuertosSeeds(){
 	return config_get_array_value(archivoconfig, "PUERTO_SEEDS");
 }
-void iniciarGossip(struct tablaMemoriaGossip* tabla, int contador){ // VOY A HAER OSSIPING CON LAS MEMORIAS(PREGUNTARLES QUE MEMORIAS CONECTADAS CONOCE)
+void iniciarGossip(struct tablaMemoriaGossip* tabla, int contador){ 	// VOY A HAER OSSIPING CON LAS MEMORIAS(PREGUNTARLES QUE MEMORIAS CONECTADAS CONOCE)
 	int pasada = contador;
-	if(pasada==0){ // PRIMER PASADA TIENE UN SLEEP DE 4 UNIDADES DE TIEMPO, SE VA A REPETIR EL GOSSIPING HASTA QUE TERMINE EL PROCESO ED LA MEMORIA
+	if(pasada==0){ 														// PRIMER PASADA TIENE UN SLEEP DE 4 UNIDADES DE TIEMPO, SE VA A REPETIR EL GOSSIPING HASTA QUE TERMINE EL PROCESO ED LA MEMORIA
 		while(1){
-			sleep(4);// ESPERO 4 UNIDADES
-			if(tabla->siguiente!=NULL) // HAY MEMORIAS POR RECORRER EN LA TABLA APARTE DE LA QUE YA ESTOY LEYENDO?
-				{ 									// SI HAY UNA MEMORIA PENDIENTE, LEO
-				//realizarGossipingConUnaMemoria(MEMORIA); // no deberia hacer gossiping con ella misma(primer elemento de la tabla es la memoria creadora de la tabla)
+			sleep(4);													// ESPERO 4 UNIDADES
+			if(tabla->siguiente!=NULL) 									// HAY MEMORIAS POR RECORRER EN LA TABLA APARTE DE LA QUE YA ESTOY LEYENDO?
+				{ 														// SI HAY UNA MEMORIA PENDIENTE, LEO
+				//realizarGossipingConUnaMemoria(MEMORIA); 				// no deberia hacer gossiping con ella misma(primer elemento de la tabla es la memoria creadora de la tabla)
 				struct tablaMemoriaGossip* proximo = tabla->siguiente;
-				iniciarGossip(proximo,1); // LLAMO A GOSSIP PARA QUE HAGA GOSSIPING CON LA MEMORIA QUE VIENE, PERO CON 1, ES DECIR, SIN DORMIR EL PROCESO PUES ES PARTE DE ESTE CICLO ACTUAL DE GOSSIPING.
+				iniciarGossip(proximo,1); 								// LLAMO A GOSSIP PARA QUE HAGA GOSSIPING CON LA MEMORIA QUE VIENE, PERO CON 1, ES DECIR, SIN DORMIR EL PROCESO PUES ES PARTE DE ESTE CICLO ACTUAL DE GOSSIPING.
 				}
-			else{ 									// SI NO HAY UNA MEMORIA PENDIENTE, HAGO ULTIMO GOSSIPING DEL CICLO
+			else{ 														// SI NO HAY UNA MEMORIA PENDIENTE, HAGO ULTIMO GOSSIPING DEL CICLO
 				//realizarGossipingConUnaMemoria(tabla->memoria.descriptorMemoria);
 				}
 		}
 	}
 	else
-		{
+
+	{
 		if(tabla->siguiente!=NULL) // ENTRE POR ACÁ POR QUE ESTOY LEYENDO MINIMAMENTE UNA SEGUNDA MEMORIA EN UN MISMO CICLO DE GOSSIP(SIN DORMIR)
 						{ 									// SI HAY UNA MEMORIA PENDIENTE, LEO SIGUIENTE Y HAGO GOSSIP CON LA ACTUAL
 						//realizarGossipingConUnaMemoria(tabla->memoria);
@@ -195,13 +199,14 @@ void iniciarGossip(struct tablaMemoriaGossip* tabla, int contador){ // VOY A HAE
 		}
 	}
 
-/*	int seedsCargadas;
-	for(int i=0;sizeof(seeds);i++){
+void seedsCargadas(){
+	int i=0;
+	while(seeds[i]!= NULL){
 		log_info(logger, "Se obtuvo la seed a memoria con ip: %s , y puerto: %s",seeds[i],puertosSeeds[i]);
-		seedsCargadas=i+1;
+		i++;
 	}
-	log_info(logger, "Se obtuvieron %i seeds correctamente.",seedsCargadas);
-}*/
+	log_info(logger, "Se obtuvieron %i seeds correctamente.",i);
+}
 
 
 // ANEXO //

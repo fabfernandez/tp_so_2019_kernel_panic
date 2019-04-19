@@ -22,7 +22,7 @@
 							// ******* TIPOS NECESARIOS ******* //
 int primeraVuelta = 0;
 pthread_t thread_gossiping;
-struct tablaMemoriaGossip* tablaGossiping;
+t_list tablaGossiping;
 t_log* logger;
 t_config* archivoconfig;
 int socket_conexion_lfs;
@@ -37,6 +37,7 @@ int socket_kernel_conexion_entrante;
 typedef char* t_valor;	//valor que devuelve el select
 char** levantarSeeds();
 char** levantarPuertosSeeds();
+void seedsCargadas();
 void logearSeeds();
 void levantar_datos_memoria();
 void levantar_datos_lfs();

@@ -7,7 +7,7 @@
 
 #ifndef GLOBAL_PROTOCOLOS_H_
 #define GLOBAL_PROTOCOLOS_H_
-
+#include <commons/collections/list.h>
 #include<stdint.h>
 #include<sys/socket.h>
 #include<stdio.h>
@@ -27,13 +27,13 @@ typedef enum consistencias{
 }t_consistencia;
 
 struct memoriaGossip {
-	int descriptorMemoria;
+	char* nombre; // -> nombre memoria archivo config
 	char* IP;
 	char* PUERTO;
-	t_estado estado;
+	t_estado estado; // no es encesario
 };
-
-struct tablaMemoriaGossip {
+t_list asdasd;
+struct tablaMemoriaGossip { // tabla implementar t_list add gossiping
 	struct memoriaGossip memoria;
 	struct tablaMemoriaGossip* siguiente;
 };
