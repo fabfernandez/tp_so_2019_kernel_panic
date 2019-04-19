@@ -107,8 +107,8 @@ int esperar_operaciones(int de_quien){ // MODIFICAR
 				break;
 			case GOSSPING:
 				log_info(logger, "La memoria %i solicitó GOSSIPING", de_quien);
-					// realizarGossipingConUnaMemoria(int de_quien);  // paso el socket!
-					// esto deberia solicitar la tabla de gossiping a "de_quien"(quien solicita el gossiping) y enviarle su tabla de gossiping.
+					// chequearTablaYAgregarSiNoEsta(int de_quien);  // si me solicito gossiping ME ENVIO SU TABLA TB, asi que la chequeo toda y agrego las memorias que no tenga en mi tabla.
+																	// le envio mi tabla de gossiping para que haga lo mismo.
 				break;
 			case -1:
 				log_error(logger, "el cliente se desconecto. Terminando servidor");
