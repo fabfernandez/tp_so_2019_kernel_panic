@@ -7,13 +7,16 @@
 #include "memoria.h"
 int main(void)
 {
+
+	 FD_ZERO(&master);    // borra los conjuntos maestro y temporal
+	 FD_ZERO(&read_fds);
 	// ------------------------------------------ INICIO LOGGER, CONFIG, LEVANTO DATOS E INICIO SERVER ------------	//
 																													//
 	iniciar_logger();																								// */
 	leer_config();																									//
 	levantar_datos_memoria();																						// HAY QUE CAMBIAR RUTA A UNA VARIABLE PARA PODER LEVANTAR MEMORIAS CON DIFERENTES CONFIGS
 	levantar_datos_lfs();																							//
-	server_memoria = iniciar_servidor(ip_memoria, puerto_memoria); 													//
+	server_memoria = iniciar_servidor(ip_memoria, puerto_memoria); 													// obtener socket a la escucha
 																													//*/
 	// ------------------------------------------ INICIO LOGGER, CONFIG, LEVANTO DATOS E INICIO SERVER ------------	//
 
@@ -31,18 +34,22 @@ int main(void)
 
 
 	// ------------------------------------------ ME CONECTO CON LFS E INTENTO UN HANDSHAKE -----------------------	// INTENTA CONECTARSE, SI NO PUEDE CORTA LA EJECUCION
-																													//
-	socket_conexion_lfs = crear_conexion(ip__lfs,puerto__lfs);														//
-	log_info(logger,"Creada la conexion para LFS");																	//
-	intentar_handshake_a_lfs(socket_conexion_lfs);																	//
+	socket_conexion_lfs = crear_conexion(ip__lfs,puerto__lfs); //
+	if(socket_conexion_lfs != -1){														//
+	log_info(logger,"Creada la conexion para LFS %i", socket_conexion_lfs);																	//
+	//intentar_handshake_a_lfs(socket_conexion_lfs); // no intento por que no anda
+	} else {
+		log_info(logger,"No se pudo realizar la conexion con LFS. Abortando.");
+		return -1;
+		//
+	}
 																													//
 	// ------------------------------------------ ME CONECTO CON LFS E INTENTO UN HANDSHAKE -----------------------	//
 
 
 	// ------------------------------------------ INICIO SERVIDOR Y ESPERO CONEXION	-------------------------------	//
-
-	iniciar_servidor_memoria_y_esperar_conexiones_kernel();															// puedo esperar de kernel o memoria(tanto conexiones como solicitudes)
-
+//	iniciar_servidor_memoria_y_esperar_conexiones_kernel();															// puedo esperar de kernel o memoria(tanto conexiones como solicitudes)
+	select_esperar_conexiones_o_peticiones();
 	// ------------------------------------------ INICIO SERVIDOR Y ESPERO CONEXION	-------------------------------	//
 
 
@@ -114,7 +121,7 @@ int esperar_operaciones(int de_quien){ // MODIFICAR
 																	// le envio mi tabla de gossiping para que haga lo mismo.
 				break;
 			case -1:
-				log_error(logger, "el cliente se desconecto. Terminando servidor");
+				log_error(logger, "el cliente se desconecto. Terminando conexion con %i", de_quien);
 				return EXIT_FAILURE;
 			default:
 				log_warning(logger, "Operacion desconocida.");
@@ -207,6 +214,48 @@ void seedsCargadas(){
 	}
 	log_info(logger, "Se obtuvieron %i seeds correctamente.",i);
 }
+
+void select_esperar_conexiones_o_peticiones(){
+	FD_SET(server_memoria, &master); // agrego el socket de esta memoria(listener, está a la escucha)al conjunto maestro
+	fdmax = server_memoria; // por ahora el socket de mayor valor es este, pues es el unico ;)
+	log_info(logger,"A la espera de nuevas solicitudes");
+	for(;;) 	// bucle principal
+	{
+		read_fds = master; // cópialo
+	    	if (select(fdmax+1, &read_fds, NULL, NULL, NULL) == -1)
+	    		{
+	    			perror("select");
+	                exit(1);
+	            }
+	            // explorar conexiones existentes en busca de datos que leer
+	            for(int i = 0; i <= fdmax; i++) {
+	                if (FD_ISSET(i, &read_fds)) //  pregunta si "i" está en el conjunto ¡¡tenemos datos!!
+	                	{
+	                    	if (i == server_memoria)
+	                    		{
+	                    		memoriaNuevaAceptada = esperar_cliente(server_memoria);
+	                    		FD_SET(memoriaNuevaAceptada, &master); // añadir al conjunto maestro
+	                    		if (memoriaNuevaAceptada > fdmax)
+	                    			{    // actualizar el máximo
+	                    			fdmax = memoriaNuevaAceptada;
+	                    			}
+	                            log_info(logger,"Nueva conexion desde %i",memoriaNuevaAceptada);
+	                    		} else 				// // gestionar datos de un cliente
+	                        	{
+	                        	esperar_operaciones(i);
+	                        	FD_CLR(i, &master); // eliminar del conjunto maestro
+	                        	}
+	                	}
+	            }
+	}
+}
+
+
+	//log_info(logger, "Memoria lista para recibir peticiones o conexiones de otras memorias");
+	//log_info(logger, "Memoria espera peticiones");
+	//socket_kernel_conexion_entrante = esperar_cliente(server_memoria);
+	//log_info(logger, "Memoria se conectó con Kernel");
+
 
 
 // ANEXO //

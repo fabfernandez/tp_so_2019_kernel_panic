@@ -20,6 +20,13 @@
 
 
 							// ******* TIPOS NECESARIOS ******* //
+// prueba select //
+	 fd_set master;   // conjunto maestro de descriptores de fichero
+	 fd_set read_fds; // conjunto temporal de descriptores de fichero para select()
+	 int fdmax;        // número máximo de descriptores de fichero
+	 //server_memoria  // descriptor de socket a la escucha
+	 int memoriaNuevaAceptada;        // descriptor de socket de nueva conexión aceptada
+//
 int primeraVuelta = 0;
 pthread_t thread_gossiping;
 t_list tablaGossiping;
@@ -37,6 +44,7 @@ int socket_kernel_conexion_entrante;
 typedef char* t_valor;	//valor que devuelve el select
 char** levantarSeeds();
 char** levantarPuertosSeeds();
+void select_esperar_conexiones_o_peticiones();
 void seedsCargadas();
 void logearSeeds();
 void levantar_datos_memoria();
