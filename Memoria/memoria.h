@@ -23,10 +23,11 @@
 // prueba select //
 	 fd_set master;   // conjunto maestro de descriptores de fichero
 	 fd_set read_fds; // conjunto temporal de descriptores de fichero para select()
-	 int fdmax;        // número máximo de descriptores de fichero
+	 int fdmax,fdmin;        // número máximo de descriptores de fichero
 	 //server_memoria  // descriptor de socket a la escucha
 	 int memoriaNuevaAceptada;        // descriptor de socket de nueva conexión aceptada
 //
+int nbytes;
 int primeraVuelta = 0;
 pthread_t thread_gossiping;
 t_list tablaGossiping;
@@ -51,6 +52,7 @@ void levantar_datos_memoria();
 void levantar_datos_lfs();
 int esperar_operaciones();
 void iniciarTablaDeGossiping();
+void resolver_operacion(int socket_memoria, t_operacion cod_op);
 void leer_config();
 void iniciar_logger();
 void iniciar_servidor_memoria_y_esperar_conexiones_kernel();

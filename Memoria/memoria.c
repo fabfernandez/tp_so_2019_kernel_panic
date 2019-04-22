@@ -11,7 +11,7 @@ int main(void)
 	 FD_ZERO(&master);    // borra los conjuntos maestro y temporal
 	 FD_ZERO(&read_fds);
 	// ------------------------------------------ INICIO LOGGER, CONFIG, LEVANTO DATOS E INICIO SERVER ------------	//
-																													//
+	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 //
 	iniciar_logger();																								// */
 	leer_config();																									//
 	levantar_datos_memoria();																						// HAY QUE CAMBIAR RUTA A UNA VARIABLE PARA PODER LEVANTAR MEMORIAS CON DIFERENTES CONFIGS
@@ -55,7 +55,7 @@ int main(void)
 
 	// ------------------------------------------ A ESPERA DE OPERACIONES -----------------------------------------	//
 
-	esperar_operaciones(socket_kernel_conexion_entrante);															// -> ESPERO OPERACIONES DE KERNEL(ACA DEBERIA ESPERAR TAMBIEN MEMORIAS Y LFS)
+//	esperar_operaciones(socket_kernel_conexion_entrante);															// -> ESPERO OPERACIONES DE KERNEL(ACA DEBERIA ESPERAR TAMBIEN MEMORIAS Y LFS)
 
 	// ------------------------------------------ A ESPERA DE OPERACIONES -----------------------------------------	//
 //	terminar_programa(socket_kernel_fd, conexionALFS); // termina conexion, destroy log y destroy config.
@@ -128,6 +128,45 @@ int esperar_operaciones(int de_quien){ // MODIFICAR
 				return EXIT_FAILURE;
 				break;
 			}
+		}
+}
+
+void resolver_operacion(int socket_memoria, t_operacion cod_op){
+	switch(cod_op)
+		{
+		case HANDSHAKE:
+			log_info(logger, "Inicia handshake con memoria");
+			recibir_mensaje(logger, socket_memoria);
+			enviar_handshake(socket_memoria, "OK");
+			log_info(logger, "Conexion exitosa con memoria");
+			break;
+		case SELECT:
+			log_info(logger, "memoria solicitó SELECT");
+		//	resolver_select(socket_memoria);
+			//aca debería enviarse el mensaje a LFS con SELECT
+			break;
+		case INSERT:
+			log_info(logger, "memoria solicitó INSERT");
+			//aca debería enviarse el mensaje a LFS con INSERT
+			break;
+		case CREATE:
+			log_info(logger, "memoria solicitó CREATE");
+			//aca debería enviarse el mensaje a LFS con CREATE
+			break;
+		case DESCRIBE:
+			log_info(logger, "memoria solicitó DESCRIBE");
+			//aca debería enviarse el mensaje a LFS con DESCRIBE
+			break;
+		case DROP:
+			log_info(logger, "memoria solicitó DROP");
+			//aca debería enviarse el mensaje a LFS con DROP
+			break;
+		case -1:
+			log_error(logger, "el cliente se desconecto. Terminando servidor");
+			break;
+		default:
+			log_warning(logger, "Operacion desconocida.");
+			break;
 		}
 }
 void levantar_datos_memoria(){
@@ -217,6 +256,7 @@ void seedsCargadas(){
 
 void select_esperar_conexiones_o_peticiones(){
 	FD_SET(server_memoria, &master); // agrego el socket de esta memoria(listener, está a la escucha)al conjunto maestro
+	fdmin = server_memoria;
 	fdmax = server_memoria; // por ahora el socket de mayor valor es este, pues es el unico ;)
 	log_info(logger,"A la espera de nuevas solicitudes");
 	for(;;) 	// bucle principal
@@ -224,11 +264,11 @@ void select_esperar_conexiones_o_peticiones(){
 		read_fds = master; // cópialo
 	    	if (select(fdmax+1, &read_fds, NULL, NULL, NULL) == -1)
 	    		{
-	    			perror("select");
+	    			log_error(logger, "Fallo accion select.");;
 	                exit(1);
 	            }
 	            // explorar conexiones existentes en busca de datos que leer
-	            for(int i = 0; i <= fdmax; i++) {
+	            for(int i = fdmin; i <= fdmax; i++) {
 	                if (FD_ISSET(i, &read_fds)) //  pregunta si "i" está en el conjunto ¡¡tenemos datos!!
 	                	{
 	                    	if (i == server_memoria)
@@ -242,9 +282,25 @@ void select_esperar_conexiones_o_peticiones(){
 	                            log_info(logger,"Nueva conexion desde %i",memoriaNuevaAceptada);
 	                    		} else 				// // gestionar datos de un cliente
 	                        	{
-	                        	esperar_operaciones(i);
-	                        	FD_CLR(i, &master); // eliminar del conjunto maestro
-	                        	}
+	                    			int cod_op;
+	                    			nbytes = recv(i, &cod_op, sizeof(int), 0);
+	                    			if (nbytes <= 0) {
+	                    			                            // error o conexión cerrada por el cliente
+	                    			                            if (nbytes == 0) {
+	                    			                            // conexión cerrada
+	                    			                            	log_error(logger, "el cliente se desconecto. Terminando conexion con %i", i);
+	                    			                            } else {
+	                    			                                perror("recv");
+	                    			                            }
+	                    			                            close(i); // bye!
+	                    			                            FD_CLR(i, &master); // eliminar del conjunto maestro
+	                    			                        }
+	                    			else {
+	                    			                            // tenemos datos de algún cliente
+	                    				resolver_operacion(i,cod_op);
+	                    			    log_info(logger, "Se recibio una operacion de %i", i);
+
+	                    			}}
 	                	}
 	            }
 	}
