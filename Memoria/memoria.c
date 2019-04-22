@@ -133,41 +133,46 @@ int esperar_operaciones(int de_quien){ // MODIFICAR
 
 void resolver_operacion(int socket_memoria, t_operacion cod_op){
 	switch(cod_op)
-		{
-		case HANDSHAKE:
-			log_info(logger, "Inicia handshake con memoria");
-			recibir_mensaje(logger, socket_memoria);
-			enviar_handshake(socket_memoria, "OK");
-			log_info(logger, "Conexion exitosa con memoria");
-			break;
-		case SELECT:
-			log_info(logger, "memoria solicitó SELECT");
-		//	resolver_select(socket_memoria);
-			//aca debería enviarse el mensaje a LFS con SELECT
-			break;
-		case INSERT:
-			log_info(logger, "memoria solicitó INSERT");
-			//aca debería enviarse el mensaje a LFS con INSERT
-			break;
-		case CREATE:
-			log_info(logger, "memoria solicitó CREATE");
-			//aca debería enviarse el mensaje a LFS con CREATE
-			break;
-		case DESCRIBE:
-			log_info(logger, "memoria solicitó DESCRIBE");
-			//aca debería enviarse el mensaje a LFS con DESCRIBE
-			break;
-		case DROP:
-			log_info(logger, "memoria solicitó DROP");
-			//aca debería enviarse el mensaje a LFS con DROP
-			break;
-		case -1:
-			log_error(logger, "el cliente se desconecto. Terminando servidor");
-			break;
-		default:
-			log_warning(logger, "Operacion desconocida.");
-			break;
-		}
+				{
+				case HANDSHAKE:
+					log_info(logger, "Inicia handshake con %i", socket_memoria);
+					recibir_mensaje(logger, socket_memoria);
+					enviar_handshake(socket_memoria, "OK");
+					log_info(logger, "Conexion exitosa con con %i", socket_memoria);
+					break;
+				case SELECT:
+					log_info(logger, "%i solicitó SELECT", socket_memoria);
+					resolver_select(socket_memoria, socket_conexion_lfs);
+					//aca debería enviarse el mensaje a LFS con SELECT
+					break;
+				case INSERT:
+					log_info(logger, "%i solicitó INSERT", socket_memoria);
+					//aca debería enviarse el mensaje a LFS con INSERT
+					break;
+				case CREATE:
+					log_info(logger, "%i solicitó CREATE", socket_memoria);
+					//aca debería enviarse el mensaje a LFS con CREATE
+					break;
+				case DESCRIBE:
+					log_info(logger, "%i solicitó DESCRIBE", socket_memoria);
+					//aca debería enviarse el mensaje a LFS con DESCRIBE
+					break;
+				case DROP:
+					log_info(logger, "%i solicitó DROP", socket_memoria);
+					//aca debería enviarse el mensaje a LFS con DROP
+					break;
+				case GOSSPING:
+					log_info(logger, "La memoria %i solicitó GOSSIPING", socket_memoria);
+						// chequearTablaYAgregarSiNoEsta(int de_quien);  // si me solicito gossiping ME ENVIO SU TABLA TB, asi que la chequeo toda y agrego las memorias que no tenga en mi tabla.
+																		// le envio mi tabla de gossiping para que haga lo mismo.
+					break;
+				case -1:
+					log_error(logger, "el cliente se desconecto. Terminando conexion con %i", socket_memoria);
+					break;
+				default:
+					log_warning(logger, "Operacion desconocida.");
+					break;
+				}
 }
 void levantar_datos_memoria(){
 	ip_memoria = config_get_string_value(archivoconfig, "IP_MEMORIA"); // asignamos IP de memoria a conectar desde CONFIG
@@ -268,7 +273,7 @@ void select_esperar_conexiones_o_peticiones(){
 	                exit(1);
 	            }
 	            // explorar conexiones existentes en busca de datos que leer
-	            for(int i = fdmin; i <= fdmax; i++) {
+	            for(int i = 0; i <= fdmax; i++) {
 	                if (FD_ISSET(i, &read_fds)) //  pregunta si "i" está en el conjunto ¡¡tenemos datos!!
 	                	{
 	                    	if (i == server_memoria)
