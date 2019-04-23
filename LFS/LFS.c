@@ -10,13 +10,7 @@ int main(void)
 {
 	char* ip_lfs;
 	char* puerto_lfs;
-	fd_set master;    // lista maestra de file descriptor
-	fd_set read_fds;  // lista temporal de file descriptor list para select()
-	int fdmax;        // maxima cantidad de file descriptor
-	int newfd;        // nuevo socket aceptado
-	int fd_index;
-	int cod_op;
-
+	int socket_memoria;
 	iniciar_logger(); // creamos log
 	leer_config(); // abrimos config
 
@@ -27,44 +21,46 @@ int main(void)
 
 
 	int server_LFS = iniciar_servidor(ip_lfs, puerto_lfs);
-	log_info(logger, "LFS listo para recibir a peticiones de memoria");
-	log_info(logger, "LFS espera peticiones");
-	// añadir listener al conjunto maestro
-	FD_SET(server_LFS, &master);
-	fdmax = server_LFS;
 
-	for(;;) {
-		read_fds = master;
-		if (select(fdmax+1, &read_fds, NULL, NULL, NULL) == -1) {
-			log_error(logger, "Fallo accion select.");
-			exit(1);
-
-		}else{
-			// explorar conexiones existentes en busca de datos que leer
-			for(fd_index = 0; fd_index <= fdmax; fd_index++) {
-				if (FD_ISSET(fd_index, &read_fds)) { //entran nuevos datos
-					if (fd_index == server_LFS) {
-						//Nuevo cliente
-						if (newfd = esperar_cliente(server_LFS) == -1) {
-							log_error(logger, "No pudo aceptarse la conexion del cliente");
-						} else {
-							agregar_cliente(&master, newfd, &fdmax);
-						}
-
-					} else {
-						//Cliente en el set, realizo solicitud
-						cod_op = recibir_operacion(fd_index);
-						resolver_operacion(cod_op);
-					}
-				}
-			}
-
+	while (1){
+		if ((socket_memoria = esperar_cliente(server_LFS)) == -1) {
+			log_error(logger, "No pudo aceptarse la conexion del cliente");
+		} else {
+			crear_hilo_memoria(socket_memoria);
 		}
 	}
-
 	//terminar_programa(socket_memoria_entrante, conexionALFS); // termina conexion, destroy log y destroy config. ???
 	return EXIT_SUCCESS;
 }
+
+
+void *atender_pedido_memoria (void* memoria_fd){
+	int socket_memoria = *((int *) memoria_fd);
+	pthread_t id_hilo = pthread_self();
+	while(1){
+		int cod_op = recibir_operacion(socket_memoria);
+		if (resolver_operacion(socket_memoria, cod_op)!=0){
+			pthread_cancel(id_hilo);
+		}
+	}
+
+
+	    //free(i);
+}
+
+void crear_hilo_memoria(int socket_memoria){
+	pthread_t hilo_memoria;
+	int *memoria_fd = malloc(sizeof(*memoria_fd));
+	*memoria_fd = socket_memoria;
+	if (pthread_create(&hilo_memoria, 0, atender_pedido_memoria, memoria_fd) !=0){
+		log_error(logger, "Error al crear el hilo");
+	}
+	if (pthread_detach(hilo_memoria) != 0){
+		log_error(logger, "Error al crear el hilo");
+	}
+
+}
+
 
 void agregar_cliente(fd_set* master, int cliente, int* fdmax){
 	FD_SET(cliente, master);//se agrega nuevo fd al set
@@ -82,7 +78,7 @@ void agregar_cliente(fd_set* master, int cliente, int* fdmax){
 
 }
 
-void resolver_operacion(int socket_memoria, t_operacion cod_op){
+int resolver_operacion(int socket_memoria, t_operacion cod_op){
 	switch(cod_op)
 		{
 		case HANDSHAKE:
@@ -113,12 +109,14 @@ void resolver_operacion(int socket_memoria, t_operacion cod_op){
 			//aca debería enviarse el mensaje a LFS con DROP
 			break;
 		case -1:
-			log_error(logger, "el cliente se desconecto. Terminando servidor");
-			break;
+			log_error(logger, "el cliente se desconecto.");
+			return EXIT_FAILURE;
+
 		default:
 			log_warning(logger, "Operacion desconocida.");
-			break;
+			return EXIT_FAILURE;
 		}
+	return EXIT_SUCCESS;
 }
 
 void resolver_select (int socket_memoria){

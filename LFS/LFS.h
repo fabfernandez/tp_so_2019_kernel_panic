@@ -7,7 +7,7 @@
 #ifndef LFS_H_
 #define LFS_H_
 
-
+#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <commons/log.h>
@@ -18,6 +18,7 @@
 #include <time.h>
 #include <global/utils.h>
 #include<global/protocolos.h>
+
 
 
 

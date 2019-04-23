@@ -41,7 +41,8 @@
 							<tool id="cdt.managedbuild.tool.gnu.c.linker.exe.debug.934889168" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.exe.debug">
 								<option defaultValue="true" id="gnu.c.link.option.shared.933573691" name="Shared (-shared)" superClass="gnu.c.link.option.shared" useByScannerDiscovery="false" value="false" valueType="boolean"/>
 								<option id="gnu.c.link.option.libs.493217709" name="Libraries (-l)" superClass="gnu.c.link.option.libs" useByScannerDiscovery="false" valueType="libs">
-									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="global"/>
+									<listOptionValue builtIn="false" value="global"/>
+									<listOptionValue builtIn="false" value="pthread"/>
 									<listOptionValue builtIn="false" value="commons"/>
 								</option>
 								<option id="gnu.c.link.option.paths.217925551" name="Library search path (-L)" superClass="gnu.c.link.option.paths" useByScannerDiscovery="false" valueType="libPaths">
