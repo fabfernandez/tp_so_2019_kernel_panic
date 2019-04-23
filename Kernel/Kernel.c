@@ -44,7 +44,12 @@ int main(void)
 	while(1){
 		char* linea = readline("Consola kernel>");
 		t_instruccion_lql instruccion =parsear_linea(linea);
-		ejecutar_instruccion(instruccion, socket_memoria);
+		if (instruccion.valido) {
+			ejecutar_instruccion(instruccion, socket_memoria);
+		}else{
+			log_error(logger, "Reingrese correctamente la instruccion");
+		}
+
 		free(linea);
 	}
 	close(socket_memoria);
@@ -95,6 +100,7 @@ void resolver_select(t_instruccion_lql instruccion, int socket_memoria){
 
 	t_paquete_select* paquete_select = crear_paquete_select(instruccion);
 	enviar_paquete_select(socket_memoria, paquete_select);
+	eliminar_paquete_select(paquete_select);
 }
 
 void iniciar_logger() { 							// CREACION DE LOG

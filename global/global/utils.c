@@ -154,6 +154,12 @@ void enviar_paquete(t_paquete* paquete, int socket_cliente)
 	free(a_enviar);
 }
 
+void eliminar_paquete_select(t_paquete_select* paquete_select){
+	free(paquete_select->nombre_tabla->palabra);
+	free(paquete_select->nombre_tabla);
+	free(paquete_select);
+}
+
 void eliminar_paquete(t_paquete* paquete)
 {
 	free(paquete->buffer->palabra);

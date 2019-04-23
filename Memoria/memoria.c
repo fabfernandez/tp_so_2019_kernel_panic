@@ -37,7 +37,7 @@ int main(void)
 	socket_conexion_lfs = crear_conexion(ip__lfs,puerto__lfs); //
 	if(socket_conexion_lfs != -1){														//
 	log_info(logger,"Creada la conexion para LFS %i", socket_conexion_lfs);																	//
-	//intentar_handshake_a_lfs(socket_conexion_lfs); // no intento por que no anda
+	intentar_handshake_a_lfs(socket_conexion_lfs); // no intento por que no anda
 	} else {
 		log_info(logger,"No se pudo realizar la conexion con LFS. Abortando.");
 		return -1;
@@ -69,6 +69,7 @@ void resolver_select (int socket_kernel_fd, int socket_conexion_lfs){
 	log_info(logger, "Consulta por key: %d", consulta_select->key);
 
 	enviar_paquete_select(socket_conexion_lfs, consulta_select);
+	eliminar_paquete_select(consulta_select);
 }
  void iniciar_logger() {
 	logger = log_create("/home/utnso/tp-2019-1c-Los-Dinosaurios-Del-Libro/Memoria/memoria.log", "Memoria", 1, LOG_LEVEL_INFO);

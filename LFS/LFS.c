@@ -124,6 +124,7 @@ void resolver_select (int socket_memoria){
 	log_info(logger, "Se realiza SELECT");
 	log_info(logger, "Consulta en la tabla: %s", consulta_select->nombre_tabla->palabra);
 	log_info(logger, "Consulta por key: %d", consulta_select->key);
+	eliminar_paquete_select(consulta_select);
 }
 
  void iniciar_logger() { 								// CREACION DE LOG
