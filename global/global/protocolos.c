@@ -245,11 +245,11 @@ t_paquete_drop_describe* deserealizar_drop_describe(int socket_cliente) {
 	return consulta;//Acordarse de hacer un free despues de usarse
 }
 
-struct tablaMemoriaGossip crearTablaGossip(){
+/*struct tablaMemoriaGossip crearTablaGossip(){
 	struct tablaMemoriaGossip* elementoCreado = malloc(sizeof(struct tablaMemoriaGossip));
 	//-- CREAR PRIMER ELEMENTO(MEMORIA A, LA PRIEMRA QUE SE LEVANTA, HAY QUE PASAR POR PARAMETROS LOS DATOS DE LA MISMA--//
 	return *elementoCreado;
-}
+}*/
 
 struct tablaMemoriaGossip crearElementoParaTablaDeGossip(struct memoriaGossip memoria){ // hay que pasar por parametro un struct con los datos de la nueva memoria
 	struct memoriaGossip* memogossip = malloc(sizeof(struct memoriaGossip));
