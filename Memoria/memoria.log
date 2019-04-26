@@ -1185,3 +1185,13 @@
 [INFO] 19:12:31:221 Memoria/(22998:22998): Se obtuvieron 4 seeds correctamente.
 [INFO] 19:12:31:221 Memoria/(22998:22998): Creada la conexion para LFS
 [INFO] 19:12:31:221 Memoria/(22998:22998): Trato de realizar un hasdshake
+[INFO] 17:25:15:77 Memoria/(6333:6333): La IP de la memoria es 127.0.0.2
+[INFO] 17:25:15:78 Memoria/(6333:6333): El puerto de la memoria es 4444
+[INFO] 17:25:15:78 Memoria/(6333:6333): La IP del LFS es 127.0.0.3
+[INFO] 17:25:15:78 Memoria/(6333:6333): El puerto del LFS es 6445
+[INFO] 17:25:15:79 Memoria/(6333:6333): Se obtuvo la seed a memoria con ip: 128.254.365.122 , y puerto: 8080
+[INFO] 17:25:15:80 Memoria/(6333:6333): Se obtuvo la seed a memoria con ip: 129.254.655.666 , y puerto: 4445
+[INFO] 17:25:15:80 Memoria/(6333:6333): Se obtuvo la seed a memoria con ip: 128.254.365.121 , y puerto: 4475
+[INFO] 17:25:15:80 Memoria/(6333:6333): Se obtuvo la seed a memoria con ip: 128.254.365.129 , y puerto: 4658
+[INFO] 17:25:15:80 Memoria/(6333:6333): Se obtuvieron 4 seeds correctamente.
+[INFO] 17:25:15:81 Memoria/(6333:6333): No se pudo realizar la conexion con LFS. Abortando.
