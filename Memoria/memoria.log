@@ -1205,3 +1205,43 @@
 [INFO] 12:10:06:26 Memoria/(5146:5146): Se obtuvo la seed a memoria con ip: 128.254.365.129 , y puerto: 4658
 [INFO] 12:10:06:26 Memoria/(5146:5146): Se obtuvieron 4 seeds correctamente.
 [INFO] 12:10:06:26 Memoria/(5146:5146): No se pudo realizar la conexion con LFS. Abortando.
+[INFO] 15:37:23:573 Memoria/(5693:5693): La IP de la memoria es 127.0.0.2
+[INFO] 15:37:23:586 Memoria/(5693:5693): El puerto de la memoria es 4444
+[INFO] 15:37:23:587 Memoria/(5693:5693): La IP del LFS es 127.0.0.3
+[INFO] 15:37:23:588 Memoria/(5693:5693): El puerto del LFS es 6445
+[INFO] 15:37:23:589 Memoria/(5693:5693): Se obtuvo la seed a memoria con ip: 128.254.365.122 , y puerto: 8080
+[INFO] 15:37:23:589 Memoria/(5693:5693): Se obtuvo la seed a memoria con ip: 129.254.655.666 , y puerto: 4445
+[INFO] 15:37:23:591 Memoria/(5693:5693): Se obtuvo la seed a memoria con ip: 128.254.365.121 , y puerto: 4475
+[INFO] 15:37:23:591 Memoria/(5693:5693): Se obtuvo la seed a memoria con ip: 128.254.365.129 , y puerto: 4658
+[INFO] 15:37:23:592 Memoria/(5693:5693): Se obtuvieron 4 seeds correctamente.
+[INFO] 15:37:23:594 Memoria/(5693:5693): Creada la conexion para LFS 5
+[INFO] 15:37:23:594 Memoria/(5693:5693): Trato de realizar un hasdshake
+[INFO] 15:37:23:595 Memoria/(5693:5693): Se envió el mensaje Hola, me conecto, soy la memoria
+[INFO] 15:37:23:598 Memoria/(5693:5693): Me llego el mensaje OK
+[INFO] 15:37:23:598 Memoria/(5693:5693): Conexion exitosa con LFS
+[INFO] 15:37:23:598 Memoria/(5693:5693): A la espera de nuevas solicitudes
+[INFO] 15:48:09:52 Memoria/(6249:6249): La IP de la memoria es 127.0.0.2
+[INFO] 15:48:09:52 Memoria/(6249:6249): El puerto de la memoria es 4444
+[INFO] 15:48:09:53 Memoria/(6249:6249): La IP del LFS es 127.0.0.3
+[INFO] 15:48:09:53 Memoria/(6249:6249): El puerto del LFS es 6445
+[INFO] 15:48:09:53 Memoria/(6249:6249): Se obtuvo la seed a memoria con ip: 128.254.365.122 , y puerto: 8080
+[INFO] 15:48:09:53 Memoria/(6249:6249): Se obtuvo la seed a memoria con ip: 129.254.655.666 , y puerto: 4445
+[INFO] 15:48:09:53 Memoria/(6249:6249): Se obtuvo la seed a memoria con ip: 128.254.365.121 , y puerto: 4475
+[INFO] 15:48:09:54 Memoria/(6249:6249): Se obtuvo la seed a memoria con ip: 128.254.365.129 , y puerto: 4658
+[INFO] 15:48:09:54 Memoria/(6249:6249): Se obtuvieron 4 seeds correctamente.
+[INFO] 15:48:09:55 Memoria/(6249:6249): Creada la conexion para LFS 4
+[INFO] 15:48:09:55 Memoria/(6249:6249): Trato de realizar un hasdshake
+[INFO] 15:48:09:55 Memoria/(6249:6249): Se envió el mensaje Hola, me conecto, soy la memoria
+[INFO] 15:48:09:58 Memoria/(6249:6249): Me llego el mensaje OK
+[INFO] 15:48:09:58 Memoria/(6249:6249): Conexion exitosa con LFS
+[INFO] 15:48:09:58 Memoria/(6249:6249): A la espera de nuevas solicitudes
+[INFO] 15:49:55:661 Memoria/(5693:5693): Nueva conexion desde 6
+[INFO] 15:49:55:661 Memoria/(5693:5693): Inicia handshake con 6
+[INFO] 15:49:55:661 Memoria/(5693:5693): Me llego el mensaje Hola, me conecto, soy el Kernel
+[INFO] 15:49:55:662 Memoria/(5693:5693): Conexion exitosa con con 6
+[INFO] 15:49:55:662 Memoria/(5693:5693): Se recibio una operacion de 6
+[INFO] 15:50:49:640 Memoria/(5693:5693): 6 solicitó SELECT
+[INFO] 15:50:49:640 Memoria/(5693:5693): Se realiza SELECT
+[INFO] 15:50:49:640 Memoria/(5693:5693): Consulta en la tabla: "TABLA"
+[INFO] 15:50:49:640 Memoria/(5693:5693): Consulta por key: 123
+[INFO] 15:50:49:640 Memoria/(5693:5693): Se recibio una operacion de 6
