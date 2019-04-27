@@ -275,9 +275,9 @@ void select_esperar_conexiones_o_peticiones(){
 	            }
 	            // explorar conexiones existentes en busca de datos que leer
 	            for(int i = 0; i <= fdmax; i++) {
-	                if (FD_ISSET(i, &read_fds)) //  pregunta si "i" está en el conjunto ¡¡tenemos datos!!
+	                if (FD_ISSET(i, &read_fds)) //  pregunta si "i" está en el conjunto ¡¡tenemos datos!! read_fds es como una lista de sockets con conexiones entrantes
 	                	{
-	                    	if (i == server_memoria)
+	                    	if (i == server_memoria) // si estoy parado en el socket que espera conexiones nuevas (listen)
 	                    		{
 	                    		memoriaNuevaAceptada = esperar_cliente(server_memoria);
 	                    		FD_SET(memoriaNuevaAceptada, &master); // añadir al conjunto maestro
