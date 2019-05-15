@@ -24,7 +24,7 @@ int main(void)
 
 	while (1){
 		if ((socket_memoria = esperar_cliente(server_LFS)) == -1) {
-			log_error(logger, "No pudo aceptarse la conexion del cliente");
+			//log_error(logger, "No pudo aceptarse la conexion del cliente");
 		} else {
 			crear_hilo_memoria(socket_memoria);
 		}

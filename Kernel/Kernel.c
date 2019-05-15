@@ -43,17 +43,24 @@ int main(void)
 	}
 	while(1){
 		char* linea = readline("Consola kernel>");
-		t_instruccion_lql instruccion =parsear_linea(linea);
-		if (instruccion.valido) {
-			ejecutar_instruccion(instruccion, socket_memoria);
-		}else{
-			log_error(logger, "Reingrese correctamente la instruccion");
-		}
+
+		parsear_y_ejecutar(linea, socket_memoria, 1);
 
 		free(linea);
 	}
 	close(socket_memoria);
 	terminar_programa(socket_memoria); // termina conexion, destroy log y destroy config.
+}
+
+void parsear_y_ejecutar(char* linea, int socket_memoria, int flag_de_consola){
+	t_instruccion_lql instruccion = parsear_linea(linea);
+	if (instruccion.valido) {
+		ejecutar_instruccion(instruccion, socket_memoria);
+	}else{
+		if (flag_de_consola){
+			log_error(logger, "Reingrese correctamente la instruccion");
+		}
+	}
 }
 
 void ejecutar_instruccion(t_instruccion_lql instruccion, int socket_memoria){
@@ -80,8 +87,8 @@ void ejecutar_instruccion(t_instruccion_lql instruccion, int socket_memoria){
 			//aca debería enviarse el mensaje a LFS con DROP
 			break;
 		case RUN:
-			log_info(logger, "Kernel solicitó DROP");
-			//aca debería enviarse el mensaje a LFS con DROP
+			log_info(logger, "Kernel solicitó RUN");
+			resolver_run(instruccion, socket_memoria);
 			break;
 		default:
 			log_warning(logger, "Operacion desconocida.");
@@ -101,6 +108,37 @@ void resolver_select(t_instruccion_lql instruccion, int socket_memoria){
 	t_paquete_select* paquete_select = crear_paquete_select(instruccion);
 	enviar_paquete_select(socket_memoria, paquete_select);
 	eliminar_paquete_select(paquete_select);
+}
+
+void resolver_run(t_instruccion_lql instruccion, int socket_memoria){
+	char* path = instruccion.parametros.RUN.path_script;
+	FILE *archivo;
+	archivo = fopen(path,"r");
+
+	leer_archivo(archivo, socket_memoria);
+
+	fclose(archivo);
+}
+
+void leer_archivo(FILE* archivo, int socket_memoria){
+	char* linea = NULL;
+	int i;
+	char letra;
+	while((letra = fgetc(archivo)) != EOF){
+		linea = (char*)realloc(NULL, sizeof(char));
+		i = 0;
+		do{
+			linea = (char*)realloc(linea, (i+1));
+			linea[i] = letra;
+			i++;
+		}while((letra = fgetc(archivo)) != '\n' && letra != EOF);
+
+		linea = (char*)realloc(linea, (i+1));
+		linea[i] = 0;
+		parsear_y_ejecutar(linea, socket_memoria, 0);
+		free(linea);
+		linea = NULL;
+	}
 }
 
 void iniciar_logger() { 							// CREACION DE LOG
