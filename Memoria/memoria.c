@@ -15,6 +15,8 @@ int main(void)
 	iniciar_logger();																								// */
 	leer_config();																									//
 	levantar_datos_memoria();																						// HAY QUE CAMBIAR RUTA A UNA VARIABLE PARA PODER LEVANTAR MEMORIAS CON DIFERENTES CONFIGS
+	void* memoria_principal = malloc(tamanio_memoria*sizeof(char));																						// en bytes
+	log_info(logger,"Se reservaron %i bytes para la memoria", (tamanio_memoria*sizeof(char)));
 	levantar_datos_lfs();																							//
 	server_memoria = iniciar_servidor(ip_memoria, puerto_memoria); 													// obtener socket a la escucha
 																													//*/
@@ -36,10 +38,15 @@ int main(void)
 	// ------------------------------------------ ME CONECTO CON LFS E INTENTO UN HANDSHAKE -----------------------	// INTENTA CONECTARSE, SI NO PUEDE CORTA LA EJECUCION
 	socket_conexion_lfs = crear_conexion(ip__lfs,puerto__lfs); //
 	if(socket_conexion_lfs != -1){														//
-	log_info(logger,"Creada la conexion para LFS %i", socket_conexion_lfs);																	//
-	intentar_handshake_a_lfs(socket_conexion_lfs); // no intento por que no anda
+	log_info(logger,"Creada la conexion para LFS %i", socket_conexion_lfs);				//													//
+	intentar_handshake_a_lfs(socket_conexion_lfs); 										// ACA TENGO QUE OBTENER MAX_VALUE
+	tamanio_pagina = sizeof(long)+max_value+sizeof(uint16_t)+1; 							// LONG=TIMESTAMP / max_value se obtiene por config / uint16_t por definicion(creo que int) +1 bit de modificado
+	cantidad_paginas = tamanio_memoria/tamanio_pagina;
+	void* tabla_paginas = malloc(cantidad_paginas);
 	} else {
 		log_info(logger,"No se pudo realizar la conexion con LFS. Abortando.");
+		log_info(logger, "Se liberaran %i bytes de la memoria",(tamanio_memoria*sizeof(char)));
+		free(memoria_principal);
 		return -1;
 		//
 	}
@@ -181,7 +188,9 @@ void levantar_datos_memoria(){
 	puerto_memoria = config_get_string_value(archivoconfig, "PUERTO_MEMORIA"); // asignamos puerto desde CONFIG
 	log_info(logger, "El puerto de la memoria es %s",puerto_memoria);
 	nombre_memoria = config_get_string_value(archivoconfig, "NOMBRE_MEMORIA"); // asignamos NOMBRE desde CONFIG
-	log_info(logger, "El nombre de la memoria es %s",puerto_memoria);
+	log_info(logger, "El nombre de la memoria es %s",nombre_memoria);
+	tamanio_memoria = config_get_int_value(archivoconfig, "TAM_MEM");
+	log_info(logger, "El tamaño de la memoria es: %i",tamanio_memoria);
 }
 void levantar_datos_lfs(){
 	ip__lfs = config_get_string_value(archivoconfig, "IP_LFS"); // asignamos IP de memoria a conectar desde CONFIG
