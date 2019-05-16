@@ -34,8 +34,13 @@ t_list tablaGossiping;
 t_log* logger;
 t_config* archivoconfig;
 int socket_conexion_lfs;
+int cantidad_paginas;
+int tamanio_pagina;
+int max_value;
 char* ip_memoria;
 char* puerto_memoria;
+char* nombre_memoria;
+int tamanio_memoria;
 char* ip__lfs;
 char* puerto__lfs;
 char** puertosSeeds;
@@ -59,6 +64,8 @@ void iniciar_servidor_memoria_y_esperar_conexiones_kernel();
 void intentar_handshake_a_lfs(int alguien);
 int insert(char* tabla, uint16_t key, long timestamp);
 void enviar_paquete_select(int socket_envio, t_paquete_select* consulta_select);
+void recibir_datos(t_log* logger,int socket_fd);
+void recibir_max_value(t_log* logger, int socket_cliente);
 
 t_valor select_(char* tabla, uint16_t key);
 

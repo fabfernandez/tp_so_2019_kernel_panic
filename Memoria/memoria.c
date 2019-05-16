@@ -40,9 +40,11 @@ int main(void)
 	if(socket_conexion_lfs != -1){														//
 	log_info(logger,"Creada la conexion para LFS %i", socket_conexion_lfs);				//													//
 	intentar_handshake_a_lfs(socket_conexion_lfs); 										// ACA TENGO QUE OBTENER MAX_VALUE
-	tamanio_pagina = sizeof(long)+max_value+sizeof(uint16_t)+1; 							// LONG=TIMESTAMP / max_value se obtiene por config / uint16_t por definicion(creo que int) +1 bit de modificado
+	tamanio_pagina = sizeof(long)+max_value+sizeof(uint16_t); 							// LONG=TIMESTAMP / max_value se obtiene por config / uint16_t por definicion(creo que int) +1 bit de modificado
+	log_info(logger,"El tamaño de cada pagina sera: %i", tamanio_pagina);
 	cantidad_paginas = tamanio_memoria/tamanio_pagina;
-	void* tabla_paginas = malloc(cantidad_paginas);
+	log_info(logger,"La cantidad de paginas en memoria principal será: %i", cantidad_paginas);
+	//void* tabla_paginas =  se crean dinamicamentes, hay que reservar espacio para tabla de segmentos
 	} else {
 		log_info(logger,"No se pudo realizar la conexion con LFS. Abortando.");
 		log_info(logger, "Se liberaran %i bytes de la memoria",(tamanio_memoria*sizeof(char)));
@@ -198,16 +200,36 @@ void levantar_datos_lfs(){
 	puerto__lfs = config_get_string_value(archivoconfig, "PUERTO_LFS"); // asignamos puerto desde CONFIG
 	log_info(logger, "El puerto del LFS es %s", puerto__lfs);
 }
+// * ----------------------------------------------------------------------------------------------------------------------------- *//
+
 void intentar_handshake_a_lfs(int alguien){
-	char *mensaje = "Hola, me conecto, soy la memoria";
+	char *mensaje = "Hola me conecto soy la memoria: ";
 		log_info(logger, "Trato de realizar un hasdshake");
 		if (enviar_handshake(alguien,mensaje)){
 			log_info(logger, "Se envió el mensaje %s", mensaje);
 
-			recibir_handshake(logger, alguien);
+			recibir_datos(logger, alguien);
 			log_info(logger,"Conexion exitosa con LFS");
 		}
 }
+void recibir_datos(t_log* logger,int socket_fd){
+	int cod_op = recibir_operacion(socket_fd);
+	if (cod_op == HANDSHAKE){
+		recibir_max_value(logger, socket_fd);
+	}else{
+		log_info(logger, "ERROR. No se realizó correctamente el HANDSHAKE");
+	}
+}
+void recibir_max_value(t_log* logger, int socket_cliente)
+{
+	int size;
+	char* buffer = recibir_buffer(&size, socket_cliente);
+	log_info(logger, "El tamaño maximo de value es %s", buffer);
+	max_value = atoi(buffer);
+	free(buffer);
+}
+
+// * ----------------------------------------------------------------------------------------------------------------------------- *//
 void iniciar_servidor_memoria_y_esperar_conexiones_kernel(){
 	log_info(logger, "Memoria lista para recibir a peticiones de Kernel");
 	log_info(logger, "Memoria espera peticiones");
