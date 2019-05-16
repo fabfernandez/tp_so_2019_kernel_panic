@@ -17,9 +17,31 @@ int main(void)
 	levantar_datos_memoria();																						// HAY QUE CAMBIAR RUTA A UNA VARIABLE PARA PODER LEVANTAR MEMORIAS CON DIFERENTES CONFIGS
 	void* memoria_principal = malloc(tamanio_memoria*sizeof(char));																						// en bytes
 	log_info(logger,"Se reservaron %i bytes para la memoria", (tamanio_memoria*sizeof(char)));
+	sleep(2);
+	t_list* tablas = list_create();
+	log_info(logger,"Se creo la tabla de segmentos con %i segmentos", tablas->elements_count);
+	sleep(2);
+	segmento* segmento1 = crearSegmento("TablaDePrueba");
+	log_info(logger,"Se creo el segmento(tabla) de prueba con nombre ' %s ' con %i registros", segmento1->nombreTabla, segmento1->paginas->elements_count);
+	sleep(2);
+	list_add(tablas,segmento1);
+	log_info(logger,"Se agrego el segmento %s a la tabla de segmentos, la misma cuenta ahora con %i segmentos", segmento1->nombreTabla, tablas->elements_count);
+	sleep(2);
+	pagina* pagina1 = crearPagina(123, "Alfredo", "TablaDePrueba", 21546);
+	log_info(logger,"Se creo la pagina(registro) que contiene el registro con key: %i", pagina1->key);
+	sleep(2);
+	// agregar_pagina_a_tabla(pagina1,segmento1->nombreTabla); <-- falta revisar como usar el list_find
+	segmento* segmento_en_tabla = list_get(tablas,0);
+	list_add(segmento_en_tabla->paginas, pagina1);
+	log_info(logger,"Se agrego a la tabla %s, la el registro(pagina) con key : %i y la misma cuenta ahora con %i registros", segmento_en_tabla->nombreTabla,pagina1->key, segmento_en_tabla->paginas->elements_count);
+	sleep(2);
 	levantar_datos_lfs();																							//
 	server_memoria = iniciar_servidor(ip_memoria, puerto_memoria); 													// obtener socket a la escucha
+																				//*/
 																													//*/
+																													//*/
+																													//*/
+
 	// ------------------------------------------ INICIO LOGGER, CONFIG, LEVANTO DATOS E INICIO SERVER ------------	//
 
 
@@ -70,6 +92,38 @@ int main(void)
 //	terminar_programa(socket_kernel_fd, conexionALFS); // termina conexion, destroy log y destroy config.
 	return EXIT_SUCCESS;
 }
+
+void agregar_pagina_a_tabla(pagina* pagina,char* nombreDeTabla){
+//	t_list* segmento = list_find(tablas, (nombreTabla==nombreDeTabla)); // deberia encontrar el segmento con el nombre
+//	list_add(segmento, pagina);
+}
+
+pagina* crearPagina(uint16_t key, char* value, char* tabla, long timestamp){
+	pagina* pagina = malloc(sizeof(pagina));
+	pagina->key=key;
+	pagina->modificado=0;
+	pagina->posicionEnMemoria=posicionProximaLibre;
+	//agregarEnMemoriaElRegistro(key,value,timestamp);
+	//agregarPaginaATabla(tabla);
+	//	memoria_principal[(pagina1->posicionEnMemoria)*tamanio_pagina]=pagina;
+	//	posicionProximaLibre++;
+	//t_list donde = list_find(tablas,(tablas.))
+	//list_add()
+	//free(valuet);
+	return pagina;
+}
+void agregarPaginaATabla(char* tabla){
+	//list_find(tablas, tablas->nombre==tabla)
+}
+
+segmento* crearSegmento(char* nombreTabla)
+	{
+	segmento* segmento1 = malloc(sizeof(segmento));
+	//t_list* paginas = list_create();																												//*/
+	segmento1->paginas = list_create();																												//*/
+	segmento1->nombreTabla=nombreTabla;
+	return segmento1;																												//*/
+	}
 
 void resolver_select (int socket_kernel_fd, int socket_conexion_lfs){
 	t_paquete_select* consulta_select = deserializar_select(socket_kernel_fd);

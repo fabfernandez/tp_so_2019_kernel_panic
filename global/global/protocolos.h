@@ -134,6 +134,23 @@ typedef struct {
 	char** _raw; //Para uso de la liberación
 } t_instruccion_lql;
 
+typedef struct {
+	t_list* paginas;
+	char* nombreTabla;
+} segmento;
+
+typedef struct {
+	uint16_t key;
+	int posicionEnMemoria;
+	int modificado;
+} pagina; // para la lista
+
+typedef struct {
+	uint16_t key;
+	char* value;
+	long timestamp;
+} pagina_concreta; // para la memoria
+
 int get_tamanio_paquete_select(t_paquete_select* paquete_select);
 int get_tamanio_paquete_create(t_paquete_create* paquete_create);
 int get_tamanio_paquete_insert(t_paquete_insert* paquete_insert);

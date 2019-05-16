@@ -27,6 +27,11 @@
 	 //server_memoria  // descriptor de socket a la escucha
 	 int memoriaNuevaAceptada;        // descriptor de socket de nueva conexión aceptada
 //
+t_list* tablas;
+void agregar_pagina_a_tabla(pagina* pagina,char* nombreTabla);
+pagina* crearPagina(uint16_t key, char* value, char* tabla, long timestamp);
+void agregarEnMemoriaElRegistro(char* key,char* value,long timestamp);
+void* memoria_principal;
 int nbytes;
 int primeraVuelta = 0;
 pthread_t thread_gossiping;
@@ -36,6 +41,7 @@ t_config* archivoconfig;
 int socket_conexion_lfs;
 int cantidad_paginas;
 int tamanio_pagina;
+int posicionProximaLibre=0;
 int max_value;
 char* ip_memoria;
 char* puerto_memoria;
@@ -66,7 +72,7 @@ int insert(char* tabla, uint16_t key, long timestamp);
 void enviar_paquete_select(int socket_envio, t_paquete_select* consulta_select);
 void recibir_datos(t_log* logger,int socket_fd);
 void recibir_max_value(t_log* logger, int socket_cliente);
-
+segmento* crearSegmento(char* nombreTabla);
 t_valor select_(char* tabla, uint16_t key);
 
 int drop(char* tabla);
