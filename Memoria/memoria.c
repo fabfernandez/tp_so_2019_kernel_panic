@@ -24,7 +24,7 @@ int main(void)
 
 	char* memoria_principal = (char*) malloc(tamanio_memoria*sizeof(char));
 	log_info(logger,"Se reservaron %i bytes para la memoria", (tamanio_memoria*sizeof(char)));
-	t_list* tablas = list_create();
+	tablas = list_create();
 	log_info(logger,"Tabla de segmentos creada, cantidad actual: %i ", tablas->elements_count);
 
 	levantar_datos_lfs();
@@ -61,6 +61,28 @@ int main(void)
 		return -1;
 
 	}
+/*
+ * PRUEBA PARA SELECT
+ */
+	crearSegmento("Nombre");
+	paginaNueva(123,"Gon",125478,"Nombre",memoria_principal);
+	uint16_t key;
+	long ts;
+	char* dato;
+	memcpy(&key, &memoria_principal[0], sizeof(uint16_t));
+	memcpy(&ts, &memoria_principal[0+sizeof(uint16_t)], sizeof(long));
+	strcpy(dato, &memoria_principal[0+sizeof(uint16_t)+sizeof(long)]);
+	log_info(logger,"La key es: %i", key);
+	log_info(logger,"El ts es: %i", ts);
+	log_info(logger,"El value es: %s", dato);
+
+
+
+
+
+
+
+
 //	iniciar_servidor_memoria_y_esperar_conexiones_kernel();
 	select_esperar_conexiones_o_peticiones();
 //	esperar_operaciones(socket_kernel_conexion_entrante);
@@ -97,13 +119,13 @@ pagina* crearPagina(uint16_t key){
  	* @DESC: crea una pagina en la tabla de paginas(bit,key,posicion) y la vuelca en memoria(asumiendo que existe el segmento) PUES RECIBE LOS DATOS DEL LFS (select)
  	* NOTA: DATOS EN MEMORIA KEY-TS-VALUE
  	*/
-void paginaNueva(uint16_t key, char* value, long ts, char* tabla){
-	pagina* pagina = malloc(sizeof(tamanio_pagina));	// deberia ser con malloc?
-	pagina = crearPagina(key);
-	agregarPaginaASegmento(tabla,pagina);
-	memcpy(memoria_principal[pagina->posicionEnMemoria],&key,sizeof(uint16_t)); 			//deberia ser &key?
-	memcpy(memoria_principal[pagina->posicionEnMemoria+sizeof(uint16_t)],&ts,sizeof(long));	// mismo que arriba
-	strcpy(memoria_principal[pagina->posicionEnMemoria+sizeof(uint16_t)+sizeof(long)], tabla);
+void paginaNueva(uint16_t key, char* value, long ts, char* tabla, char* memoria){
+	pagina* pagina = crearPagina(key);	// deberia ser con malloc?
+	//agregarPaginaASegmento(tabla,pagina);
+	log_info(logger,"POSICION EN MMORIA: %i", pagina->posicionEnMemoria);
+	memcpy(&memoria[pagina->posicionEnMemoria],&key,sizeof(uint16_t)); 					//deberia ser &key? POR ACA SEGMENTATION FAULT
+	memcpy(&memoria[(pagina->posicionEnMemoria)+sizeof(uint16_t)],&ts,sizeof(long));		// mismo que arriba
+	strcpy(&memoria[(pagina->posicionEnMemoria)+sizeof(uint16_t)+sizeof(long)], value);
 }
 /**
  	* @NAME: agregarPaginaASegmento
@@ -118,13 +140,13 @@ void agregarPaginaASegmento(char* tabla, pagina* pagina){
  	* @DESC: crea un segmento y lo agrega a la lista de segmentos
  	*
  	*/
-segmento* crearSegmento(char* nombreTabla)
+void crearSegmento(char* nombreTabla)
 	{
 	segmento* segmento1 = malloc(sizeof(segmento));
 	segmento1->paginas = list_create();
 	segmento1->nombreTabla=nombreTabla;
 	list_add(tablas, segmento1);
-	return segmento1;
+	//return segmento1;
 	}
 /**
  	* @NAME: resolver_select
@@ -498,7 +520,7 @@ segmento* crearSegmento(char* nombreTabla)
 	* @DESC: Retorna el segmento buscado en la lista si este tiene el mismo nombre que el que buscamos.
 	*
 	*/
-	segmento* *encontrarSegmento(char *nombredTabla) {
+	segmento*  *encontrarSegmento(char *nombredTabla) {
             		int _es_el_Segmento(segmento* segmento) {
             			return string_equals_ignore_case(segmento->nombreTabla, nombredTabla);
             		}

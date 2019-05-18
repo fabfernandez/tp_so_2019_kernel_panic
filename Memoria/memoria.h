@@ -46,7 +46,7 @@ t_log* logger;
 t_config* archivoconfig;
 int socket_conexion_lfs;
 unsigned int cantidad_paginas;
-size_t tamanio_pagina=26;
+size_t tamanio_pagina=0;
 unsigned int posicionProximaLibre=0;
 int max_value=20;
 char* ip_memoria;
@@ -80,9 +80,10 @@ void enviar_paquete_select(int socket_envio, t_paquete_select* consulta_select);
 void recibir_datos(t_log* logger,int socket_fd);
 void recibir_max_value(t_log* logger, int socket_cliente);
 pagina_concreta* traerRegistroDeMemoria(int posicion);
-segmento* crearSegmento(char* nombreTabla);
+/*segmento**/void crearSegmento(char* nombreTabla);
 t_valor select_(char* tabla, uint16_t key);
-
+void paginaNueva(uint16_t key, char* value, long ts, char* tabla, char* memoria);
+void agregarPaginaASegmento(char* tabla, pagina* pagina);
 int drop(char* tabla);
 
 int create(char* tabla, t_consistencia consistencia, int maximo_particiones, long tiempo_compactacion);
