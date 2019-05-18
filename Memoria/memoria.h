@@ -32,7 +32,7 @@ t_list* tablas;
 char* serializar_pagina(pagina_concreta* pagina);
 pagina_concreta* deserializar_pagina(char* paginac);
 segmento* *encontrarSegmento(char *nombreTabla);
-pagina* *encontrarPagina(segmento* unSegmento, int key);
+pagina* *encontrarPagina(segmento* unSegmento, uint16_t key);
 int existeTabla(char* tabla);
 void agregar_pagina_a_tabla(pagina* pagina,char* nombreTabla);
 pagina* crearPagina(uint16_t key);

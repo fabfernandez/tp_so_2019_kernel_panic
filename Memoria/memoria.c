@@ -65,13 +65,17 @@ int main(void)
  * PRUEBA PARA SELECT
  */
 	crearSegmento("Nombre");
-	paginaNueva(123,"Gon",125478,"Nombre",memoria_principal);
+	paginaNueva(123,"Gon",125478,"Nombre",memoria_principal); // si no le paso la memoria principal por parametro me hace un segmentation fault.
 	uint16_t key;
 	long ts;
 	char* dato;
 	memcpy(&key, &memoria_principal[0], sizeof(uint16_t));
 	memcpy(&ts, &memoria_principal[0+sizeof(uint16_t)], sizeof(long));
 	strcpy(dato, &memoria_principal[0+sizeof(uint16_t)+sizeof(long)]);
+	segmento* unS = encontrarSegmento("Nombre");
+	//pagina* unaP = encontrarPagina(unS,123); dumpea!
+	log_info(logger,"SGMENTO ENCONTRADO: %s", unS->nombreTabla);
+	//log_info(logger,"PAGINA ENCONTRADA: %i", unaP->key);
 	log_info(logger,"La key es: %i", key);
 	log_info(logger,"El ts es: %i", ts);
 	log_info(logger,"El value es: %s", dato);
@@ -121,11 +125,12 @@ pagina* crearPagina(uint16_t key){
  	*/
 void paginaNueva(uint16_t key, char* value, long ts, char* tabla, char* memoria){
 	pagina* pagina = crearPagina(key);	// deberia ser con malloc?
-	//agregarPaginaASegmento(tabla,pagina);
+	agregarPaginaASegmento(tabla,pagina);
 	log_info(logger,"POSICION EN MMORIA: %i", pagina->posicionEnMemoria);
 	memcpy(&memoria[pagina->posicionEnMemoria],&key,sizeof(uint16_t)); 					//deberia ser &key? POR ACA SEGMENTATION FAULT
 	memcpy(&memoria[(pagina->posicionEnMemoria)+sizeof(uint16_t)],&ts,sizeof(long));		// mismo que arriba
 	strcpy(&memoria[(pagina->posicionEnMemoria)+sizeof(uint16_t)+sizeof(long)], value);
+	log_info(logger,"POSICION PROXIMA EN MMORIA DISPONIBLE: %i", posicionProximaLibre);
 }
 /**
  	* @NAME: agregarPaginaASegmento
@@ -133,7 +138,8 @@ void paginaNueva(uint16_t key, char* value, long ts, char* tabla, char* memoria)
  	*
  	*/
 void agregarPaginaASegmento(char* tabla, pagina* pagina){
-	list_add(encontrarSegmento(tabla), pagina);
+	segmento* segmentoBuscado = encontrarSegmento("Nombre");
+	list_add(segmentoBuscado->paginas, pagina);
 }
 /**
  	* @NAME: crearSegmento
@@ -532,7 +538,7 @@ void crearSegmento(char* nombreTabla)
 	* @DESC: Retorna la pagina buscada en la lista si esta tiene el mismo key que el que buscamos.
 	*
 	*/
-	pagina* *encontrarPagina(segmento* unSegmento, int key){
+	pagina* *encontrarPagina(segmento* unSegmento, uint16_t key){
 					int _es_la_Pagina(pagina *pagina) {
 	            			return (pagina->key==key);
 	            		}
