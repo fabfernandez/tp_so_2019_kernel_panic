@@ -6,65 +6,52 @@
  */
 #include "memoria.h"
 int main(void)
+
 {
 
 	 FD_ZERO(&master);    // borra los conjuntos maestro y temporal
 	 FD_ZERO(&read_fds);
-	// ------------------------------------------ INICIO LOGGER, CONFIG, LEVANTO DATOS E INICIO SERVER ------------	//
-	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	 //
-	iniciar_logger();																								// */
-	leer_config();																									//
-	levantar_datos_memoria();																						// HAY QUE CAMBIAR RUTA A UNA VARIABLE PARA PODER LEVANTAR MEMORIAS CON DIFERENTES CONFIGS
-	void* memoria_principal = malloc(tamanio_memoria*sizeof(char));																						// en bytes
+	/*
+	 * INICIO LOGGER, CONFIG, LEVANTO DATOS E INICIO SERVER
+	 */
+	iniciar_logger();
+	leer_config();
+
+	/*
+	 * HAY QUE CAMBIAR RUTA A UNA VARIABLE PARA PODER LEVANTAR MEMORIAS CON DIFERENTES CONFIGS
+	 */
+	levantar_datos_memoria();
+
+	char* memoria_principal = (char*) malloc(tamanio_memoria*sizeof(char));
 	log_info(logger,"Se reservaron %i bytes para la memoria", (tamanio_memoria*sizeof(char)));
-	sleep(2);
 	t_list* tablas = list_create();
-	log_info(logger,"Se creo la tabla de segmentos con %i segmentos", tablas->elements_count);
-	sleep(2);
-	segmento* segmento1 = crearSegmento("TablaDePrueba");
-	log_info(logger,"Se creo el segmento(tabla) de prueba con nombre ' %s ' con %i registros", segmento1->nombreTabla, segmento1->paginas->elements_count);
-	sleep(2);
-	list_add(tablas,segmento1);
-	log_info(logger,"Se agrego el segmento %s a la tabla de segmentos, la misma cuenta ahora con %i segmentos", segmento1->nombreTabla, tablas->elements_count);
-	sleep(2);
-	pagina* pagina1 = crearPagina(123, "Alfredo", "TablaDePrueba", 21546);
-	log_info(logger,"Se creo la pagina(registro) que contiene el registro con key: %i", pagina1->key);
-	sleep(2);
-	// agregar_pagina_a_tabla(pagina1,segmento1->nombreTabla); <-- falta revisar como usar el list_find
-	segmento* segmento_en_tabla = list_get(tablas,0);
-	list_add(segmento_en_tabla->paginas, pagina1);
-	log_info(logger,"Se agrego a la tabla %s, la el registro(pagina) con key : %i y la misma cuenta ahora con %i registros", segmento_en_tabla->nombreTabla,pagina1->key, segmento_en_tabla->paginas->elements_count);
-	sleep(2);
-	levantar_datos_lfs();																							//
-	server_memoria = iniciar_servidor(ip_memoria, puerto_memoria); 													// obtener socket a la escucha
-																				//*/
-																													//*/
-																													//*/
-																													//*/
+	log_info(logger,"Tabla de segmentos creada, cantidad actual: %i ", tablas->elements_count);
 
-	// ------------------------------------------ INICIO LOGGER, CONFIG, LEVANTO DATOS E INICIO SERVER ------------	//
+	levantar_datos_lfs();
 
-
-	// ------------------------------------------ INICIO LA TABLA DE GOSSIPING AGREGANDO LA MEMORIA ACTUAL			// GOSSIPING PARA ULTIMA ENTREGA
-																													//
+	/*
+	 * obtener socket a la escucha
+	 */
+	server_memoria = iniciar_servidor(ip_memoria, puerto_memoria);
 	seeds = levantarSeeds();
-	puertosSeeds = levantarPuertosSeeds();																							//
-	seedsCargadas();																								//
+	puertosSeeds = levantarPuertosSeeds();
+	seedsCargadas();
+
+	/*
+	 * INICIO LA TABLA DE GOSSIPING AGREGANDO LA MEMORIA ACTUAL <- falta
+	 */
 	//iniciarTablaDeGossiping();																					//
 	//pthread_create(&thread_gossiping, NULL, &iniciarGossip, &tablaGossiping, &primeraVuelta);						// CREO THREAD DE GOSSIPING
-																													//
-	// ------------------------------------------ INICIO LA TABLA DE GOSSIPING AGREGANDO LA MEMORIA ACTUAL			//
 
-
-
-	// ------------------------------------------ ME CONECTO CON LFS E INTENTO UN HANDSHAKE -----------------------	// INTENTA CONECTARSE, SI NO PUEDE CORTA LA EJECUCION
+	/*
+	 * ME CONECTO CON LFS E INTENTO UN HANDSHAKE -----------------------INTENTA CONECTARSE, SI NO PUEDE CORTA LA EJECUCION
+	 */
 	socket_conexion_lfs = crear_conexion(ip__lfs,puerto__lfs); //
-	if(socket_conexion_lfs != -1){														//
-	log_info(logger,"Creada la conexion para LFS %i", socket_conexion_lfs);				//													//
-	intentar_handshake_a_lfs(socket_conexion_lfs); 										// ACA TENGO QUE OBTENER MAX_VALUE
-	tamanio_pagina = sizeof(long)+max_value+sizeof(uint16_t); 							// LONG=TIMESTAMP / max_value se obtiene por config / uint16_t por definicion(creo que int) +1 bit de modificado
+	if(socket_conexion_lfs != -1){
+	log_info(logger,"Creada la conexion para LFS %i", socket_conexion_lfs);
+	intentar_handshake_a_lfs(socket_conexion_lfs); 										// diferente al handshake normal SE SETEA TAMANIO_PAGINA y CANTIDAD_PAGINAS
+	log_info(logger, "Conexion exitosa con con %i", socket_memoria);
 	log_info(logger,"El tamaño de cada pagina sera: %i", tamanio_pagina);
-	cantidad_paginas = tamanio_memoria/tamanio_pagina;
 	log_info(logger,"La cantidad de paginas en memoria principal será: %i", cantidad_paginas);
 	//void* tabla_paginas =  se crean dinamicamentes, hay que reservar espacio para tabla de segmentos
 	} else {
@@ -72,130 +59,164 @@ int main(void)
 		log_info(logger, "Se liberaran %i bytes de la memoria",(tamanio_memoria*sizeof(char)));
 		free(memoria_principal);
 		return -1;
-		//
+
 	}
-																													//
-	// ------------------------------------------ ME CONECTO CON LFS E INTENTO UN HANDSHAKE -----------------------	//
-
-
-	// ------------------------------------------ INICIO SERVIDOR Y ESPERO CONEXION	-------------------------------	//
-//	iniciar_servidor_memoria_y_esperar_conexiones_kernel();															// puedo esperar de kernel o memoria(tanto conexiones como solicitudes)
+//	iniciar_servidor_memoria_y_esperar_conexiones_kernel();
 	select_esperar_conexiones_o_peticiones();
-	// ------------------------------------------ INICIO SERVIDOR Y ESPERO CONEXION	-------------------------------	//
-
-
-	// ------------------------------------------ A ESPERA DE OPERACIONES -----------------------------------------	//
-
-//	esperar_operaciones(socket_kernel_conexion_entrante);															// -> ESPERO OPERACIONES DE KERNEL(ACA DEBERIA ESPERAR TAMBIEN MEMORIAS Y LFS)
-
-	// ------------------------------------------ A ESPERA DE OPERACIONES -----------------------------------------	//
+//	esperar_operaciones(socket_kernel_conexion_entrante);
 //	terminar_programa(socket_kernel_fd, conexionALFS); // termina conexion, destroy log y destroy config.
 	return EXIT_SUCCESS;
 }
 
-void agregar_pagina_a_tabla(pagina* pagina,char* nombreDeTabla){
-//	t_list* segmento = list_find(tablas, (nombreTabla==nombreDeTabla)); // deberia encontrar el segmento con el nombre
-//	list_add(segmento, pagina);
-}
+/*
+			######## #### ##    ##    ########  ######## ##          ##     ##    ###    #### ##    ##
+			##        ##  ###   ##    ##     ## ##       ##          ###   ###   ## ##    ##  ###   ##
+			##        ##  ####  ##    ##     ## ##       ##          #### ####  ##   ##   ##  ####  ##
+			######    ##  ## ## ##    ##     ## ######   ##          ## ### ## ##     ##  ##  ## ## ##
+			##        ##  ##  ####    ##     ## ##       ##          ##     ## #########  ##  ##  ####
+			##        ##  ##   ###    ##     ## ##       ##          ##     ## ##     ##  ##  ##   ###
+			##       #### ##    ##    ########  ######## ########    ##     ## ##     ## #### ##    ##
+*/
 
-pagina* crearPagina(uint16_t key, char* value, char* tabla, long timestamp){
+/**
+ 	* @NAME: crearPagina
+ 	* @DESC: crea una pagina con una key y le asigna una posicion de memoria SE USA ADENTRO DE paginaNueva
+ 	*
+ 	*/
+pagina* crearPagina(uint16_t key){
 	pagina* pagina = malloc(sizeof(pagina));
 	pagina->key=key;
 	pagina->modificado=0;
 	pagina->posicionEnMemoria=posicionProximaLibre;
-	//agregarEnMemoriaElRegistro(key,value,timestamp);
-	//agregarPaginaATabla(tabla);
-	//	memoria_principal[(pagina1->posicionEnMemoria)*tamanio_pagina]=pagina;
-	//	posicionProximaLibre++;
-	//t_list donde = list_find(tablas,(tablas.))
-	//list_add()
-	//free(valuet);
+	posicionProximaLibre+=1;
 	return pagina;
 }
-void agregarPaginaATabla(char* tabla){
-	//list_find(tablas, tablas->nombre==tabla)
-}
 
+/**
+ 	* @NAME: paginaNueva
+ 	* @DESC: crea una pagina en la tabla de paginas(bit,key,posicion) y la vuelca en memoria(asumiendo que existe el segmento) PUES RECIBE LOS DATOS DEL LFS (select)
+ 	* NOTA: DATOS EN MEMORIA KEY-TS-VALUE
+ 	*/
+void paginaNueva(uint16_t key, char* value, long ts, char* tabla){
+	pagina* pagina = malloc(sizeof(tamanio_pagina));	// deberia ser con malloc?
+	pagina = crearPagina(key);
+	agregarPaginaASegmento(tabla,pagina);
+	memcpy(memoria_principal[pagina->posicionEnMemoria],&key,sizeof(uint16_t)); 			//deberia ser &key?
+	memcpy(memoria_principal[pagina->posicionEnMemoria+sizeof(uint16_t)],&ts,sizeof(long));	// mismo que arriba
+	strcpy(memoria_principal[pagina->posicionEnMemoria+sizeof(uint16_t)+sizeof(long)], tabla);
+}
+/**
+ 	* @NAME: agregarPaginaASegmento
+ 	* @DESC: agrega una pagina a un segmento
+ 	*
+ 	*/
+void agregarPaginaASegmento(char* tabla, pagina* pagina){
+	list_add(encontrarSegmento(tabla), pagina);
+}
+/**
+ 	* @NAME: crearSegmento
+ 	* @DESC: crea un segmento y lo agrega a la lista de segmentos
+ 	*
+ 	*/
 segmento* crearSegmento(char* nombreTabla)
 	{
 	segmento* segmento1 = malloc(sizeof(segmento));
-	//t_list* paginas = list_create();																												//*/
-	segmento1->paginas = list_create();																												//*/
+	segmento1->paginas = list_create();
 	segmento1->nombreTabla=nombreTabla;
-	return segmento1;																												//*/
+	list_add(tablas, segmento1);
+	return segmento1;
 	}
-
-void resolver_select (int socket_kernel_fd, int socket_conexion_lfs){
+/**
+ 	* @NAME: resolver_select
+ 	* @DESC: resuelve el select
+ 	*
+ 	*/
+	void resolver_select (int socket_kernel_fd, int socket_conexion_lfs){
 	t_paquete_select* consulta_select = deserializar_select(socket_kernel_fd);
 	log_info(logger, "Se realiza SELECT");
 	log_info(logger, "Consulta en la tabla: %s", consulta_select->nombre_tabla->palabra);
 	log_info(logger, "Consulta por key: %d", consulta_select->key);
+	char* tabla = consulta_select->nombre_tabla->palabra;
+	uint16_t key = consulta_select->key;
+	if(encontrarSegmento(tabla)!=NULL) { // es diferente de null(existe en memoria el segmento)
+		if(encontrarPagina(encontrarSegmento(tabla),key)!= NULL) { // es diferente de null (existe en memoria la pagina)
+			pagina* pag = encontrarPagina(encontrarSegmento(tabla),key); // bajo la pagina desde memoria
+			int posicionEnMemoria = pag->posicionEnMemoria; // paso la posicion a una variable
+			pagina_concreta* datos = traerRegistroDeMemoria(posicionEnMemoria); // bajo la pagina a su estructura
+			char* value = datos->value;
+			long timestamp = datos->timestamp;
+			log_info(logger, "El registro con key '%d' se encuentra en memoria y tiene el value '$s'", key, value, timestamp);
+		} 	else
+			log_info(logger, "El registro con key '%d' NO se encuentra en memoria, pero si su tabla y procede a realizar la peticion a LFS", key);
+			enviar_paquete_select(socket_conexion_lfs, consulta_select);
+			eliminar_paquete_select(consulta_select);
+			/**
+				 *  aca hay que esperar a que el lfs nos envie los datos, hay que ver como resolver esto
+				 *  esperarRegistroYPocesarlo(); deberia recibir los datos, crear la tabla de pagina en la tabla de paginas
+				 *  y volcar el dato a memoria y despues retornar la pagina concreta para que se envien en otra funcion los datos
+				 *  a quien os haya solicitado
+				 */
+			pagina_concreta* registroNuevo = esperarRegistroYPocesarlo();
+	} 	else
+		log_info(logger, "El registro con key '%d' NO se encuentra en memoria y procede a realizar la peticion a LFS", key);
+		enviar_paquete_select(socket_conexion_lfs, consulta_select);
+		eliminar_paquete_select(consulta_select);
+		/**
+		 *
+		 *
+		 *  aca es igual que arriba a diferencia de que hay que crear el segmento antes por que no existe.
+		 *
+		 */
+		crearSegmento(tabla); // pues no existe.
+		pagina_concreta* registroNuevo = esperarRegistroYPocesarlo();
+		// 	loQueSeaParaDevolverRegistroAQuienLoPida();
+	}
+/**
+	 	* @NAME: esperarRegistroYPocesarlo
+	 	* @DESC: luego de una peticion al lfs espera los datos y los baja a una estrcutura de pagina
+	 	*
+	 	*/
 
-	enviar_paquete_select(socket_conexion_lfs, consulta_select);
-	eliminar_paquete_select(consulta_select);
-}
- void iniciar_logger() {
+	pagina_concreta* esperarRegistroYPocesarlo(){
+		pagina_concreta* pagina;
+		return pagina;
+	}
+/**
+ 	* @NAME: iniciar_logger
+ 	* @DESC: Crea(lee,abre) el archivo de log
+ 	*
+ 	*/
+	void iniciar_logger() {
 	logger = log_create("/home/utnso/tp-2019-1c-Los-Dinosaurios-Del-Libro/Memoria/memoria.log", "Memoria", 1, LOG_LEVEL_INFO);
-}
-void leer_config() {
-	archivoconfig = config_create("/home/utnso/tp-2019-1c-Los-Dinosaurios-Del-Libro/Memoria/memoria.config");
-}
-void terminar_programa(int conexionKernel, int conexionALFS)
-{
+	}
+ /**
+ 	* @NAME: leer_config
+ 	* @DESC: lee(abre)el archivo config
+ 	*
+ 	*/
+ 	void leer_config() {
+ 	archivoconfig = config_create("/home/utnso/tp-2019-1c-Los-Dinosaurios-Del-Libro/Memoria/memoria.config");
+ 	}
+/**
+	* @NAME: terminar_programa
+	* @DESC: termina el programa
+	*
+	*/
+ 	void terminar_programa(int conexionKernel, int conexionALFS)
+	{
 	liberar_conexion(conexionKernel);
 	liberar_conexion(conexionALFS);
 	log_destroy(logger);
 	config_destroy(archivoconfig);
-}
-int esperar_operaciones(int de_quien){ // MODIFICAR
-	while(1){
-			int cod_op = recibir_operacion(de_quien);
-			switch(cod_op)
-			{
-			case HANDSHAKE:
-				log_info(logger, "Inicia handshake con %i", de_quien);
-				recibir_mensaje(logger, de_quien);
-				enviar_handshake(de_quien, "OK");
-				log_info(logger, "Conexion exitosa con con %i", de_quien);
-				break;
-			case SELECT:
-				log_info(logger, "%i solicitó SELECT", de_quien);
-				resolver_select(de_quien, socket_conexion_lfs);
-				//aca debería enviarse el mensaje a LFS con SELECT
-				break;
-			case INSERT:
-				log_info(logger, "%i solicitó INSERT", de_quien);
-				//aca debería enviarse el mensaje a LFS con INSERT
-				break;
-			case CREATE:
-				log_info(logger, "%i solicitó CREATE", de_quien);
-				//aca debería enviarse el mensaje a LFS con CREATE
-				break;
-			case DESCRIBE:
-				log_info(logger, "%i solicitó DESCRIBE", de_quien);
-				//aca debería enviarse el mensaje a LFS con DESCRIBE
-				break;
-			case DROP:
-				log_info(logger, "%i solicitó DROP", de_quien);
-				//aca debería enviarse el mensaje a LFS con DROP
-				break;
-			case GOSSPING:
-				log_info(logger, "La memoria %i solicitó GOSSIPING", de_quien);
-					// chequearTablaYAgregarSiNoEsta(int de_quien);  // si me solicito gossiping ME ENVIO SU TABLA TB, asi que la chequeo toda y agrego las memorias que no tenga en mi tabla.
-																	// le envio mi tabla de gossiping para que haga lo mismo.
-				break;
-			case -1:
-				log_error(logger, "el cliente se desconecto. Terminando conexion con %i", de_quien);
-				return EXIT_FAILURE;
-			default:
-				log_warning(logger, "Operacion desconocida.");
-				return EXIT_FAILURE;
-				break;
-			}
-		}
-}
+	}
 
-void resolver_operacion(int socket_memoria, t_operacion cod_op){
+
+/**
+	* @NAME: resolver_operacion
+	* @DESC: resuelve la operacion recibida
+	*
+	*/
+	void resolver_operacion(int socket_memoria, t_operacion cod_op){
 	switch(cod_op)
 				{
 				case HANDSHAKE:
@@ -203,6 +224,8 @@ void resolver_operacion(int socket_memoria, t_operacion cod_op){
 					recibir_mensaje(logger, socket_memoria);
 					enviar_handshake(socket_memoria, "OK");
 					log_info(logger, "Conexion exitosa con con %i", socket_memoria);
+
+
 					break;
 				case SELECT:
 					log_info(logger, "%i solicitó SELECT", socket_memoria);
@@ -237,8 +260,13 @@ void resolver_operacion(int socket_memoria, t_operacion cod_op){
 					log_warning(logger, "Operacion desconocida.");
 					break;
 				}
-}
-void levantar_datos_memoria(){
+	}
+/**
+	* @NAME: levantar_datos_memoria
+	* @DESC: levanto datos desde el archivo de configuracion(mi puerto, mi ip, mi nombre, mi tamaño)
+	*
+	*/
+	void levantar_datos_memoria(){
 	ip_memoria = config_get_string_value(archivoconfig, "IP_MEMORIA"); // asignamos IP de memoria a conectar desde CONFIG
 	log_info(logger, "La IP de la memoria es %s",ip_memoria );
 	puerto_memoria = config_get_string_value(archivoconfig, "PUERTO_MEMORIA"); // asignamos puerto desde CONFIG
@@ -247,16 +275,25 @@ void levantar_datos_memoria(){
 	log_info(logger, "El nombre de la memoria es %s",nombre_memoria);
 	tamanio_memoria = config_get_int_value(archivoconfig, "TAM_MEM");
 	log_info(logger, "El tamaño de la memoria es: %i",tamanio_memoria);
-}
-void levantar_datos_lfs(){
+	}
+
+/**
+	* @NAME: levantar_datos_lfs
+	* @DESC: levanto datos desde el archivo de configuracion(puerto del lfs, ip del lfs)
+	*
+	*/
+	void levantar_datos_lfs(){
 	ip__lfs = config_get_string_value(archivoconfig, "IP_LFS"); // asignamos IP de memoria a conectar desde CONFIG
 	log_info(logger, "La IP del LFS es %s", ip__lfs);
 	puerto__lfs = config_get_string_value(archivoconfig, "PUERTO_LFS"); // asignamos puerto desde CONFIG
 	log_info(logger, "El puerto del LFS es %s", puerto__lfs);
-}
-// * ----------------------------------------------------------------------------------------------------------------------------- *//
-
-void intentar_handshake_a_lfs(int alguien){
+	}
+/**
+	* @NAME: intentar_handshake_a_lfs
+	* @DESC: se intenta hacer handshake con lfs
+	*
+	*/
+	void intentar_handshake_a_lfs(int alguien){
 	char *mensaje = "Hola me conecto soy la memoria: ";
 		log_info(logger, "Trato de realizar un hasdshake");
 		if (enviar_handshake(alguien,mensaje)){
@@ -265,48 +302,80 @@ void intentar_handshake_a_lfs(int alguien){
 			recibir_datos(logger, alguien);
 			log_info(logger,"Conexion exitosa con LFS");
 		}
-}
-void recibir_datos(t_log* logger,int socket_fd){
+	}
+
+/**
+	* @NAME: recibir_datos
+	* @DESC: recibe datos en el handshake
+	*
+	*/
+	void recibir_datos(t_log* logger,int socket_fd){
 	int cod_op = recibir_operacion(socket_fd);
 	if (cod_op == HANDSHAKE){
 		recibir_max_value(logger, socket_fd);
 	}else{
 		log_info(logger, "ERROR. No se realizó correctamente el HANDSHAKE");
 	}
-}
-void recibir_max_value(t_log* logger, int socket_cliente)
-{
+	}
+/**
+	* @NAME: recibir_max_value
+	* @DESC: usada en el handsake para recibir el max_value que es el valor maximo de value(determina tamanio_pagina)
+	*
+	*/
+	void recibir_max_value(t_log* logger, int socket_cliente)
+	{
 	int size;
 	char* buffer = recibir_buffer(&size, socket_cliente);
 	log_info(logger, "El tamaño maximo de value es %s", buffer);
 	max_value = atoi(buffer);
+	tamanio_pagina=sizeof(uint16_t)+(sizeof(char)*max_value)+sizeof(long);
+	cantidad_paginas = tamanio_memoria/tamanio_pagina;
+	log_info(logger, "Luego el tamaño de la pagina será %i", tamanio_pagina);
+	log_info(logger, "La memoria de %i b, tendrá %i paginas", tamanio_memoria, tamanio_memoria/tamanio_pagina);
 	free(buffer);
-}
+	}
 
-// * ----------------------------------------------------------------------------------------------------------------------------- *//
-void iniciar_servidor_memoria_y_esperar_conexiones_kernel(){
+/**
+	* @NAME: iniciar_servidor_memoria_y_esperar_conexiones_kernel
+	* @DESC:
+	*
+	*/
+	void iniciar_servidor_memoria_y_esperar_conexiones_kernel(){
 	log_info(logger, "Memoria lista para recibir a peticiones de Kernel");
 	log_info(logger, "Memoria espera peticiones");
 	socket_kernel_conexion_entrante = esperar_cliente(server_memoria);
 	log_info(logger, "Memoria se conectó con Kernel");
-}
-void iniciarTablaDeGossiping(){ /*
-	tablaGossiping = malloc(sizeof(struct tablaMemoriaGossip));
-	tablaGossiping->memoria.IP= ip_memoria;
-	tablaGossiping->memoria.PUERTO= puerto_memoria;
-	tablaGossiping->memoria.estado= CONECTADA;
-	tablaGossiping->memoria.descriptorMemoria=server_memoria;
-	tablaGossiping->siguiente=NULL;							//
-	log_info(logger, "Se inicializo la tabla de Gossiping");
-	log_info(logger, "Se agrego a la tabla de Gossiping la memoria: %i con estado %i de ip: %s y puerto: %s", tablaGossiping->memoria.descriptorMemoria,tablaGossiping->memoria.estado, tablaGossiping->memoria.IP,tablaGossiping->memoria.PUERTO );
- 	 ------------> ver implementacion mas adelante <--------- ENTREGA FINAL */ }
-char** levantarSeeds(){
+	}
+
+/**
+	* @NAME: iniciarTablaDeGossiping
+	* @DESC: inicia la tabla de gossiping
+	*
+	*/
+	void iniciarTablaDeGossiping(){
+	}
+/**
+	* @NAME: levantarPuertosSeeds
+	* @DESC: levanta las seeds
+	*
+	*/
+	char** levantarSeeds(){
 	return config_get_array_value(archivoconfig, "IP_SEEDS");
-}
-char** levantarPuertosSeeds(){
+	}
+/**
+	* @NAME: levantarPuertosSeeds
+	* @DESC: levanta los puertos de las seeds
+	*
+	*/
+	char** levantarPuertosSeeds(){
 	return config_get_array_value(archivoconfig, "PUERTO_SEEDS");
-}
-void iniciarGossip(struct tablaMemoriaGossip* tabla, int contador){ 	// VOY A HAER OSSIPING CON LAS MEMORIAS(PREGUNTARLES QUE MEMORIAS CONECTADAS CONOCE)
+	}
+/**
+	* @NAME: iniciarGossip
+	* @DESC: inicia proceso de gossiping
+	*
+	*/
+	void iniciarGossip(struct tablaMemoriaGossip* tabla, int contador){ 	// VOY A HAER OSSIPING CON LAS MEMORIAS(PREGUNTARLES QUE MEMORIAS CONECTADAS CONOCE)
 	int pasada = contador;
 	if(pasada==0){ 														// PRIMER PASADA TIENE UN SLEEP DE 4 UNIDADES DE TIEMPO, SE VA A REPETIR EL GOSSIPING HASTA QUE TERMINE EL PROCESO ED LA MEMORIA
 		while(1){
@@ -336,17 +405,26 @@ void iniciarGossip(struct tablaMemoriaGossip* tabla, int contador){ 	// VOY A HA
 						}
 		}
 	}
-
-void seedsCargadas(){
+/**
+	* @NAME: seedsCargadas
+	* @DESC: logea las seeds cargadas
+	*
+	*/
+	void seedsCargadas(){
 	int i=0;
 	while(seeds[i]!= NULL){
 		log_info(logger, "Se obtuvo la seed a memoria con ip: %s , y puerto: %s",seeds[i],puertosSeeds[i]);
 		i++;
 	}
 	log_info(logger, "Se obtuvieron %i seeds correctamente.",i);
-}
+	}
 
-void select_esperar_conexiones_o_peticiones(){
+/**
+	* @NAME: select_esperar_conexiones_o_peticiones
+	* @DESC:
+	*
+	*/
+	void select_esperar_conexiones_o_peticiones(){
 	FD_SET(server_memoria, &master); // agrego el socket de esta memoria(listener, está a la escucha)al conjunto maestro
 	fdmin = server_memoria;
 	fdmax = server_memoria; // por ahora el socket de mayor valor es este, pues es el unico ;)
@@ -396,22 +474,45 @@ void select_esperar_conexiones_o_peticiones(){
 	                	}
 	            }
 	}
-}
+	}
 
 
-	//log_info(logger, "Memoria lista para recibir peticiones o conexiones de otras memorias");
-	//log_info(logger, "Memoria espera peticiones");
-	//socket_kernel_conexion_entrante = esperar_cliente(server_memoria);
-	//log_info(logger, "Memoria se conectó con Kernel");
+/**
+	* @NAME: traerRegistroDeMemoria
+	* @DESC: Retorna una pagina desde memoria conociendo su posicion.
+	*
+	*/
+	pagina_concreta* traerRegistroDeMemoria(int posicion){
+				pagina_concreta* pagina = malloc(sizeof(uint16_t)+(sizeof(char)*max_value)+sizeof(long));
+				unsigned int desplazamiento=0;
+				memcpy(pagina->key,&memoria_principal[posicion*tamanio_pagina],sizeof(uint16_t));					// agrego primero KEY
+				desplazamiento+=sizeof(uint16_t);
+				memcpy(pagina->timestamp,&memoria_principal[posicion*tamanio_pagina+desplazamiento],sizeof(long));	// agrego luego TIMESTAMP
+				desplazamiento+=sizeof(long);
+				strcpy(pagina->value,&memoria_principal[posicion*tamanio_pagina+desplazamiento]);					// agrego por ultimo VALUE(tamaño variable)
+				return pagina;
+	}
 
+/**
+	* @NAME: encontrarSegmento
+	* @DESC: Retorna el segmento buscado en la lista si este tiene el mismo nombre que el que buscamos.
+	*
+	*/
+	segmento* *encontrarSegmento(char *nombredTabla) {
+            		int _es_el_Segmento(segmento* segmento) {
+            			return string_equals_ignore_case(segmento->nombreTabla, nombredTabla);
+            		}
 
-
-// ANEXO //
-/* CODIGO COMENTADO ENTRE iniciar_servidor_memoria_y_esperar_conexiones_kernel(); Y esperar_operaciones(socket_kernel_conexion_entrante);
-
-	// conexion a lfs
-		close(socket_conexion_lfs);
-		terminar_programa(socket_conexion_lfs); // termina conexion, destroy log y destroy config.
-	    conexionALFS = crear_conexion(ip_lfs, puerto_lfs); // --> VER <--
-
- FIN */
+            		return list_find(tablas, (void*) _es_el_Segmento);
+    }
+/**
+	* @NAME: encontrarPagina
+	* @DESC: Retorna la pagina buscada en la lista si esta tiene el mismo key que el que buscamos.
+	*
+	*/
+	pagina* *encontrarPagina(segmento* unSegmento, int key){
+					int _es_la_Pagina(pagina *pagina) {
+	            			return (pagina->key==key);
+	            		}
+					return list_find(unSegmento->paginas, (void*) _es_la_Pagina);
+	}

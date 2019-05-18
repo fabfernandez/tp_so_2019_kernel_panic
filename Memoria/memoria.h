@@ -27,11 +27,17 @@
 	 //server_memoria  // descriptor de socket a la escucha
 	 int memoriaNuevaAceptada;        // descriptor de socket de nueva conexión aceptada
 //
+int socket_memoria;
 t_list* tablas;
+char* serializar_pagina(pagina_concreta* pagina);
+pagina_concreta* deserializar_pagina(char* paginac);
+segmento* *encontrarSegmento(char *nombreTabla);
+pagina* *encontrarPagina(segmento* unSegmento, int key);
+int existeTabla(char* tabla);
 void agregar_pagina_a_tabla(pagina* pagina,char* nombreTabla);
-pagina* crearPagina(uint16_t key, char* value, char* tabla, long timestamp);
+pagina* crearPagina(uint16_t key);
 void agregarEnMemoriaElRegistro(char* key,char* value,long timestamp);
-void* memoria_principal;
+char* memoria_principal;
 int nbytes;
 int primeraVuelta = 0;
 pthread_t thread_gossiping;
@@ -39,14 +45,14 @@ t_list tablaGossiping;
 t_log* logger;
 t_config* archivoconfig;
 int socket_conexion_lfs;
-int cantidad_paginas;
-int tamanio_pagina;
-int posicionProximaLibre=0;
-int max_value;
+unsigned int cantidad_paginas;
+size_t tamanio_pagina=26;
+unsigned int posicionProximaLibre=0;
+int max_value=20;
 char* ip_memoria;
 char* puerto_memoria;
 char* nombre_memoria;
-int tamanio_memoria;
+size_t tamanio_memoria;
 char* ip__lfs;
 char* puerto__lfs;
 char** puertosSeeds;
@@ -55,6 +61,7 @@ int server_memoria;
 int socket_kernel_conexion_entrante;
 typedef char* t_valor;	//valor que devuelve el select
 char** levantarSeeds();
+pagina_concreta* esperarRegistroYPocesarlo();
 char** levantarPuertosSeeds();
 void select_esperar_conexiones_o_peticiones();
 void seedsCargadas();
@@ -72,6 +79,7 @@ int insert(char* tabla, uint16_t key, long timestamp);
 void enviar_paquete_select(int socket_envio, t_paquete_select* consulta_select);
 void recibir_datos(t_log* logger,int socket_fd);
 void recibir_max_value(t_log* logger, int socket_cliente);
+pagina_concreta* traerRegistroDeMemoria(int posicion);
 segmento* crearSegmento(char* nombreTabla);
 t_valor select_(char* tabla, uint16_t key);
 
