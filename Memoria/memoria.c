@@ -136,7 +136,14 @@ int main(void)
 	log_info(logger,"El ts es: %i", paginaM8->timestamp);
 	log_info(logger,"El value es: %s", paginaM8->value);
 
-
+	free(paginaM1);
+	free(paginaM2);
+	free(paginaM3);
+	free(paginaM4);
+	free(paginaM5);		// siempre que uso traerPaginaDeMemoria tengo que liberar la memoria
+	free(paginaM6);
+	free(paginaM7);
+	free(paginaM8);
 
 
 	log_info(logger,"**** CANTIDAD DE SEGMENTOS: %i ****", tablas->elements_count);
