@@ -67,14 +67,17 @@ int main(void)
 	list_add(tablas, crearSegmento("Nombre"));
 	list_add(tablas, crearSegmento("Apellido"));
 	list_add(tablas, crearSegmento("DNI"));
+	list_add(tablas, crearSegmento("Genero"));
+
 
 	paginaNueva(123,"Gon",125478,"DNI",memoria_principal); // si no le paso la memoria principal por parametro me hace un segmentation fault.
-	paginaNueva(223,"GUn",15478,"Nombre",memoria_principal);
-	paginaNueva(223,"Faba",15478,"Apellido",memoria_principal);
+	paginaNueva(273,"GUn",15478,"Nombre",memoria_principal);
+	paginaNueva(113,"Faba",15478,"Apellido",memoria_principal);
+	paginaNueva(213,"Daro",15478,"Apellido",memoria_principal);
 	pagina_concreta* paginaM;
 	pagina_concreta* paginaM1;
 	pagina_concreta* paginaM2;
-	traerPaginaDeMemoria(0,paginaM,memoria_principal);
+	traerPaginaDeMemoria(2,paginaM,memoria_principal);
 //	traerPaginaDeMemoria(1,paginaM1,memoria_principal);
 //	traerPaginaDeMemoria(2,paginaM2,memoria_principal);
 	log_info(logger,"La key es: %i", paginaM->key);
@@ -82,6 +85,7 @@ int main(void)
 	log_info(logger,"El value es: %s", paginaM->value);
 	segmento* unS = encontrarSegmento("Apellido");
 	log_info(logger,"SEGMENTO ENCONTRADO: %s , con %i elementos.", unS->nombreTabla, unS->paginas->elements_count);
+	log_info(logger,"**** CANTIDAD DE SEGMENTOS: %i ****", tablas->elements_count);
 	//segmento* otroS = encontrarSegmento("Nombre");
 	//log_info(logger,"SEGMENTO ENCONTRADO: %s", otroS->nombreTabla);
 
