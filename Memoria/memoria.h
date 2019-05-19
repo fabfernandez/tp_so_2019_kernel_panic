@@ -33,7 +33,7 @@ char* serializar_pagina(pagina_concreta* pagina);
 pagina_concreta* deserializar_pagina(char* paginac);
 segmento* encontrarSegmento(char* nombredTabla);
 pagina* *encontrarPagina(segmento* unSegmento, uint16_t key);
-void traerPaginaDeMemoria(unsigned int posicion,pagina_concreta* pagina,char* memoria_principal);
+pagina_concreta* traerPaginaDeMemoria(unsigned int posicion,char* memoria_principal);
 int existeTabla(char* tabla);
 void agregar_pagina_a_tabla(pagina* pagina,char* nombreTabla);
 pagina* crearPagina();

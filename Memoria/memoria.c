@@ -68,26 +68,84 @@ int main(void)
 	list_add(tablas, crearSegmento("Apellido"));
 	list_add(tablas, crearSegmento("DNI"));
 	list_add(tablas, crearSegmento("Genero"));
+	list_add(tablas, crearSegmento("Algo"));
+	list_add(tablas, crearSegmento("Algo2"));
 
+	paginaNueva(123,"Gon",125478,"DNI",memoria_principal); 					// si no le paso la memoria principal por parametro me hace un segmentation fault.
+	paginaNueva(273,"Faba",15478,"Nombre",memoria_principal);
+	paginaNueva(113,"Juan",15478,"Apellido",memoria_principal);
+	paginaNueva(213,"Flor",15478,"Apellido",memoria_principal);
+	paginaNueva(113,"Delfi",15478,"Genero",memoria_principal);
+	paginaNueva(213,"Juana",15478,"Genero",memoria_principal);
+	paginaNueva(113,"Vito",15478,"DNI",memoria_principal);
+	paginaNueva(213,"Pess",15478,"Nombre",memoria_principal);
 
-	paginaNueva(123,"Gon",125478,"DNI",memoria_principal); // si no le paso la memoria principal por parametro me hace un segmentation fault.
-	paginaNueva(273,"GUn",15478,"Nombre",memoria_principal);
-	paginaNueva(113,"Faba",15478,"Apellido",memoria_principal);
-	paginaNueva(213,"Daro",15478,"Apellido",memoria_principal);
-	pagina_concreta* paginaM;
-	pagina_concreta* paginaM1;
-	pagina_concreta* paginaM2;
-	traerPaginaDeMemoria(2,paginaM,memoria_principal);
-//	traerPaginaDeMemoria(1,paginaM1,memoria_principal);
-//	traerPaginaDeMemoria(2,paginaM2,memoria_principal);
-	log_info(logger,"La key es: %i", paginaM->key);
-	log_info(logger,"El ts es: %i", paginaM->timestamp);
-	log_info(logger,"El value es: %s", paginaM->value);
 	segmento* unS = encontrarSegmento("Apellido");
+	segmento* unS2 = encontrarSegmento("Nombre");
+	segmento* unS3 = encontrarSegmento("DNI");
+	segmento* unS4 = encontrarSegmento("Genero");
+	segmento* unS5 = encontrarSegmento("Algo");
+	segmento* unS6 = encontrarSegmento("Algo2");
+
 	log_info(logger,"SEGMENTO ENCONTRADO: %s , con %i elementos.", unS->nombreTabla, unS->paginas->elements_count);
+	log_info(logger,"SEGMENTO ENCONTRADO: %s , con %i elementos.", unS2->nombreTabla, unS2->paginas->elements_count);
+	log_info(logger,"SEGMENTO ENCONTRADO: %s , con %i elementos.", unS3->nombreTabla, unS3->paginas->elements_count);
+	log_info(logger,"SEGMENTO ENCONTRADO: %s , con %i elementos.", unS4->nombreTabla, unS4->paginas->elements_count);
+	log_info(logger,"SEGMENTO ENCONTRADO: %s , con %i elementos.", unS5->nombreTabla, unS5->paginas->elements_count);
+	log_info(logger,"SEGMENTO ENCONTRADO: %s , con %i elementos.", unS6->nombreTabla, unS6->paginas->elements_count);
+
+
+	pagina_concreta* paginaM1= traerPaginaDeMemoria(0,memoria_principal);
+	pagina_concreta* paginaM2= traerPaginaDeMemoria(1,memoria_principal);
+	pagina_concreta* paginaM3= traerPaginaDeMemoria(2,memoria_principal);
+	pagina_concreta* paginaM4= traerPaginaDeMemoria(3,memoria_principal);
+	pagina_concreta* paginaM5= traerPaginaDeMemoria(4,memoria_principal);
+	pagina_concreta* paginaM6= traerPaginaDeMemoria(5,memoria_principal);
+	pagina_concreta* paginaM7= traerPaginaDeMemoria(6,memoria_principal);
+	pagina_concreta* paginaM8= traerPaginaDeMemoria(7,memoria_principal);
+
+	log_info(logger,"La key es: %i", paginaM1->key);
+	log_info(logger,"El ts es: %i", paginaM1->timestamp);
+	log_info(logger,"El value es: %s", paginaM1->value);
+
+	log_info(logger,"La key es: %i", paginaM2->key);
+	log_info(logger,"El ts es: %i", paginaM2->timestamp);
+	log_info(logger,"El value es: %s", paginaM2->value);
+
+	log_info(logger,"La key es: %i", paginaM3->key);
+	log_info(logger,"El ts es: %i", paginaM3->timestamp);
+	log_info(logger,"El value es: %s", paginaM3->value);
+
+	log_info(logger,"La key es: %i", paginaM4->key);
+	log_info(logger,"El ts es: %i", paginaM4->timestamp);
+	log_info(logger,"El value es: %s", paginaM4->value);
+
+	log_info(logger,"La key es: %i", paginaM5->key);
+	log_info(logger,"El ts es: %i", paginaM5->timestamp);
+	log_info(logger,"El value es: %s", paginaM5->value);
+
+	log_info(logger,"La key es: %i", paginaM6->key);
+	log_info(logger,"El ts es: %i", paginaM6->timestamp);
+	log_info(logger,"El value es: %s", paginaM6->value);
+
+	log_info(logger,"La key es: %i", paginaM7->key);
+	log_info(logger,"El ts es: %i", paginaM7->timestamp);
+	log_info(logger,"El value es: %s", paginaM7->value);
+
+	log_info(logger,"La key es: %i", paginaM8->key);
+	log_info(logger,"El ts es: %i", paginaM8->timestamp);
+	log_info(logger,"El value es: %s", paginaM8->value);
+
+
+
+
 	log_info(logger,"**** CANTIDAD DE SEGMENTOS: %i ****", tablas->elements_count);
-	//segmento* otroS = encontrarSegmento("Nombre");
-	//log_info(logger,"SEGMENTO ENCONTRADO: %s", otroS->nombreTabla);
+	sleep(2);
+
+
+
+
+
 
 
 
@@ -126,11 +184,15 @@ void buscarSegmento(char* segment){
  	* @DESC: pasando una posicion y la memoria devuelve el dato contenido en el mismo
  	*
  	*/
-void traerPaginaDeMemoria(unsigned int posicion,pagina_concreta* pagina,char* memoria_principal){
+pagina_concreta* traerPaginaDeMemoria(unsigned int posicion,char* memoria_principal){
+	pagina_concreta* pagina= malloc(sizeof(pagina_concreta));
 	memcpy(&(pagina->key), &memoria_principal[posicion*tamanio_pagina], sizeof(uint16_t));
 	memcpy(&(pagina->timestamp), &memoria_principal[posicion*tamanio_pagina+sizeof(uint16_t)], sizeof(long));
+	pagina->value = malloc(20);
 	strcpy(pagina->value, &memoria_principal[posicion*tamanio_pagina+sizeof(uint16_t)+sizeof(long)]);
+	return pagina;
 	}
+
 /**
  	* @NAME: crearPagina
  	* @DESC: crea una pagina con una key y le asigna una posicion de memoria SE USA ADENTRO DE paginaNueva
@@ -154,7 +216,7 @@ void paginaNueva(uint16_t key, char* value, long ts, char* tabla, char* memoria)
 	agregarPaginaASegmento(tabla,pagina);
 	log_info(logger,"POSICION EN MMORIA: %i", pagina->posicionEnMemoria);
 	memcpy(&memoria[(pagina->posicionEnMemoria)*tamanio_pagina],&key,sizeof(uint16_t)); 					//deberia ser &key? POR ACA SEGMENTATION FAULT
-	memcpy(&memoria[(pagina->posicionEnMemoria)*tamanio_pagina+sizeof(uint16_t)],&ts,sizeof(long));		// mismo que arriba
+	memcpy(&memoria[(pagina->posicionEnMemoria)*tamanio_pagina+sizeof(uint16_t)],&ts,sizeof(long));			// mismo que arriba
 	strcpy(&memoria[(pagina->posicionEnMemoria)*tamanio_pagina+sizeof(uint16_t)+sizeof(long)], value);
 	log_info(logger,"POSICION PROXIMA EN MMORIA DISPONIBLE: %i", posicionProximaLibre);
 	}
