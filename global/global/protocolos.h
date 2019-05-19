@@ -140,7 +140,6 @@ typedef struct {
 } segmento;
 
 typedef struct {
-	uint16_t key;
 	unsigned int posicionEnMemoria;
 	int modificado;
 } pagina; // para la lista

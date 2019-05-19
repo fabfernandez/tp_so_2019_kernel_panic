@@ -68,23 +68,22 @@ int main(void)
 	list_add(tablas, crearSegmento("Apellido"));
 	list_add(tablas, crearSegmento("DNI"));
 
-
-	paginaNueva(123,"Gon",125478,"Nombre",memoria_principal); // si no le paso la memoria principal por parametro me hace un segmentation fault.
-	//paginaNueva(223,"GUn",15478,"Nombre",memoria_principal);
+	paginaNueva(123,"Gon",125478,"DNI",memoria_principal); // si no le paso la memoria principal por parametro me hace un segmentation fault.
+	paginaNueva(223,"GUn",15478,"Nombre",memoria_principal);
+	paginaNueva(223,"Faba",15478,"Apellido",memoria_principal);
 	pagina_concreta* paginaM;
-
+	pagina_concreta* paginaM1;
+	pagina_concreta* paginaM2;
 	traerPaginaDeMemoria(0,paginaM,memoria_principal);
-
-	segmento* unS = encontrarSegmento("BOLSA");
-	//segmento* unS2 = encontrarSegmento("Apellido");
-	log_info(logger,"SEGMENTO ENCONTRADO: %s", unS->nombreTabla);
-	//log_info(logger,"SEGMENTO ENCONTRADO: %s", unS2->nombreTabla);
-	//log_info(logger,"SEGMENTO ENCONTRADO: %s", unS2->nombreTabla);
-	//log_info(logger,"PAGINA ENCONTRADA: %i", unaP->key);
+//	traerPaginaDeMemoria(1,paginaM1,memoria_principal);
+//	traerPaginaDeMemoria(2,paginaM2,memoria_principal);
 	log_info(logger,"La key es: %i", paginaM->key);
 	log_info(logger,"El ts es: %i", paginaM->timestamp);
 	log_info(logger,"El value es: %s", paginaM->value);
-
+	segmento* unS = encontrarSegmento("Apellido");
+	log_info(logger,"SEGMENTO ENCONTRADO: %s , con %i elementos.", unS->nombreTabla, unS->paginas->elements_count);
+	//segmento* otroS = encontrarSegmento("Nombre");
+	//log_info(logger,"SEGMENTO ENCONTRADO: %s", otroS->nombreTabla);
 
 
 
@@ -110,24 +109,31 @@ int main(void)
 			##       #### ##    ##    ########  ######## ########    ##     ## ##     ## #### ##    ##
 */
 /**
+ 	* @NAME: buscarSegmento
+ 	* @DESC: Busca un segmento y lo logea
+ 	*
+ 	*/
+void buscarSegmento(char* segment){
+		segmento* unS = encontrarSegmento(segment);
+		log_info(logger,"SEGMENTO ENCONTRADO: %s", unS->nombreTabla);
+	}
+/**
  	* @NAME: traerPaginaDeMemoria
  	* @DESC: pasando una posicion y la memoria devuelve el dato contenido en el mismo
  	*
  	*/
 void traerPaginaDeMemoria(unsigned int posicion,pagina_concreta* pagina,char* memoria_principal){
-	memcpy(&(pagina->key), &memoria_principal[posicion], sizeof(uint16_t));
-	memcpy(&(pagina->timestamp), &memoria_principal[posicion+sizeof(uint16_t)], sizeof(long));
-	strcpy(pagina->value, &memoria_principal[posicion+sizeof(uint16_t)+sizeof(long)]);
-
+	memcpy(&(pagina->key), &memoria_principal[posicion*tamanio_pagina], sizeof(uint16_t));
+	memcpy(&(pagina->timestamp), &memoria_principal[posicion*tamanio_pagina+sizeof(uint16_t)], sizeof(long));
+	strcpy(pagina->value, &memoria_principal[posicion*tamanio_pagina+sizeof(uint16_t)+sizeof(long)]);
 	}
 /**
  	* @NAME: crearPagina
  	* @DESC: crea una pagina con una key y le asigna una posicion de memoria SE USA ADENTRO DE paginaNueva
  	*
  	*/
-pagina* crearPagina(uint16_t key){
+pagina* crearPagina(){
 	pagina* paginaa = malloc(sizeof(pagina));
-	paginaa->key=key;
 	paginaa->modificado=0;
 	paginaa->posicionEnMemoria=posicionProximaLibre;
 	posicionProximaLibre+=1;
@@ -140,22 +146,23 @@ pagina* crearPagina(uint16_t key){
  	* NOTA: DATOS EN MEMORIA KEY-TS-VALUE
  	*/
 void paginaNueva(uint16_t key, char* value, long ts, char* tabla, char* memoria){
-	pagina* pagina = crearPagina(key);	// deberia ser con malloc?
+	pagina* pagina = crearPagina();	// deberia ser con malloc?
 	agregarPaginaASegmento(tabla,pagina);
 	log_info(logger,"POSICION EN MMORIA: %i", pagina->posicionEnMemoria);
-	memcpy(&memoria[pagina->posicionEnMemoria],&key,sizeof(uint16_t)); 					//deberia ser &key? POR ACA SEGMENTATION FAULT
-	memcpy(&memoria[(pagina->posicionEnMemoria)+sizeof(uint16_t)],&ts,sizeof(long));		// mismo que arriba
-	strcpy(&memoria[(pagina->posicionEnMemoria)+sizeof(uint16_t)+sizeof(long)], value);
+	memcpy(&memoria[(pagina->posicionEnMemoria)*tamanio_pagina],&key,sizeof(uint16_t)); 					//deberia ser &key? POR ACA SEGMENTATION FAULT
+	memcpy(&memoria[(pagina->posicionEnMemoria)*tamanio_pagina+sizeof(uint16_t)],&ts,sizeof(long));		// mismo que arriba
+	strcpy(&memoria[(pagina->posicionEnMemoria)*tamanio_pagina+sizeof(uint16_t)+sizeof(long)], value);
 	log_info(logger,"POSICION PROXIMA EN MMORIA DISPONIBLE: %i", posicionProximaLibre);
-}
+	}
 /**
  	* @NAME: agregarPaginaASegmento
  	* @DESC: agrega una pagina a un segmento
  	*
  	*/
 void agregarPaginaASegmento(char* tabla, pagina* pagina){
-	segmento* segmentoBuscado = encontrarSegmento("Nombre");
+	segmento* segmentoBuscado = encontrarSegmento(tabla);
 	list_add(segmentoBuscado->paginas, pagina);
+	log_info(logger,"Se agrego la pagina con posicion en memoria: %i , al segmento: %s", pagina->posicionEnMemoria, segmentoBuscado->nombreTabla);
 }
 /**
  	* @NAME: crearSegmento
@@ -166,7 +173,7 @@ segmento* crearSegmento(char* nombreTabla)
 	{
 	segmento* segmento1 = malloc(sizeof(segmento));
 	segmento1->paginas = list_create();
-	segmento1->nombreTabla=nombreTabla;
+	segmento1->nombreTabla=strdup(nombreTabla);
 	log_info(logger, "Se creo el segmento %s", segmento1->nombreTabla);
 	return segmento1;
 	}
@@ -182,9 +189,9 @@ segmento* crearSegmento(char* nombreTabla)
 	log_info(logger, "Consulta por key: %d", consulta_select->key);
 	char* tabla = consulta_select->nombre_tabla->palabra;
 	uint16_t key = consulta_select->key;
-	if(encontrarSegmento(tabla)!=NULL) { // es diferente de null(existe en memoria el segmento)
-		if(encontrarPagina(encontrarSegmento(tabla),key)!= NULL) { // es diferente de null (existe en memoria la pagina)
-			pagina* pag = encontrarPagina(encontrarSegmento(tabla),key); // bajo la pagina desde memoria
+	/* if(encontrarSegmento(tabla)!=NULL) { // es diferente de null(existe en memoria el segmento)
+		//if(encontrarPagina(encontrarSegmento(tabla),key)!= NULL) { // es diferente de null (existe en memoria la pagina)
+			pagina* pag; = encontrarPagina(encontrarSegmento(tabla),key); // bajo la pagina desde memoria
 			int posicionEnMemoria = pag->posicionEnMemoria; // paso la posicion a una variable
 			pagina_concreta* datos = traerRegistroDeMemoria(posicionEnMemoria); // bajo la pagina a su estructura
 			char* value = datos->value;
@@ -199,12 +206,12 @@ segmento* crearSegmento(char* nombreTabla)
 				 *  esperarRegistroYPocesarlo(); deberia recibir los datos, crear la tabla de pagina en la tabla de paginas
 				 *  y volcar el dato a memoria y despues retornar la pagina concreta para que se envien en otra funcion los datos
 				 *  a quien os haya solicitado
-				 */
+				 *//*
 			pagina_concreta* registroNuevo = esperarRegistroYPocesarlo();
 	} 	else
 		log_info(logger, "El registro con key '%d' NO se encuentra en memoria y procede a realizar la peticion a LFS", key);
 		enviar_paquete_select(socket_conexion_lfs, consulta_select);
-		eliminar_paquete_select(consulta_select);
+		eliminar_paquete_select(consulta_select); */
 		/**
 		 *
 		 *
@@ -542,7 +549,7 @@ segmento* crearSegmento(char* nombreTabla)
 	* @DESC: Retorna el segmento buscado en la lista si este tiene el mismo nombre que el que buscamos.
 	*
 	*/
-	segmento*  *encontrarSegmento(char *nombredTabla) {
+	segmento* encontrarSegmento(char* nombredTabla) {
             		int _es_el_Segmento(segmento* segmento) {
             			return string_equals_ignore_case(segmento->nombreTabla, nombredTabla);
             		}
@@ -554,9 +561,9 @@ segmento* crearSegmento(char* nombreTabla)
 	* @DESC: Retorna la pagina buscada en la lista si esta tiene el mismo key que el que buscamos.
 	*
 	*/
-	pagina* *encontrarPagina(segmento* unSegmento, uint16_t key){
+/*	pagina* *encontrarPagina(segmento* unSegmento, uint16_t key){
 					int _es_la_Pagina(pagina *pagina) {
 	            			return (pagina->key==key);
 	            		}
 					return list_find(unSegmento->paginas, (void*) _es_la_Pagina);
-	}
+	}*/
