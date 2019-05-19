@@ -141,7 +141,7 @@ typedef struct {
 
 typedef struct {
 	uint16_t key;
-	int posicionEnMemoria;
+	unsigned int posicionEnMemoria;
 	int modificado;
 } pagina; // para la lista
 

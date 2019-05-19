@@ -65,20 +65,23 @@ int main(void)
  * PRUEBA PARA SELECT
  */
 	crearSegmento("Nombre");
+	//crearSegmento("Apellidos");
 	paginaNueva(123,"Gon",125478,"Nombre",memoria_principal); // si no le paso la memoria principal por parametro me hace un segmentation fault.
-	uint16_t key;
-	long ts;
-	char* dato;
-	memcpy(&key, &memoria_principal[0], sizeof(uint16_t));
-	memcpy(&ts, &memoria_principal[0+sizeof(uint16_t)], sizeof(long));
-	strcpy(dato, &memoria_principal[0+sizeof(uint16_t)+sizeof(long)]);
+	//paginaNueva(223,"GUn",15478,"Nombre",memoria_principal);
+	pagina_concreta* paginaM;
+
+	traerPaginaDeMemoria(0,paginaM,memoria_principal);
+
 	segmento* unS = encontrarSegmento("Nombre");
+	//segmento* unS2 = encontrarSegmento("Apellidos");
 	//pagina* unaP = encontrarPagina(unS,123); dumpea!
-	log_info(logger,"SGMENTO ENCONTRADO: %s", unS->nombreTabla);
+	log_info(logger,"SEGMENTO ENCONTRADO: %s", unS->nombreTabla);
+	//log_info(logger,"SEGMENTO ENCONTRADO: %s", unS2->nombreTabla);
 	//log_info(logger,"PAGINA ENCONTRADA: %i", unaP->key);
-	log_info(logger,"La key es: %i", key);
-	log_info(logger,"El ts es: %i", ts);
-	log_info(logger,"El value es: %s", dato);
+	log_info(logger,"La key es: %i", paginaM->key);
+	log_info(logger,"El ts es: %i", paginaM->timestamp);
+	log_info(logger,"El value es: %s", paginaM->value);
+
 
 
 
@@ -103,19 +106,29 @@ int main(void)
 			##        ##  ##   ###    ##     ## ##       ##          ##     ## ##     ##  ##  ##   ###
 			##       #### ##    ##    ########  ######## ########    ##     ## ##     ## #### ##    ##
 */
+/**
+ 	* @NAME: traerPaginaDeMemoria
+ 	* @DESC: pasando una posicion y la memoria devuelve el dato contenido en el mismo
+ 	*
+ 	*/
+void traerPaginaDeMemoria(unsigned int posicion,pagina_concreta* pagina,char* memoria_principal){
+	memcpy(&(pagina->key), &memoria_principal[posicion], sizeof(uint16_t));
+	memcpy(&(pagina->timestamp), &memoria_principal[posicion+sizeof(uint16_t)], sizeof(long));
+	strcpy(pagina->value, &memoria_principal[posicion+sizeof(uint16_t)+sizeof(long)]);
 
+	}
 /**
  	* @NAME: crearPagina
  	* @DESC: crea una pagina con una key y le asigna una posicion de memoria SE USA ADENTRO DE paginaNueva
  	*
  	*/
 pagina* crearPagina(uint16_t key){
-	pagina* pagina = malloc(sizeof(pagina));
-	pagina->key=key;
-	pagina->modificado=0;
-	pagina->posicionEnMemoria=posicionProximaLibre;
+	pagina* paginaa = malloc(sizeof(pagina));
+	paginaa->key=key;
+	paginaa->modificado=0;
+	paginaa->posicionEnMemoria=posicionProximaLibre;
 	posicionProximaLibre+=1;
-	return pagina;
+	return paginaa;
 }
 
 /**
@@ -152,6 +165,7 @@ void crearSegmento(char* nombreTabla)
 	segmento1->paginas = list_create();
 	segmento1->nombreTabla=nombreTabla;
 	list_add(tablas, segmento1);
+	free(segmento1);
 	//return segmento1;
 	}
 /**
