@@ -81,7 +81,7 @@ void enviar_paquete_select(int socket_envio, t_paquete_select* consulta_select);
 void recibir_datos(t_log* logger,int socket_fd);
 void recibir_max_value(t_log* logger, int socket_cliente);
 pagina_concreta* traerRegistroDeMemoria(int posicion);
-/*segmento**/void crearSegmento(char* nombreTabla);
+/*segmento**/segmento* crearSegmento(char* nombreTabla);
 t_valor select_(char* tabla, uint16_t key);
 void paginaNueva(uint16_t key, char* value, long ts, char* tabla, char* memoria);
 void agregarPaginaASegmento(char* tabla, pagina* pagina);

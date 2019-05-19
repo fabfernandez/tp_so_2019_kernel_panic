@@ -64,18 +64,21 @@ int main(void)
 /*
  * PRUEBA PARA SELECT
  */
-	crearSegmento("Nombre");
-	//crearSegmento("Apellidos");
+	list_add(tablas, crearSegmento("Nombre"));
+	list_add(tablas, crearSegmento("Apellido"));
+	list_add(tablas, crearSegmento("DNI"));
+
+
 	paginaNueva(123,"Gon",125478,"Nombre",memoria_principal); // si no le paso la memoria principal por parametro me hace un segmentation fault.
 	//paginaNueva(223,"GUn",15478,"Nombre",memoria_principal);
 	pagina_concreta* paginaM;
 
 	traerPaginaDeMemoria(0,paginaM,memoria_principal);
 
-	segmento* unS = encontrarSegmento("Nombre");
-	//segmento* unS2 = encontrarSegmento("Apellidos");
-	//pagina* unaP = encontrarPagina(unS,123); dumpea!
+	segmento* unS = encontrarSegmento("BOLSA");
+	//segmento* unS2 = encontrarSegmento("Apellido");
 	log_info(logger,"SEGMENTO ENCONTRADO: %s", unS->nombreTabla);
+	//log_info(logger,"SEGMENTO ENCONTRADO: %s", unS2->nombreTabla);
 	//log_info(logger,"SEGMENTO ENCONTRADO: %s", unS2->nombreTabla);
 	//log_info(logger,"PAGINA ENCONTRADA: %i", unaP->key);
 	log_info(logger,"La key es: %i", paginaM->key);
@@ -159,14 +162,13 @@ void agregarPaginaASegmento(char* tabla, pagina* pagina){
  	* @DESC: crea un segmento y lo agrega a la lista de segmentos
  	*
  	*/
-void crearSegmento(char* nombreTabla)
+segmento* crearSegmento(char* nombreTabla)
 	{
 	segmento* segmento1 = malloc(sizeof(segmento));
 	segmento1->paginas = list_create();
 	segmento1->nombreTabla=nombreTabla;
-	list_add(tablas, segmento1);
-	free(segmento1);
-	//return segmento1;
+	log_info(logger, "Se creo el segmento %s", segmento1->nombreTabla);
+	return segmento1;
 	}
 /**
  	* @NAME: resolver_select
