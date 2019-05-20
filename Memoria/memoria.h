@@ -38,7 +38,7 @@ int existeTabla(char* tabla);
 void agregar_pagina_a_tabla(pagina* pagina,char* nombreTabla);
 pagina* crearPagina();
 void agregarEnMemoriaElRegistro(char* key,char* value,long timestamp);
-int buscarRegistroEnTabla(char* tabla, uint16_t key);
+t_list* buscarRegistrosDeUnaTabla(char* tabla);
 void traerPaginaDeMemoria2(unsigned int posicion,char* memoria_principal,pagina_concreta* pagina);
 char* memoria_principal;
 int nbytes;

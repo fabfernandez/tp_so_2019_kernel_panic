@@ -152,8 +152,38 @@ int main(void)
 	free(paginaM7);
 	free(paginaM8);
 
-	int eg = buscarRegistroEnTabla("Nombre",273);
-	log_info(logger," **** POSICION %i ****", eg);
+	/*
+	 * quiero ver si para la tabla "Nombre" tengo el registro con key 273
+	 */
+	t_list* listaPosiciones = buscarRegistrosDeUnaTabla("Genero");
+
+	int posicion=0;
+	for(int i=0;i<listaPosiciones->elements_count;i++){
+		pagina_concreta* unaPaa = traerPaginaDeMemoria(list_get(listaPosiciones,i),memoria_principal);
+		if(unaPaa->key==113){
+			posicion=list_get(listaPosiciones,i);
+			log_info(logger," **** Dato encontrado, esta en la posicion de memoria %i ****", posicion);
+			free(unaPaa->value);
+			free(unaPaa);
+			break;
+		} else
+			{
+			posicion=-1;
+			free(unaPaa->value);
+			free(unaPaa);
+			}
+	}
+	if(posicion != -1){
+		pagina_concreta* unaPaa = traerPaginaDeMemoria(posicion,memoria_principal);
+		log_info(logger,"La key del dato buscado es: %i", unaPaa->key);
+		log_info(logger,"El ts del dato buscado es: %i", unaPaa->timestamp);
+		log_info(logger,"El value del dato buscado es: %s", unaPaa->value);
+		free(unaPaa->value);
+		free(unaPaa);
+	} else {
+		log_error(logger,"el dato no se encuentra en memoria");
+	}
+	//log_info(logger," **** POSICION %i ****", eg);
 
 	log_info(logger,"**** CANTIDAD DE SEGMENTOS: %i ****", tablas->elements_count);
 	sleep(2);
@@ -275,29 +305,18 @@ segmento* crearSegmento(char* nombreTabla)
 	 	*
 	 	*/
 
-int buscarRegistroEnTabla(char* tabla, uint16_t key){
-		segmento* segment = malloc(sizeof(segmento));
-		segment = encontrarSegmento(tabla);
+	t_list* buscarRegistrosDeUnaTabla(char* tabla){
+		segmento* segment = encontrarSegmento(tabla);
 		if(segment==NULL){return -1;}
+		t_list* lista=list_create();
 		for(int i=0 ; i < segment->paginas->elements_count ; i++)
 		{
-			pagina* pagin = malloc(sizeof(pagina));
-			pagin = list_get(segment->paginas,i);
-			uint16_t pos = pagin->posicionEnMemoria;
-			log_info(logger,"Pisicion en memoria: %i",pagin->posicionEnMemoria);
-			pagina_concreta * pagc = malloc(sizeof(pagina_concreta));
-			pagc = traerPaginaDeMemoria(pos,memoria_principal);
-			log_info(logger,"Pagina Key: %i",pagc->key);
-			if(pagc->key == key){
-				free(pagin);
-				free(pagc);
-				free(segment);
-				return i;
+			pagina* pagin = list_get(segment->paginas,i);
+			list_add(lista,pagin->posicionEnMemoria);
+			log_info(logger,"Posicion en memoria cargada al buffer: %i",list_get(lista,i));
 			}
-		}
-		free(segment);
-		return -1;
-}
+		return lista;
+	}
 /**
  	* @NAME: resolver_select
  	* @DESC: resuelve el select
@@ -310,7 +329,7 @@ int buscarRegistroEnTabla(char* tabla, uint16_t key){
 	log_info(logger, "Consulta por key: %d", consulta_select->key);
 	char* tabla = consulta_select->nombre_tabla->palabra;
 	uint16_t key = consulta_select->key;
-	int reg = buscarRegistroEnTabla(tabla, key);
+	int reg;// = buscarRegistroEnTabla(tabla, key);
 	if(reg==-1){
 		log_info(logger, "El registro con key '%d' NO se encuentra en memoria y procede a realizar la peticion a LFS", key);
 		enviar_paquete_select(socket_conexion_lfs, consulta_select);
