@@ -263,6 +263,7 @@ segmento* crearSegmento(char* nombreTabla)
 int buscarRegistroEnTabla(char* tabla, uint16_t key){
 		segmento* segment = malloc(sizeof(segmento));
 		segment = encontrarSegmento(tabla);
+		if(segment==NULL){return -1;}
 		for(int i=0 ; i < segment->paginas->elements_count ; i++)
 		{
 			pagina* pagin = malloc(sizeof(pagina));
@@ -304,40 +305,7 @@ int buscarRegistroEnTabla(char* tabla, uint16_t key){
 		log_info(logger, "Se bajo de la memoria el registro: (%i,%s,i)", paginaM1->key, paginaM1->value,paginaM1->timestamp);
 		log_info(logger, "Se procede a enviar el dato a kernel");
 	}
-	/* if(encontrarSegmento(tabla)!=NULL) { // es diferente de null(existe en memoria el segmento)
-		//if(encontrarPagina(encontrarSegmento(tabla),key)!= NULL) { // es diferente de null (existe en memoria la pagina)
-			pagina* pag; = encontrarPagina(encontrarSegmento(tabla),key); // bajo la pagina desde memoria
-			int posicionEnMemoria = pag->posicionEnMemoria; // paso la posicion a una variable
-			pagina_concreta* datos = traerRegistroDeMemoria(posicionEnMemoria); // bajo la pagina a su estructura
-			char* value = datos->value;
-			long timestamp = datos->timestamp;
-			log_info(logger, "El registro con key '%d' se encuentra en memoria y tiene el value '$s'", key, value, timestamp);
-		} 	else
-			log_info(logger, "El registro con key '%d' NO se encuentra en memoria, pero si su tabla y procede a realizar la peticion a LFS", key);
-			enviar_paquete_select(socket_conexion_lfs, consulta_select);
-			eliminar_paquete_select(consulta_select);
-			/**
-				 *  aca hay que esperar a que el lfs nos envie los datos, hay que ver como resolver esto
-				 *  esperarRegistroYPocesarlo(); deberia recibir los datos, crear la tabla de pagina en la tabla de paginas
-				 *  y volcar el dato a memoria y despues retornar la pagina concreta para que se envien en otra funcion los datos
-				 *  a quien os haya solicitado
-				 *//*
-			pagina_concreta* registroNuevo = esperarRegistroYPocesarlo();
-	} 	else
 
-
-	}
-
-/**
-	 	* @NAME: esperarRegistroYPocesarlo
-	 	* @DESC: luego de una peticion al lfs espera los datos y los baja a una estrcutura de pagina
-	 	*
-	 	*/
-
-	pagina_concreta* esperarRegistroYPocesarlo(){
-	//	pagina_concreta* pagina;
-	//	return pagina;
-	}
 /**
  	* @NAME: iniciar_logger
  	* @DESC: Crea(lee,abre) el archivo de log
