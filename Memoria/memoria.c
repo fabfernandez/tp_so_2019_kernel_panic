@@ -136,17 +136,24 @@ int main(void)
 	log_info(logger,"El ts es: %i", paginaM8->timestamp);
 	log_info(logger,"El value es: %s", paginaM8->value);
 
+	free(paginaM1->value);
 	free(paginaM1);
+	free(paginaM2->value);
 	free(paginaM2);
+	free(paginaM3->value);
 	free(paginaM3);
+	free(paginaM4->value);
 	free(paginaM4);
+	free(paginaM5->value);
 	free(paginaM5);		// siempre que uso traerPaginaDeMemoria tengo que liberar la memoria
+	free(paginaM6->value);
 	free(paginaM6);
+	free(paginaM7->value);
 	free(paginaM7);
 	free(paginaM8);
 
-//	int eg = buscarRegistroEnTabla("Nombre",273);
-//	log_info(logger," **** POSICION %i ****", eg);
+	int eg = buscarRegistroEnTabla("Nombre",273);
+	log_info(logger," **** POSICION %i ****", eg);
 
 	log_info(logger,"**** CANTIDAD DE SEGMENTOS: %i ****", tablas->elements_count);
 	sleep(2);
@@ -200,6 +207,14 @@ pagina_concreta* traerPaginaDeMemoria(unsigned int posicion,char* memoria_princi
 	pagina->value = malloc(20);
 	strcpy(pagina->value, &memoria_principal[posicion*tamanio_pagina+sizeof(uint16_t)+sizeof(long)]);
 	return pagina;
+	}
+void traerPaginaDeMemoria2(unsigned int posicion,char* memoriappal,pagina_concreta* pagina){
+	//pagina_concreta* pagina= malloc(sizeof(pagina_concreta));
+	memcpy(&(pagina->key), &memoriappal[posicion*tamanio_pagina], sizeof(uint16_t));
+	memcpy(&(pagina->timestamp), &memoriappal[posicion*tamanio_pagina+sizeof(uint16_t)], sizeof(long));
+	pagina->value = malloc(20);
+	strcpy(pagina->value, &memoriappal[posicion*tamanio_pagina+sizeof(uint16_t)+sizeof(long)]);
+	//return pagina;
 	}
 
 /**
@@ -270,8 +285,9 @@ int buscarRegistroEnTabla(char* tabla, uint16_t key){
 			pagin = list_get(segment->paginas,i);
 			uint16_t pos = pagin->posicionEnMemoria;
 			log_info(logger,"Pisicion en memoria: %i",pagin->posicionEnMemoria);
-			pagina_concreta * pagc = traerPaginaDeMemoria(pos,memoria_principal);
-			log_info(logger,"Pagina Key: $i",pagc->key);
+			pagina_concreta * pagc = malloc(sizeof(pagina_concreta));
+			pagc = traerPaginaDeMemoria(pos,memoria_principal);
+			log_info(logger,"Pagina Key: %i",pagc->key);
 			if(pagc->key == key){
 				free(pagin);
 				free(pagc);
