@@ -145,6 +145,8 @@ int main(void)
 	free(paginaM7);
 	free(paginaM8);
 
+//	int eg = buscarRegistroEnTabla("Nombre",273);
+//	log_info(logger," **** POSICION %i ****", eg);
 
 	log_info(logger,"**** CANTIDAD DE SEGMENTOS: %i ****", tablas->elements_count);
 	sleep(2);
@@ -251,6 +253,35 @@ segmento* crearSegmento(char* nombreTabla)
 	return segmento1;
 	}
 /**
+	 	* @NAME: buscarRegistroEnTabla
+	 	* @DESC:  dada una solicitud select, con el nombre de la tabla y la key busca en memoria el dato.
+	 	* Si el dato no está en memoria, o la tabla no está en memoria retorna -1, caso contrario retorna la posicion.
+	 	*
+	 	*
+	 	*/
+
+int buscarRegistroEnTabla(char* tabla, uint16_t key){
+		segmento* segment = malloc(sizeof(segmento));
+		segment = encontrarSegmento(tabla);
+		for(int i=0 ; i < segment->paginas->elements_count ; i++)
+		{
+			pagina* pagin = malloc(sizeof(pagina));
+			pagin = list_get(segment->paginas,i);
+			uint16_t pos = pagin->posicionEnMemoria;
+			log_info(logger,"Pisicion en memoria: %i",pagin->posicionEnMemoria);
+			pagina_concreta * pagc = traerPaginaDeMemoria(pos,memoria_principal);
+			log_info(logger,"Pagina Key: $i",pagc->key);
+			if(pagc->key == key){
+				free(pagin);
+				free(pagc);
+				free(segment);
+				return i;
+			}
+		}
+		free(segment);
+		return -1;
+}
+/**
  	* @NAME: resolver_select
  	* @DESC: resuelve el select
  	*
@@ -262,6 +293,17 @@ segmento* crearSegmento(char* nombreTabla)
 	log_info(logger, "Consulta por key: %d", consulta_select->key);
 	char* tabla = consulta_select->nombre_tabla->palabra;
 	uint16_t key = consulta_select->key;
+	int reg = buscarRegistroEnTabla(tabla, key);
+	if(reg==-1){
+		log_info(logger, "El registro con key '%d' NO se encuentra en memoria y procede a realizar la peticion a LFS", key);
+		enviar_paquete_select(socket_conexion_lfs, consulta_select);
+		eliminar_paquete_select(consulta_select);
+	} else
+		log_info(logger, "El registro con key '%d' se encuentra en memoria en la posicion $i", key,reg);
+		pagina_concreta* paginaM1= traerPaginaDeMemoria(reg,memoria_principal);
+		log_info(logger, "Se bajo de la memoria el registro: (%i,%s,i)", paginaM1->key, paginaM1->value,paginaM1->timestamp);
+		log_info(logger, "Se procede a enviar el dato a kernel");
+	}
 	/* if(encontrarSegmento(tabla)!=NULL) { // es diferente de null(existe en memoria el segmento)
 		//if(encontrarPagina(encontrarSegmento(tabla),key)!= NULL) { // es diferente de null (existe en memoria la pagina)
 			pagina* pag; = encontrarPagina(encontrarSegmento(tabla),key); // bajo la pagina desde memoria
@@ -282,19 +324,10 @@ segmento* crearSegmento(char* nombreTabla)
 				 *//*
 			pagina_concreta* registroNuevo = esperarRegistroYPocesarlo();
 	} 	else
-		log_info(logger, "El registro con key '%d' NO se encuentra en memoria y procede a realizar la peticion a LFS", key);
-		enviar_paquete_select(socket_conexion_lfs, consulta_select);
-		eliminar_paquete_select(consulta_select); */
-		/**
-		 *
-		 *
-		 *  aca es igual que arriba a diferencia de que hay que crear el segmento antes por que no existe.
-		 *
-		 */
-		crearSegmento(tabla); // pues no existe.
-		pagina_concreta* registroNuevo = esperarRegistroYPocesarlo();
-		// 	loQueSeaParaDevolverRegistroAQuienLoPida();
+
+
 	}
+
 /**
 	 	* @NAME: esperarRegistroYPocesarlo
 	 	* @DESC: luego de una peticion al lfs espera los datos y los baja a una estrcutura de pagina
@@ -302,8 +335,8 @@ segmento* crearSegmento(char* nombreTabla)
 	 	*/
 
 	pagina_concreta* esperarRegistroYPocesarlo(){
-		pagina_concreta* pagina;
-		return pagina;
+	//	pagina_concreta* pagina;
+	//	return pagina;
 	}
 /**
  	* @NAME: iniciar_logger
@@ -629,14 +662,3 @@ segmento* crearSegmento(char* nombreTabla)
 
             		return list_find(tablas, (void*) _es_el_Segmento);
     }
-/**
-	* @NAME: encontrarPagina
-	* @DESC: Retorna la pagina buscada en la lista si esta tiene el mismo key que el que buscamos.
-	*
-	*/
-/*	pagina* *encontrarPagina(segmento* unSegmento, uint16_t key){
-					int _es_la_Pagina(pagina *pagina) {
-	            			return (pagina->key==key);
-	            		}
-					return list_find(unSegmento->paginas, (void*) _es_la_Pagina);
-	}*/
