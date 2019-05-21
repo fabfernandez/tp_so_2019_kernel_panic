@@ -320,7 +320,7 @@ int buscarRegistroEnTabla(char* tabla, uint16_t key, char* memoria_principal,t_l
 		eliminar_paquete_select(consulta_select);
 	} else {
 		log_info(logger, "El registro con key '%d' se encuentra en memoria en la posicion $i", key,reg);
-		pagina_concreta* paginalala= traerPaginaDeMemoria(1,memoria_principal);
+		pagina_concreta* paginalala= traerPaginaDeMemoria(reg,memoria_principal);
 		log_info(logger, "Se bajo de la memoria el registro: (%i,%s,%i)", paginalala->key, paginalala->value,paginalala->timestamp);
 		log_info(logger, "Se procede a enviar el dato a kernel");
 		free(paginalala->value);
