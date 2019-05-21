@@ -22,7 +22,7 @@ int main(void)
 	 */
 	levantar_datos_memoria();
 
-	char* memoria_principal = (char*) malloc(tamanio_memoria*sizeof(char));
+	char* memoria_principal = malloc(tamanio_memoria*sizeof(char));
 	log_info(logger,"Se reservaron %i bytes para la memoria", (tamanio_memoria*sizeof(char)));
 	tablas = list_create();
 	log_info(logger,"Tabla de segmentos creada, cantidad actual: %i ", tablas->elements_count);
@@ -71,14 +71,14 @@ int main(void)
 	list_add(tablas, crearSegmento("Algo"));
 	list_add(tablas, crearSegmento("Algo2"));
 
-	paginaNueva(123,"Gon",125478,"DNI",memoria_principal); 					// si no le paso la memoria principal por parametro me hace un segmentation fault.
-	paginaNueva(273,"Faba",15478,"Nombre",memoria_principal);
-	paginaNueva(113,"Juan",15478,"Apellido",memoria_principal);
-	paginaNueva(213,"Flor",15478,"Apellido",memoria_principal);
-	paginaNueva(113,"Delfi",15478,"Genero",memoria_principal);
-	paginaNueva(213,"Juana",15478,"Genero",memoria_principal);
-	paginaNueva(113,"Vito",15478,"DNI",memoria_principal);
-	paginaNueva(213,"Pess",15478,"Nombre",memoria_principal);
+	paginaNueva(123,"Gon",125478,"DNI",memoria_principal); 					//(POS[0]) si no le paso la memoria principal por parametro me hace un segmentation fault.
+	paginaNueva(273,"Faba",15478,"Nombre",memoria_principal);				//(POS[1])
+	paginaNueva(113,"Juan",15478,"Apellido",memoria_principal);				//(POS[2])
+	paginaNueva(213,"Flor",15478,"Apellido",memoria_principal);				//(POS[3])
+	paginaNueva(113,"Delfi",15478,"Genero",memoria_principal);				//(POS[4])
+	paginaNueva(213,"Juana",15478,"Genero",memoria_principal);				//(POS[5])
+	paginaNueva(113,"Vito",15478,"DNI",memoria_principal);					//(POS[6])
+	paginaNueva(213,"Pess",15478,"Nombre",memoria_principal);				//(POS[7])
 
 	segmento* unS = encontrarSegmento("Apellido");
 	segmento* unS2 = encontrarSegmento("Nombre");
@@ -155,35 +155,11 @@ int main(void)
 	/*
 	 * quiero ver si para la tabla "Nombre" tengo el registro con key 273
 	 */
-	t_list* listaPosiciones = buscarRegistrosDeUnaTabla("Genero");
 
-	int posicion=0;
-	for(int i=0;i<listaPosiciones->elements_count;i++){
-		pagina_concreta* unaPaa = traerPaginaDeMemoria(list_get(listaPosiciones,i),memoria_principal);
-		if(unaPaa->key==113){
-			posicion=list_get(listaPosiciones,i);
-			log_info(logger," **** Dato encontrado, esta en la posicion de memoria %i ****", posicion);
-			free(unaPaa->value);
-			free(unaPaa);
-			break;
-		} else
-			{
-			posicion=-1;
-			free(unaPaa->value);
-			free(unaPaa);
-			}
-	}
-	if(posicion != -1){
-		pagina_concreta* unaPaa = traerPaginaDeMemoria(posicion,memoria_principal);
-		log_info(logger,"La key del dato buscado es: %i", unaPaa->key);
-		log_info(logger,"El ts del dato buscado es: %i", unaPaa->timestamp);
-		log_info(logger,"El value del dato buscado es: %s", unaPaa->value);
-		free(unaPaa->value);
-		free(unaPaa);
-	} else {
-		log_error(logger,"el dato no se encuentra en memoria");
-	}
-	//log_info(logger," **** POSICION %i ****", eg);
+	t_list* listadPosiciones = buscarRegistrosDeUnaTabla("Genero");
+	uint16_t clave=113;
+	int posicion = buscarPosicionEnMemoria(listadPosiciones,clave,memoria_principal);
+
 
 	log_info(logger,"**** CANTIDAD DE SEGMENTOS: %i ****", tablas->elements_count);
 	sleep(2);
@@ -216,6 +192,38 @@ int main(void)
 			##        ##  ##   ###    ##     ## ##       ##          ##     ## ##     ##  ##  ##   ###
 			##       #### ##    ##    ########  ######## ########    ##     ## ##     ## #### ##    ##
 */
+	/**
+	 	* @NAME: buscarPosicionEnMemoria
+	 	* @DESC: dada una lista de posiciones, chequea si el dato esta en alguna de ellas
+	 	*
+	 	*/
+
+int buscarPosicionEnMemoria(t_list* listaPosiciones, uint16_t key, char* memoria_principal){
+		int posicion=-1;
+		for(int i=0;i<listaPosiciones->elements_count;i++){
+		pagina_concreta* unaPaa = traerPaginaDeMemoria(list_get(listaPosiciones,i),memoria_principal);
+		if(unaPaa->key==key)
+			{
+			posicion=list_get(listaPosiciones,i);
+			log_info(logger," **** Dato encontrado, esta en la posicion de memoria %i ****", posicion);
+			pagina_concreta* unaPaa = traerPaginaDeMemoria(posicion,memoria_principal);
+			log_info(logger,"La key del dato buscado es: %i", unaPaa->key);
+			log_info(logger,"El ts del dato buscado es: %i", unaPaa->timestamp);
+			log_info(logger,"El value del dato buscado es: %s", unaPaa->value);
+			log_info(logger,"El dato se encuentra en la posicion de memoria: %i", posicion);
+			free(unaPaa->value);
+			free(unaPaa);
+			return posicion;
+			} else
+			{
+			free(unaPaa->value);
+			free(unaPaa);
+			}
+	}
+		log_error(logger,"el dato no se encuentra en memoria");
+		return posicion;
+	}
+
 /**
  	* @NAME: buscarSegmento
  	* @DESC: Busca un segmento y lo logea
@@ -230,12 +238,12 @@ void buscarSegmento(char* segment){
  	* @DESC: pasando una posicion y la memoria devuelve el dato contenido en el mismo
  	*
  	*/
-pagina_concreta* traerPaginaDeMemoria(unsigned int posicion,char* memoria_principal){
+pagina_concreta* traerPaginaDeMemoria(unsigned int posicion,void* memoria_principal){
 	pagina_concreta* pagina= malloc(sizeof(pagina_concreta));
-	memcpy(&(pagina->key), &memoria_principal[posicion*tamanio_pagina], sizeof(uint16_t));
-	memcpy(&(pagina->timestamp), &memoria_principal[posicion*tamanio_pagina+sizeof(uint16_t)], sizeof(long));
+	memcpy(&(pagina->key), memoria_principal+posicion*tamanio_pagina, sizeof(uint16_t));
+	memcpy(&(pagina->timestamp), memoria_principal+posicion*tamanio_pagina+sizeof(uint16_t), sizeof(long));
 	pagina->value = malloc(20);
-	strcpy(pagina->value, &memoria_principal[posicion*tamanio_pagina+sizeof(uint16_t)+sizeof(long)]);
+	strcpy(pagina->value, memoria_principal+posicion*tamanio_pagina+sizeof(uint16_t)+sizeof(long));
 	return pagina;
 	}
 void traerPaginaDeMemoria2(unsigned int posicion,char* memoriappal,pagina_concreta* pagina){
@@ -265,13 +273,13 @@ pagina* crearPagina(){
  	* @DESC: crea una pagina en la tabla de paginas(bit,key,posicion) y la vuelca en memoria(asumiendo que existe el segmento) PUES RECIBE LOS DATOS DEL LFS (select)
  	* NOTA: DATOS EN MEMORIA KEY-TS-VALUE
  	*/
-void paginaNueva(uint16_t key, char* value, long ts, char* tabla, char* memoria){
+void paginaNueva(uint16_t key, char* value, long ts, char* tabla, void* memoria){
 	pagina* pagina = crearPagina();	// deberia ser con malloc?
 	agregarPaginaASegmento(tabla,pagina);
 	log_info(logger,"POSICION EN MMORIA: %i", pagina->posicionEnMemoria);
-	memcpy(&memoria[(pagina->posicionEnMemoria)*tamanio_pagina],&key,sizeof(uint16_t)); 					//deberia ser &key? POR ACA SEGMENTATION FAULT
-	memcpy(&memoria[(pagina->posicionEnMemoria)*tamanio_pagina+sizeof(uint16_t)],&ts,sizeof(long));			// mismo que arriba
-	strcpy(&memoria[(pagina->posicionEnMemoria)*tamanio_pagina+sizeof(uint16_t)+sizeof(long)], value);
+	memcpy(memoria+(pagina->posicionEnMemoria)*tamanio_pagina,&key,sizeof(uint16_t)); 					//deberia ser &key? POR ACA SEGMENTATION FAULT
+	memcpy(memoria+(pagina->posicionEnMemoria)*tamanio_pagina+sizeof(uint16_t),&ts,sizeof(long));			// mismo que arriba
+	strcpy(memoria+(pagina->posicionEnMemoria)*tamanio_pagina+sizeof(uint16_t)+sizeof(long), value);
 	log_info(logger,"POSICION PROXIMA EN MMORIA DISPONIBLE: %i", posicionProximaLibre);
 	}
 /**
