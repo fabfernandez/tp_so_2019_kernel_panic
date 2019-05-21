@@ -71,21 +71,21 @@ int main(void)
 	list_add(tablas, crearSegmento("Algo"));
 	list_add(tablas, crearSegmento("Algo2"));
 
-	paginaNueva(123,"Gon",125478,"DNI",memoria_principal); 					// si no le paso la memoria principal por parametro me hace un segmentation fault.
-	paginaNueva(273,"Faba",15478,"Nombre",memoria_principal);
-	paginaNueva(113,"Juan",15478,"Apellido",memoria_principal);
-	paginaNueva(213,"Flor",15478,"Apellido",memoria_principal);
-	paginaNueva(113,"Delfi",15478,"Genero",memoria_principal);
-	paginaNueva(213,"Juana",15478,"Genero",memoria_principal);
-	paginaNueva(113,"Vito",15478,"DNI",memoria_principal);
-	paginaNueva(213,"Pess",15478,"Nombre",memoria_principal);
+	paginaNueva(123,"Gon",125478,"DNI",memoria_principal,tablas); 					// si no le paso la memoria principal por parametro me hace un segmentation fault.
+	paginaNueva(273,"Faba",15478,"Nombre",memoria_principal,tablas);
+	paginaNueva(113,"Juan",15478,"Apellido",memoria_principal,tablas);
+	paginaNueva(213,"Flor",15478,"Apellido",memoria_principal,tablas);
+	paginaNueva(113,"Delfi",15478,"Genero",memoria_principal,tablas);
+	paginaNueva(213,"Juana",15478,"Genero",memoria_principal,tablas);
+	paginaNueva(113,"Vito",15478,"DNI",memoria_principal,tablas);
+	paginaNueva(213,"Pess",15478,"Nombre",memoria_principal,tablas);
 
-	segmento* unS = encontrarSegmento("Apellido");
-	segmento* unS2 = encontrarSegmento("Nombre");
-	segmento* unS3 = encontrarSegmento("DNI");
-	segmento* unS4 = encontrarSegmento("Genero");
-	segmento* unS5 = encontrarSegmento("Algo");
-	segmento* unS6 = encontrarSegmento("Algo2");
+	segmento* unS = encontrarSegmento("Apellido",tablas);
+	segmento* unS2 = encontrarSegmento("Nombre",tablas);
+	segmento* unS3 = encontrarSegmento("DNI",tablas);
+	segmento* unS4 = encontrarSegmento("Genero",tablas);
+	segmento* unS5 = encontrarSegmento("Algo",tablas);
+	segmento* unS6 = encontrarSegmento("Algo2",tablas);
 
 	log_info(logger,"SEGMENTO ENCONTRADO: %s , con %i elementos.", unS->nombreTabla, unS->paginas->elements_count);
 	log_info(logger,"SEGMENTO ENCONTRADO: %s , con %i elementos.", unS2->nombreTabla, unS2->paginas->elements_count);
@@ -152,7 +152,7 @@ int main(void)
 	free(paginaM7);
 	free(paginaM8);
 
-	int eg = buscarRegistroEnTabla("Nombre",273,memoria_principal);
+	int eg = buscarRegistroEnTabla("Nombre",273,memoria_principal, tablas);
 	log_info(logger," **** POSICION %i ****", eg);
 	pagina_concreta* paginacc = traerPaginaDeMemoria(1,memoria_principal);
 	log_info(logger,"La key es: %i", paginacc->key);
@@ -175,7 +175,7 @@ int main(void)
 
 
 //	iniciar_servidor_memoria_y_esperar_conexiones_kernel();
-	select_esperar_conexiones_o_peticiones(memoria_principal);
+	select_esperar_conexiones_o_peticiones(memoria_principal,tablas);
 //	esperar_operaciones(socket_kernel_conexion_entrante);
 //	terminar_programa(socket_kernel_fd, conexionALFS); // termina conexion, destroy log y destroy config.
 	return EXIT_SUCCESS;
@@ -195,8 +195,8 @@ int main(void)
  	* @DESC: Busca un segmento y lo logea
  	*
  	*/
-void buscarSegmento(char* segment){
-		segmento* unS = encontrarSegmento(segment);
+void buscarSegmento(char* segment,t_list* tablas){
+		segmento* unS = encontrarSegmento(segment, tablas);
 		log_info(logger,"SEGMENTO ENCONTRADO: %s", unS->nombreTabla);
 	}
 /**
@@ -239,9 +239,9 @@ pagina* crearPagina(){
  	* @DESC: crea una pagina en la tabla de paginas(bit,key,posicion) y la vuelca en memoria(asumiendo que existe el segmento) PUES RECIBE LOS DATOS DEL LFS (select)
  	* NOTA: DATOS EN MEMORIA KEY-TS-VALUE
  	*/
-void paginaNueva(uint16_t key, char* value, long ts, char* tabla, char* memoria){
+void paginaNueva(uint16_t key, char* value, long ts, char* tabla, char* memoria,t_list* tablas){
 	pagina* pagina = crearPagina();	// deberia ser con malloc?
-	agregarPaginaASegmento(tabla,pagina);
+	agregarPaginaASegmento(tabla,pagina,tablas);
 	log_info(logger,"POSICION EN MMORIA: %i", pagina->posicionEnMemoria);
 	memcpy(&memoria[(pagina->posicionEnMemoria)*tamanio_pagina],&key,sizeof(uint16_t)); 					//deberia ser &key? POR ACA SEGMENTATION FAULT
 	memcpy(&memoria[(pagina->posicionEnMemoria)*tamanio_pagina+sizeof(uint16_t)],&ts,sizeof(long));			// mismo que arriba
@@ -253,8 +253,8 @@ void paginaNueva(uint16_t key, char* value, long ts, char* tabla, char* memoria)
  	* @DESC: agrega una pagina a un segmento
  	*
  	*/
-void agregarPaginaASegmento(char* tabla, pagina* pagina){
-	segmento* segmentoBuscado = encontrarSegmento(tabla);
+void agregarPaginaASegmento(char* tabla, pagina* pagina, t_list* tablas){
+	segmento* segmentoBuscado = encontrarSegmento(tabla, tablas);
 	list_add(segmentoBuscado->paginas, pagina);
 	log_info(logger,"Se agrego la pagina con posicion en memoria: %i , al segmento: %s", pagina->posicionEnMemoria, segmentoBuscado->nombreTabla);
 }
@@ -279,14 +279,12 @@ segmento* crearSegmento(char* nombreTabla)
 	 	*
 	 	*/
 
-int buscarRegistroEnTabla(char* tabla, uint16_t key, char* memoria_principal){
-		segmento* segment = malloc(sizeof(segmento));
-		segment = encontrarSegmento(tabla);
+int buscarRegistroEnTabla(char* tabla, uint16_t key, char* memoria_principal,t_list* tablas){
+		segmento* segment = encontrarSegmento(tabla,tablas);
 		if(segment==NULL){return -1;}
 		for(int i=0 ; i < segment->paginas->elements_count ; i++)
 		{
-			pagina* pagin = malloc(sizeof(pagina));
-			pagin = list_get(segment->paginas,i);
+			pagina* pagin = list_get(segment->paginas,i);
 			uint16_t pos = pagin->posicionEnMemoria;
 			log_info(logger,"Pisicion en memoria: %i",pagin->posicionEnMemoria);
 			pagina_concreta * pagc = malloc(sizeof(pagina_concreta));
@@ -294,13 +292,10 @@ int buscarRegistroEnTabla(char* tabla, uint16_t key, char* memoria_principal){
 			log_info(logger,"Pagina Key: %i",pagc->key);
 			int posicion=pagin->posicionEnMemoria;
 			if(pagc->key == key){
-				free(pagin);
 				free(pagc);
-				free(segment);
 				return posicion;
 			}
 		}
-		free(segment);
 		log_error(logger,"El registro no se encuentra en memoria");
 		return -1;
 }
@@ -309,23 +304,28 @@ int buscarRegistroEnTabla(char* tabla, uint16_t key, char* memoria_principal){
  	* @DESC: resuelve el select
  	*
  	*/
-	void resolver_select (int socket_kernel_fd, int socket_conexion_lfs,char* memoria_principal){
+	void resolver_select (int socket_kernel_fd, int socket_conexion_lfs,char* memoria_principal, t_list* tablas){
 	t_paquete_select* consulta_select = deserializar_select(socket_kernel_fd);
 	log_info(logger, "Se realiza SELECT");
 	log_info(logger, "Consulta en la tabla: %s", consulta_select->nombre_tabla->palabra);
 	log_info(logger, "Consulta por key: %d", consulta_select->key);
 	char* tabla = consulta_select->nombre_tabla->palabra;
 	uint16_t key = consulta_select->key;
-	int reg = buscarRegistroEnTabla(tabla, key,memoria_principal);
+	int reg = 0;
+	reg = buscarRegistroEnTabla(tabla, key,memoria_principal,tablas);
+	log_info(logger, "registro numero: %i", reg);
 	if(reg==-1){
 		log_info(logger, "El registro con key '%d' NO se encuentra en memoria y procede a realizar la peticion a LFS", key);
 		enviar_paquete_select(socket_conexion_lfs, consulta_select);
 		eliminar_paquete_select(consulta_select);
-	} else
+	} else {
 		log_info(logger, "El registro con key '%d' se encuentra en memoria en la posicion $i", key,reg);
-		pagina_concreta* paginaM1= traerPaginaDeMemoria(reg,memoria_principal);
-		log_info(logger, "Se bajo de la memoria el registro: (%i,%s,i)", paginaM1->key, paginaM1->value,paginaM1->timestamp);
+		pagina_concreta* paginalala= traerPaginaDeMemoria(1,memoria_principal);
+		log_info(logger, "Se bajo de la memoria el registro: (%i,%s,%i)", paginalala->key, paginalala->value,paginalala->timestamp);
 		log_info(logger, "Se procede a enviar el dato a kernel");
+		free(paginalala->value);
+		free(paginalala);
+	}
 	}
 
 /**
@@ -363,7 +363,7 @@ int buscarRegistroEnTabla(char* tabla, uint16_t key, char* memoria_principal){
 	* @DESC: resuelve la operacion recibida
 	*
 	*/
-	void resolver_operacion(int socket_memoria, t_operacion cod_op,char* memoria_principal){
+	void resolver_operacion(int socket_memoria, t_operacion cod_op,char* memoria_principal, t_list* tablas){
 	switch(cod_op)
 				{
 				case HANDSHAKE:
@@ -376,7 +376,7 @@ int buscarRegistroEnTabla(char* tabla, uint16_t key, char* memoria_principal){
 					break;
 				case SELECT:
 					log_info(logger, "%i solicitó SELECT", socket_memoria);
-					resolver_select(socket_memoria, socket_conexion_lfs,memoria_principal);
+					resolver_select(socket_memoria, socket_conexion_lfs,memoria_principal,tablas);
 					//aca debería enviarse el mensaje a LFS con SELECT
 					break;
 				case INSERT:
@@ -571,7 +571,7 @@ int buscarRegistroEnTabla(char* tabla, uint16_t key, char* memoria_principal){
 	* @DESC:
 	*
 	*/
-	void select_esperar_conexiones_o_peticiones(char* memoria_principal){
+	void select_esperar_conexiones_o_peticiones(char* memoria_principal,t_list* tablas){
 	FD_SET(server_memoria, &master); // agrego el socket de esta memoria(listener, está a la escucha)al conjunto maestro
 	fdmin = server_memoria;
 	fdmax = server_memoria; // por ahora el socket de mayor valor es este, pues es el unico ;)
@@ -614,7 +614,7 @@ int buscarRegistroEnTabla(char* tabla, uint16_t key, char* memoria_principal){
 	                    			                        }
 	                    			else {
 	                    			                            // tenemos datos de algún cliente
-	                    				resolver_operacion(i,cod_op,memoria_principal);
+	                    				resolver_operacion(i,cod_op,memoria_principal,tablas);
 	                    			    log_info(logger, "Se recibio una operacion de %i", i);
 
 	                    			}}
@@ -645,7 +645,7 @@ int buscarRegistroEnTabla(char* tabla, uint16_t key, char* memoria_principal){
 	* @DESC: Retorna el segmento buscado en la lista si este tiene el mismo nombre que el que buscamos.
 	*
 	*/
-	segmento* encontrarSegmento(char* nombredTabla) {
+	segmento* encontrarSegmento(char* nombredTabla, t_list* tablas) {
             		int _es_el_Segmento(segmento* segmento) {
             			return string_equals_ignore_case(segmento->nombreTabla, nombredTabla);
             		}
