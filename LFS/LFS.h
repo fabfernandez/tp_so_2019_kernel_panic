@@ -30,6 +30,18 @@
 typedef char* t_valor;	//valor que devuelve el select
 
 
+t_list* memtable;
+typedef struct{
+	char* nombre;
+	t_list* registros;
+}t_cache_tabla;
+
+typedef struct {
+	long timestamp;
+	char* value;
+	uint16_t key;
+}t_registro;
+
 // ******* DEFINICION DE FUNCIONES A UTILIZAR ******* //
 void chequearSocket(int socketin);
 void iniciar_logger(void);

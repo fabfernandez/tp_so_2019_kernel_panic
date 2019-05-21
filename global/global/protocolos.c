@@ -47,6 +47,8 @@ t_paquete_select* crear_paquete_select(t_instruccion_lql instruccion){
 	paquete_select->nombre_tabla->size = string_size(nombre_tabla);
 	paquete_select->nombre_tabla->palabra = malloc(paquete_select->nombre_tabla->size);
 	memcpy(paquete_select->nombre_tabla->palabra, nombre_tabla, paquete_select->nombre_tabla->size);
+
+
 	return paquete_select;
 }
 

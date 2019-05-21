@@ -59,6 +59,7 @@ typedef struct
 	t_buffer* nombre_tabla;
 	uint16_t key;
 	t_buffer* valor;
+	long timestamp;
 
 } t_paquete_insert;
 

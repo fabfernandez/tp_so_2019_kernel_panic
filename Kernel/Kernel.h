@@ -30,6 +30,11 @@ typedef char* t_valor;					// VALOR QUE DEVUELVE EL SELECT(TODAVIA NO SABEMOS QU
 
 
 							// ******* API KERNEL ******* //
+void resolver_describe_drop(t_instruccion_lql instruccion, int socket_memoria);
+void resolver_create(t_instruccion_lql instruccion, int socket_memoria);
+void resolver_insert(t_instruccion_lql instruccion, int socket_memoria);
+void resolver_select(t_instruccion_lql instruccion, int socket_memoria);
+void resolver_run(t_instruccion_lql instruccion, int socket_memoria);
 
 int insert(char* tabla, uint16_t key, long timestamp); 	// INSERT PROTOTIPO (1)
 t_valor select_(char* tabla, uint16_t key); 			// SELECT PROTOTIPO (2)

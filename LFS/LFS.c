@@ -19,6 +19,7 @@ int main(void)
 	puerto_lfs = config_get_string_value(archivoconfig, "PUERTO_LFS"); // asignamos puerto desde CONFIG
 	log_info(logger, "El puerto de la memoria es %s",puerto_lfs);
 
+	//levantar_lfs();
 
 	int server_LFS = iniciar_servidor(ip_lfs, puerto_lfs);
 
@@ -94,18 +95,22 @@ int resolver_operacion(int socket_memoria, t_operacion cod_op){
 			break;
 		case INSERT:
 			log_info(logger, "memoria solicitó INSERT");
+			resolver_insert(socket_memoria);
 			//aca debería enviarse el mensaje a LFS con INSERT
 			break;
 		case CREATE:
 			log_info(logger, "memoria solicitó CREATE");
+			resolver_create(socket_memoria);
 			//aca debería enviarse el mensaje a LFS con CREATE
 			break;
 		case DESCRIBE:
 			log_info(logger, "memoria solicitó DESCRIBE");
+			resolver_describe_drop(socket_memoria, "DESCRIBE");
 			//aca debería enviarse el mensaje a LFS con DESCRIBE
 			break;
 		case DROP:
 			log_info(logger, "memoria solicitó DROP");
+			resolver_describe_drop(socket_memoria, "DROP");
 			//aca debería enviarse el mensaje a LFS con DROP
 			break;
 		case -1:
@@ -117,6 +122,38 @@ int resolver_operacion(int socket_memoria, t_operacion cod_op){
 			return EXIT_FAILURE;
 		}
 	return EXIT_SUCCESS;
+}
+
+void resolver_create (int socket_memoria){
+	t_paquete_create* consulta_create = deserializar_create(socket_memoria);
+	log_info(logger, "Se realiza CREATE");
+	log_info(logger, "Tabla: %s", consulta_create->nombre_tabla->palabra);
+	log_info(logger, "Num Particiones: %d", consulta_create->num_particiones);
+	log_info(logger, "Tiempo compactacion: %d", consulta_create->tiempo_compac);
+	log_info(logger, "Consistencia: %d", consulta_create->consistencia);
+	enviar_paquete_create(socket_memoria, consulta_create);
+	eliminar_paquete_create(consulta_create);
+}
+
+void resolver_describe_drop (int socket_memoria, char* operacion){
+	t_paquete_drop_describe* consulta_describe_drop = deserealizar_drop_describe(socket_memoria);
+	log_info(logger, "Se realiza %s", operacion);
+	log_info(logger, "Tabla: %s", consulta_describe_drop->nombre_tabla->palabra);
+	enviar_paquete_drop_describe(socket_memoria, consulta_describe_drop);
+	eliminar_paquete_drop_describe(consulta_describe_drop);
+}
+
+void resolver_insert (int socket_memoria){
+	t_paquete_insert* consulta_insert = deserealizar_insert(socket_memoria);
+	char * nombre_tabla =  consulta_insert->nombre_tabla->palabra;
+	uint16_t key = consulta_insert->key;
+	log_info(logger, "Se realiza INSERT");
+	log_info(logger, "Consulta en la tabla: %s", nombre_tabla );
+	log_info(logger, "Consulta por key: %d", key);
+/*	if (existe_tabla(nombre_tabla)){
+
+	}*/
+	eliminar_paquete_insert(consulta_insert);
 }
 
 void resolver_select (int socket_memoria){
