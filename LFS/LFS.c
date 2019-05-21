@@ -85,7 +85,7 @@ int resolver_operacion(int socket_memoria, t_operacion cod_op){
 		case HANDSHAKE:
 			log_info(logger, "Inicia handshake con memoria");
 			recibir_mensaje(logger, socket_memoria);
-			enviar_handshake(socket_memoria, "OK");
+			enviar_handshake(socket_memoria, "20");
 			log_info(logger, "Conexion exitosa con memoria");
 			break;
 		case SELECT:
