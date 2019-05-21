@@ -152,9 +152,13 @@ int main(void)
 	free(paginaM7);
 	free(paginaM8);
 
-	int eg = buscarRegistroEnTabla("Nombre",273);
+	int eg = buscarRegistroEnTabla("Nombre",273,memoria_principal);
 	log_info(logger," **** POSICION %i ****", eg);
-
+	pagina_concreta* paginacc = traerPaginaDeMemoria(1,memoria_principal);
+	log_info(logger,"La key es: %i", paginacc->key);
+	log_info(logger,"El ts es: %i", paginacc->timestamp);
+	log_info(logger,"El value es: %s", paginacc->value);
+	free(paginacc);
 	log_info(logger,"**** CANTIDAD DE SEGMENTOS: %i ****", tablas->elements_count);
 	sleep(2);
 
@@ -171,7 +175,7 @@ int main(void)
 
 
 //	iniciar_servidor_memoria_y_esperar_conexiones_kernel();
-	select_esperar_conexiones_o_peticiones();
+	select_esperar_conexiones_o_peticiones(memoria_principal);
 //	esperar_operaciones(socket_kernel_conexion_entrante);
 //	terminar_programa(socket_kernel_fd, conexionALFS); // termina conexion, destroy log y destroy config.
 	return EXIT_SUCCESS;
@@ -275,7 +279,7 @@ segmento* crearSegmento(char* nombreTabla)
 	 	*
 	 	*/
 
-int buscarRegistroEnTabla(char* tabla, uint16_t key){
+int buscarRegistroEnTabla(char* tabla, uint16_t key, char* memoria_principal){
 		segmento* segment = malloc(sizeof(segmento));
 		segment = encontrarSegmento(tabla);
 		if(segment==NULL){return -1;}
@@ -288,14 +292,16 @@ int buscarRegistroEnTabla(char* tabla, uint16_t key){
 			pagina_concreta * pagc = malloc(sizeof(pagina_concreta));
 			pagc = traerPaginaDeMemoria(pos,memoria_principal);
 			log_info(logger,"Pagina Key: %i",pagc->key);
+			int posicion=pagin->posicionEnMemoria;
 			if(pagc->key == key){
 				free(pagin);
 				free(pagc);
 				free(segment);
-				return i;
+				return posicion;
 			}
 		}
 		free(segment);
+		log_error(logger,"El registro no se encuentra en memoria");
 		return -1;
 }
 /**
@@ -303,14 +309,14 @@ int buscarRegistroEnTabla(char* tabla, uint16_t key){
  	* @DESC: resuelve el select
  	*
  	*/
-	void resolver_select (int socket_kernel_fd, int socket_conexion_lfs){
+	void resolver_select (int socket_kernel_fd, int socket_conexion_lfs,char* memoria_principal){
 	t_paquete_select* consulta_select = deserializar_select(socket_kernel_fd);
 	log_info(logger, "Se realiza SELECT");
 	log_info(logger, "Consulta en la tabla: %s", consulta_select->nombre_tabla->palabra);
 	log_info(logger, "Consulta por key: %d", consulta_select->key);
 	char* tabla = consulta_select->nombre_tabla->palabra;
 	uint16_t key = consulta_select->key;
-	int reg = buscarRegistroEnTabla(tabla, key);
+	int reg = buscarRegistroEnTabla(tabla, key,memoria_principal);
 	if(reg==-1){
 		log_info(logger, "El registro con key '%d' NO se encuentra en memoria y procede a realizar la peticion a LFS", key);
 		enviar_paquete_select(socket_conexion_lfs, consulta_select);
@@ -357,7 +363,7 @@ int buscarRegistroEnTabla(char* tabla, uint16_t key){
 	* @DESC: resuelve la operacion recibida
 	*
 	*/
-	void resolver_operacion(int socket_memoria, t_operacion cod_op){
+	void resolver_operacion(int socket_memoria, t_operacion cod_op,char* memoria_principal){
 	switch(cod_op)
 				{
 				case HANDSHAKE:
@@ -370,7 +376,7 @@ int buscarRegistroEnTabla(char* tabla, uint16_t key){
 					break;
 				case SELECT:
 					log_info(logger, "%i solicitó SELECT", socket_memoria);
-					resolver_select(socket_memoria, socket_conexion_lfs);
+					resolver_select(socket_memoria, socket_conexion_lfs,memoria_principal);
 					//aca debería enviarse el mensaje a LFS con SELECT
 					break;
 				case INSERT:
@@ -565,7 +571,7 @@ int buscarRegistroEnTabla(char* tabla, uint16_t key){
 	* @DESC:
 	*
 	*/
-	void select_esperar_conexiones_o_peticiones(){
+	void select_esperar_conexiones_o_peticiones(char* memoria_principal){
 	FD_SET(server_memoria, &master); // agrego el socket de esta memoria(listener, está a la escucha)al conjunto maestro
 	fdmin = server_memoria;
 	fdmax = server_memoria; // por ahora el socket de mayor valor es este, pues es el unico ;)
@@ -608,7 +614,7 @@ int buscarRegistroEnTabla(char* tabla, uint16_t key){
 	                    			                        }
 	                    			else {
 	                    			                            // tenemos datos de algún cliente
-	                    				resolver_operacion(i,cod_op);
+	                    				resolver_operacion(i,cod_op,memoria_principal);
 	                    			    log_info(logger, "Se recibio una operacion de %i", i);
 
 	                    			}}
