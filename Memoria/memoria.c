@@ -250,6 +250,16 @@ pagina* crearPagina(){
 	posicionProximaLibre+=1;
 	return paginaa;
 }
+pagina* crearPaginaInsert(){
+	pagina* paginaa = malloc(sizeof(pagina));
+	paginaa->modificado=1;
+	paginaa->posicionEnMemoria=posicionProximaLibre;
+	paginaa->ultimaLectura=(unsigned)time(NULL);;
+	log_info(logger,"Se creo una pagina con insert, bit MOD=%i", paginaa->modificado);
+	posicionProximaLibre+=1;
+	return paginaa;
+}
+
 
 /**
  	* @NAME: paginaNueva
@@ -265,6 +275,16 @@ void paginaNueva(uint16_t key, char* value, long ts, char* tabla, char* memoria,
 	strcpy(&memoria[(pagina->posicionEnMemoria)*tamanio_pagina+sizeof(uint16_t)+sizeof(long)], value);
 	//log_info(logger,"POSICION PROXIMA EN MMORIA DISPONIBLE: %i", posicionProximaLibre);
 	}
+void paginaNuevaInsert(uint16_t key, char* value, long ts, char* tabla, char* memoria,t_list* tablas){
+	pagina* pagina = crearPaginaInsert();	// deberia ser con malloc?
+	agregarPaginaASegmento(tabla,pagina,tablas);
+	//log_info(logger,"POSICION EN MMORIA: %i", pagina->posicionEnMemoria);
+	memcpy(&memoria[(pagina->posicionEnMemoria)*tamanio_pagina],&key,sizeof(uint16_t)); 					//deberia ser &key? POR ACA SEGMENTATION FAULT
+	memcpy(&memoria[(pagina->posicionEnMemoria)*tamanio_pagina+sizeof(uint16_t)],&ts,sizeof(long));			// mismo que arriba
+	strcpy(&memoria[(pagina->posicionEnMemoria)*tamanio_pagina+sizeof(uint16_t)+sizeof(long)], value);
+	//log_info(logger,"POSICION PROXIMA EN MMORIA DISPONIBLE: %i", posicionProximaLibre);
+	}
+
 /**
  	* @NAME: agregarPaginaASegmento
  	* @DESC: agrega una pagina a un segmento
@@ -321,6 +341,83 @@ int buscarRegistroEnTabla(char* tabla, uint16_t key, char* memoria_principal,t_l
 		log_error(logger,"El registro no se encuentra en memoria");
 		return -1;
 }
+
+
+
+
+
+/**
+ 	* @NAME: resolver_select
+ 	* @DESC: resuelve el select
+ 	*
+ 	*/
+	void resolver_insert(int socket_kernel_fd, int socket_conexion_lfs,char* memoria_principal, t_list* tablas){
+	t_paquete_insert* consulta_insert= deserealizar_insert(socket_kernel_fd);
+	log_info(logger, "Se realiza INSERT");
+	log_info(logger, "Se busca insertar en la tabla: %s", consulta_insert->nombre_tabla->palabra);
+	log_info(logger, "en la key: %i", consulta_insert->key);
+	log_info(logger, "el dato: %s", consulta_insert->valor->palabra);
+	log_info(logger, "El ts es: %i", consulta_insert->ts);
+	long tsss =consulta_insert->ts;
+	char* tabla = consulta_insert->nombre_tabla->palabra;
+	uint16_t key = consulta_insert->key;
+	char* dato = consulta_insert->nombre_tabla->palabra;
+	segmento* segmentoBuscado = encontrarSegmento(tabla,tablas);
+	if(posicionProximaLibre+1>cantidad_paginas){
+		/*
+		 * PROCESO LRU
+		 * proceso de creacion/modificacion de registro
+		 */
+
+	} else {
+		if(segmentoBuscado==NULL)
+		{
+			log_info(logger, "No existe el segmento: $s", consulta_insert->nombre_tabla->palabra);
+			list_add(tablas, crearSegmento(consulta_insert->nombre_tabla->palabra));
+			paginaNuevaInsert(key,dato,tsss,tabla,memoria_principal,tablas);
+		} else
+			{
+			int reg2 = buscarRegistroEnTabla(tabla, key,memoria_principal,tablas);
+			if(reg2==-1)
+				{
+					log_info(logger, "El segmento existe y se encuentra en memoria, pero no la pagina");
+					paginaNuevaInsert(key,dato,tsss,tabla,memoria_principal,tablas);
+				} else
+					{
+					log_info(logger, "El registro se encuentra en la posicion de memoria: %i , se procede a modificarlo");
+					//modificarRegistro(key,dato,(unsigned)time(NULL),reg2,memoria_principal,tablas);
+					modificarRegistro(key,dato,tsss,reg2,memoria_principal,tablas);
+					int resultado = cambiarBitModificado(tabla,key,tablas);
+					}
+			}
+	}
+	}
+
+	int cambiarBitModificado(char* tabla, uint16_t key,t_list* tablas){
+			segmento* segment = encontrarSegmento(tabla,tablas);
+			if(segment==NULL){return -1;}
+			for(int i=0 ; i < segment->paginas->elements_count ; i++)
+			{
+				pagina* pagin = list_get(segment->paginas,i);
+				uint16_t pos = pagin->posicionEnMemoria;
+				pagina_concreta * pagc = malloc(sizeof(pagina_concreta));
+				pagc = traerPaginaDeMemoria(pos,memoria_principal);
+				if(pagc->key == key){
+					pagin->ultimaLectura=(unsigned)time(NULL);;
+					pagin->modificado=(unsigned)time(NULL);;
+					log_info(logger,"Pagina con posicion en memoria %i modificada, ultimo acceso: %i , Bit de MOD = %i",pagin->posicionEnMemoria,pagin->ultimaLectura, pagin->modificado);
+					free(pagc);
+					return 2;
+				}
+			}
+			log_error(logger,"El registro no se encuentra en memoria");
+			return -1;
+	}
+	void modificarRegistro(uint16_t key,char* dato,long tss,int posicion, char* memoria_principal, t_list* tablas){
+		memcpy(&memoria_principal[posicion*tamanio_pagina],&key,sizeof(uint16_t)); 					//deberia ser &key? POR ACA SEGMENTATION FAULT
+		memcpy(&memoria_principal[posicion*tamanio_pagina+sizeof(uint16_t)],&tss,sizeof(long));			// mismo que arriba
+		strcpy(&memoria_principal[posicion*tamanio_pagina+sizeof(uint16_t)+sizeof(long)], dato);
+	}
 /**
  	* @NAME: resolver_select
  	* @DESC: resuelve el select
@@ -403,7 +500,7 @@ int buscarRegistroEnTabla(char* tabla, uint16_t key, char* memoria_principal,t_l
 					break;
 				case INSERT:
 					log_info(logger, "%i solicitó INSERT", socket_memoria);
-					//aca debería enviarse el mensaje a LFS con INSERT
+					resolver_select(socket_memoria, socket_conexion_lfs,memoria_principal,tablas);
 					break;
 				case CREATE:
 					log_info(logger, "%i solicitó CREATE", socket_memoria);
