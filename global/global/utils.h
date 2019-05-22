@@ -50,6 +50,7 @@ t_paquete* crear_paquete(void);
 t_paquete* crear_super_paquete(void);
 void agregar_a_paquete(t_paquete* paquete, void* valor, int tamanio);
 void enviar_paquete(t_paquete* paquete, int socket_cliente);
+void enviar_paquete_select(int socket_envio, t_paquete_select* consulta_select);
 void liberar_conexion(int socket_cliente);
 void eliminar_paquete(t_paquete* paquete);
 int recibir_operacion(int socket_cliente);

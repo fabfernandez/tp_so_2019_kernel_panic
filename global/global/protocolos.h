@@ -141,15 +141,14 @@ typedef struct {
 } segmento;
 
 typedef struct {
-	uint16_t key;
-	int posicionEnMemoria;
+	unsigned int posicionEnMemoria;
 	int modificado;
 } pagina; // para la lista
 
 typedef struct {
 	uint16_t key;
-	char* value;
 	long timestamp;
+	char* value;
 } pagina_concreta; // para la memoria
 
 int get_tamanio_paquete_select(t_paquete_select* paquete_select);

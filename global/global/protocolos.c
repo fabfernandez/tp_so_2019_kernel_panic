@@ -193,7 +193,7 @@ t_paquete_select* deserializar_select (int socket_cliente){
 	char * nombre_tabla = malloc(size_nombre_tabla);
 	consulta_select->nombre_tabla->palabra = malloc(consulta_select->nombre_tabla->size);
 	recv(socket_cliente, nombre_tabla, size_nombre_tabla, MSG_WAITALL);
-	memcpy(consulta_select->nombre_tabla->palabra ,nombre_tabla, size_nombre_tabla );
+	strcpy(consulta_select->nombre_tabla->palabra ,nombre_tabla);
 	recv(socket_cliente,  &(consulta_select->key), sizeof(uint16_t), MSG_WAITALL);
 
 	return consulta_select;//Acordarse de hacer un free despues de usarse
