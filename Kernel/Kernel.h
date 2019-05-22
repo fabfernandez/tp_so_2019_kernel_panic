@@ -30,7 +30,7 @@ typedef char* t_valor;					// VALOR QUE DEVUELVE EL SELECT(TODAVIA NO SABEMOS QU
 
 
 							// ******* API KERNEL ******* //
-void resolver_describe_drop(t_instruccion_lql instruccion, int socket_memoria);
+void resolver_describe_drop(t_instruccion_lql instruccion, int socket_memoria, t_operacion operacion);
 void resolver_create(t_instruccion_lql instruccion, int socket_memoria);
 void resolver_insert(t_instruccion_lql instruccion, int socket_memoria);
 void resolver_select(t_instruccion_lql instruccion, int socket_memoria);

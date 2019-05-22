@@ -131,7 +131,7 @@ void resolver_create (int socket_memoria){
 	log_info(logger, "Num Particiones: %d", consulta_create->num_particiones);
 	log_info(logger, "Tiempo compactacion: %d", consulta_create->tiempo_compac);
 	log_info(logger, "Consistencia: %d", consulta_create->consistencia);
-	enviar_paquete_create(socket_memoria, consulta_create);
+
 	eliminar_paquete_create(consulta_create);
 }
 
@@ -139,7 +139,6 @@ void resolver_describe_drop (int socket_memoria, char* operacion){
 	t_paquete_drop_describe* consulta_describe_drop = deserealizar_drop_describe(socket_memoria);
 	log_info(logger, "Se realiza %s", operacion);
 	log_info(logger, "Tabla: %s", consulta_describe_drop->nombre_tabla->palabra);
-	enviar_paquete_drop_describe(socket_memoria, consulta_describe_drop);
 	eliminar_paquete_drop_describe(consulta_describe_drop);
 }
 
@@ -150,6 +149,8 @@ void resolver_insert (int socket_memoria){
 	log_info(logger, "Se realiza INSERT");
 	log_info(logger, "Consulta en la tabla: %s", nombre_tabla );
 	log_info(logger, "Consulta por key: %d", key);
+	log_info(logger, "Valor: %s", consulta_insert->valor->palabra);
+	log_info(logger, "TIMESTAMP: %d", consulta_insert->timestamp);
 /*	if (existe_tabla(nombre_tabla)){
 
 	}*/

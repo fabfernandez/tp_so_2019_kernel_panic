@@ -17,7 +17,7 @@ int get_tamanio_paquete_create(t_paquete_create* paquete_create){
 }
 
 int get_tamanio_paquete_insert(t_paquete_insert* paquete_insert){
-	return paquete_insert->nombre_tabla->size+ paquete_insert->valor->size+ 2*sizeof(int)+ sizeof(t_operacion)+sizeof(uint16_t);
+	return paquete_insert->nombre_tabla->size+ paquete_insert->valor->size+ 2*sizeof(int)+ sizeof(t_operacion)+sizeof(uint16_t)+sizeof(long);
 }
 
 int get_tamanio_paquete_add(t_paquete_add* paquete_add){
@@ -69,16 +69,22 @@ t_paquete_create* crear_paquete_create(t_instruccion_lql instruccion) {
 t_paquete_insert* crear_paquete_insert(t_instruccion_lql instruccion){
 	t_paquete_insert* paquete_insert = malloc(sizeof(t_paquete_insert));
 	paquete_insert->codigo_operacion = instruccion.operacion;
+
 	paquete_insert->nombre_tabla = malloc(sizeof(t_buffer));
 	char* nombre_tabla = instruccion.parametros.INSERT.tabla;
 	paquete_insert->nombre_tabla->size = string_size(nombre_tabla);
 	paquete_insert->nombre_tabla->palabra = malloc(paquete_insert->nombre_tabla->size);
 	memcpy(paquete_insert->nombre_tabla->palabra, nombre_tabla, paquete_insert->nombre_tabla->size);
+
 	paquete_insert->key = instruccion.parametros.INSERT.key;
+
+	paquete_insert->valor = malloc(sizeof(t_buffer));
 	char* valor_ingresar = instruccion.parametros.INSERT.value;
 	paquete_insert->valor->size = string_size(valor_ingresar);
 	paquete_insert->valor->palabra = malloc(paquete_insert->valor->size);
-	memcpy(paquete_insert->valor->palabra, nombre_tabla, paquete_insert->valor->size);
+	memcpy(paquete_insert->valor->palabra, valor_ingresar, paquete_insert->valor->size);
+
+	paquete_insert->timestamp=instruccion.parametros.INSERT.timestamp;
 	return paquete_insert;
 }
 
@@ -143,8 +149,11 @@ char* serializar_paquete_insert(t_paquete_insert* paquete_insert, int bytes){
 	desplazamiento+= sizeof(uint16_t);
 	memcpy(serializado + desplazamiento, &(paquete_insert->valor->size), sizeof(int));
 	desplazamiento+= sizeof(int);
-	memcpy(serializado + desplazamiento, &(paquete_insert->valor->palabra), paquete_insert->valor->size);
+	memcpy(serializado + desplazamiento, paquete_insert->valor->palabra, paquete_insert->valor->size);
 	desplazamiento+= paquete_insert->valor->size;
+	memcpy(serializado + desplazamiento, &(paquete_insert->timestamp), sizeof(long));
+	desplazamiento+= sizeof(long);
+
 	return serializado;
 }
 
@@ -197,7 +206,7 @@ t_paquete_create* deserializar_create (int socket_cliente){
 	recv(socket_cliente,  &(consulta_create->nombre_tabla->size), sizeof(int), MSG_WAITALL);
 	int size_nombre_tabla = consulta_create->nombre_tabla->size;
 	char * nombre_tabla = malloc(size_nombre_tabla);
-	//consulta_select->nombre_tabla->palabra = malloc(consulta_select->nombre_tabla->size);
+	consulta_create->nombre_tabla->palabra = malloc(consulta_create->nombre_tabla->size);
 	recv(socket_cliente, nombre_tabla, size_nombre_tabla, MSG_WAITALL);
 	memcpy(consulta_create->nombre_tabla->palabra ,nombre_tabla, size_nombre_tabla );
 	recv(socket_cliente,  &(consulta_create->consistencia), sizeof(t_consistencia), MSG_WAITALL);
@@ -210,19 +219,26 @@ t_paquete_create* deserializar_create (int socket_cliente){
 t_paquete_insert* deserealizar_insert(int socket_cliente) {
 	t_paquete_insert* consulta_insert = malloc(sizeof(t_paquete_insert));
 	consulta_insert->codigo_operacion = INSERT;
+
 	consulta_insert->nombre_tabla = malloc(sizeof(t_buffer));
 	recv(socket_cliente,  &(consulta_insert->nombre_tabla->size), sizeof(int), MSG_WAITALL);
 	int size_nombre_tabla = consulta_insert->nombre_tabla->size;
 	char * nombre_tabla = malloc(size_nombre_tabla);
+	consulta_insert->nombre_tabla->palabra = malloc(consulta_insert->nombre_tabla->size);
 	recv(socket_cliente, nombre_tabla, size_nombre_tabla, MSG_WAITALL);
 	memcpy(consulta_insert->nombre_tabla->palabra ,nombre_tabla, size_nombre_tabla );
-	recv(socket_cliente,  &(consulta_insert->key), sizeof(uint16_t), MSG_WAITALL);
+
+	recv(socket_cliente, &(consulta_insert->key), sizeof(uint16_t), MSG_WAITALL);
+
 	consulta_insert->valor = malloc(sizeof(t_buffer));
 	recv(socket_cliente,  &(consulta_insert->valor->size), sizeof(int), MSG_WAITALL);
 	int size_valor = consulta_insert->valor->size;
 	char * valor = malloc(size_valor);
+	consulta_insert->valor->palabra = malloc(consulta_insert->valor->size);
 	recv(socket_cliente, valor, size_valor, MSG_WAITALL);
+	memcpy(consulta_insert->valor->palabra ,valor, size_valor );
 
+	recv(socket_cliente,  &(consulta_insert->timestamp), sizeof(long), MSG_WAITALL);
 	return consulta_insert;//Acordarse de hacer un free despues de usarse
 }
 
@@ -241,6 +257,7 @@ t_paquete_drop_describe* deserealizar_drop_describe(int socket_cliente) {
 	recv(socket_cliente,  &(consulta->nombre_tabla->size), sizeof(int), MSG_WAITALL);
 	int size_nombre_tabla = consulta->nombre_tabla->size;
 	char * nombre_tabla = malloc(size_nombre_tabla);
+	consulta->nombre_tabla->palabra = malloc(consulta->nombre_tabla->size);
 	recv(socket_cliente, nombre_tabla, size_nombre_tabla, MSG_WAITALL);
 	memcpy(consulta->nombre_tabla->palabra ,nombre_tabla, size_nombre_tabla );
 

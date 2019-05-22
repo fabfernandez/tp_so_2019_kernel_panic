@@ -80,11 +80,11 @@ void ejecutar_instruccion(t_instruccion_lql instruccion, int socket_memoria){
 			break;
 		case DESCRIBE:
 			log_info(logger, "Kernel solicitó DESCRIBE");
-			resolver_describe_drop(instruccion, socket_memoria);
+			resolver_describe_drop(instruccion, socket_memoria, DESCRIBE);
 			break;
 		case DROP:
 			log_info(logger, "Kernel solicitó DROP");
-			resolver_describe_drop(instruccion, socket_memoria);
+			resolver_describe_drop(instruccion, socket_memoria, DROP);
 			break;
 		case RUN:
 			log_info(logger, "Kernel solicitó RUN");
@@ -102,8 +102,9 @@ void ejecutar_instruccion(t_instruccion_lql instruccion, int socket_memoria){
 			//exit(-1);
 	}
 };*/
-void resolver_describe_drop(t_instruccion_lql instruccion, int socket_memoria){
+void resolver_describe_drop(t_instruccion_lql instruccion, int socket_memoria, t_operacion operacion){
 	t_paquete_drop_describe* paquete_describe = crear_paquete_drop_describe(instruccion);
+	paquete_describe->codigo_operacion=operacion;
 	enviar_paquete_drop_describe(socket_memoria, paquete_describe);
 	eliminar_paquete_drop_describe(paquete_describe);
 
@@ -112,6 +113,7 @@ void resolver_describe_drop(t_instruccion_lql instruccion, int socket_memoria){
 void resolver_create(t_instruccion_lql instruccion, int socket_memoria){
 
 	t_paquete_create* paquete_create = crear_paquete_create(instruccion);
+
 	enviar_paquete_create(socket_memoria, paquete_create);
 	eliminar_paquete_create(paquete_create);
 }

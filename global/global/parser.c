@@ -15,9 +15,9 @@
 #define RUN_KEY "RUN"
 #define JOURNAL_KEY "JOURNAL"
 
-#define STRONG_TEXT "STRONG"
-#define STRONG_HASH_TEXT "STRONG_HASH"
-#define EVENTUAL_TEXT "EVENTUAL"
+#define STRONG_TEXT "SC"
+#define STRONG_HASH_TEXT "SHC"
+#define EVENTUAL_TEXT "SE"
 
 t_instruccion_lql parsear_linea(char* line){
 
@@ -47,7 +47,7 @@ t_instruccion_lql parsear_linea(char* line){
 		ret.parametros.INSERT.key= (uint16_t)atoi(split[2]);
 		ret.parametros.INSERT.value = (char*)split[3];
 		if(split[4] == NULL){
-			ret.parametros.INSERT.timestamp= (long)time();
+			ret.parametros.INSERT.timestamp= (unsigned long)time(NULL);
 		} else{
 			ret.parametros.INSERT.timestamp=(long)atoi(split[4]);
 		}
