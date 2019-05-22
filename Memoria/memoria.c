@@ -64,20 +64,27 @@ int main(void)
 /*
  * PRUEBA PARA SELECT
  */
-	list_add(tablas, crearSegmento("Nombre"));
 	list_add(tablas, crearSegmento("Apellido"));
+	list_add(tablas, crearSegmento("Nombre"));
 	list_add(tablas, crearSegmento("DNI"));
 	list_add(tablas, crearSegmento("Genero"));
 	list_add(tablas, crearSegmento("Algo"));
 	list_add(tablas, crearSegmento("Algo2"));
 
 	paginaNueva(123,"Gon",125478,"DNI",memoria_principal,tablas); 					// si no le paso la memoria principal por parametro me hace un segmentation fault.
+	sleep(1);
 	paginaNueva(273,"Faba",15478,"Nombre",memoria_principal,tablas);
+	sleep(1);
 	paginaNueva(113,"Juan",15478,"Apellido",memoria_principal,tablas);
+	sleep(1);
 	paginaNueva(213,"Flor",15478,"Apellido",memoria_principal,tablas);
+	sleep(1);
 	paginaNueva(113,"Delfi",15478,"Genero",memoria_principal,tablas);
+	sleep(1);
 	paginaNueva(213,"Juana",15478,"Genero",memoria_principal,tablas);
+	sleep(1);
 	paginaNueva(113,"Vito",15478,"DNI",memoria_principal,tablas);
+	sleep(1);
 	paginaNueva(213,"Pess",15478,"Nombre",memoria_principal,tablas);
 
 	segmento* unS = encontrarSegmento("Apellido",tablas);
@@ -94,7 +101,7 @@ int main(void)
 	log_info(logger,"SEGMENTO ENCONTRADO: %s , con %i elementos.", unS5->nombreTabla, unS5->paginas->elements_count);
 	log_info(logger,"SEGMENTO ENCONTRADO: %s , con %i elementos.", unS6->nombreTabla, unS6->paginas->elements_count);
 
-
+	/*
 	pagina_concreta* paginaM1= traerPaginaDeMemoria(0,memoria_principal);
 	pagina_concreta* paginaM2= traerPaginaDeMemoria(1,memoria_principal);
 	pagina_concreta* paginaM3= traerPaginaDeMemoria(2,memoria_principal);
@@ -151,15 +158,24 @@ int main(void)
 	free(paginaM7->value);
 	free(paginaM7);
 	free(paginaM8);
-
+	*/
+	/*
 	int eg = buscarRegistroEnTabla("Nombre",273,memoria_principal, tablas);
 	log_info(logger," **** POSICION %i ****", eg);
-	pagina_concreta* paginacc = traerPaginaDeMemoria(1,memoria_principal);
+	/*pagina_concreta* paginacc = traerPaginaDeMemoria(eg,memoria_principal);
 	log_info(logger,"La key es: %i", paginacc->key);
 	log_info(logger,"El ts es: %i", paginacc->timestamp);
 	log_info(logger,"El value es: %s", paginacc->value);
-	free(paginacc);
+	free(paginacc);*/
 	log_info(logger,"**** CANTIDAD DE SEGMENTOS: %i ****", tablas->elements_count);
+//	int leo=buscarRegistroEnTabla("DNI",123,memoria_principal,tablas);
+	int ultimaLeida = lru(memoria_principal,tablas); // tiene que ser el primer registro agregado
+	log_info(logger,"**** REGISTRO MENOS LEIDO, EL QUE HACE MAS TIEMPO NO SE LEE: %i ****", ultimaLeida);
+	pagina_concreta* paginacc2 = traerPaginaDeMemoria(ultimaLeida,memoria_principal);
+	log_info(logger,"La key es: %i", paginacc2->key);
+	log_info(logger,"El ts es: %i", paginacc2->timestamp);
+	log_info(logger,"El value es: %s", paginacc2->value);
+	free(paginacc2);
 	sleep(2);
 
 
@@ -230,6 +246,7 @@ pagina* crearPagina(){
 	pagina* paginaa = malloc(sizeof(pagina));
 	paginaa->modificado=0;
 	paginaa->posicionEnMemoria=posicionProximaLibre;
+	paginaa->ultimaLectura=(unsigned)time(NULL);;
 	posicionProximaLibre+=1;
 	return paginaa;
 }
@@ -242,11 +259,11 @@ pagina* crearPagina(){
 void paginaNueva(uint16_t key, char* value, long ts, char* tabla, char* memoria,t_list* tablas){
 	pagina* pagina = crearPagina();	// deberia ser con malloc?
 	agregarPaginaASegmento(tabla,pagina,tablas);
-	log_info(logger,"POSICION EN MMORIA: %i", pagina->posicionEnMemoria);
+	//log_info(logger,"POSICION EN MMORIA: %i", pagina->posicionEnMemoria);
 	memcpy(&memoria[(pagina->posicionEnMemoria)*tamanio_pagina],&key,sizeof(uint16_t)); 					//deberia ser &key? POR ACA SEGMENTATION FAULT
 	memcpy(&memoria[(pagina->posicionEnMemoria)*tamanio_pagina+sizeof(uint16_t)],&ts,sizeof(long));			// mismo que arriba
 	strcpy(&memoria[(pagina->posicionEnMemoria)*tamanio_pagina+sizeof(uint16_t)+sizeof(long)], value);
-	log_info(logger,"POSICION PROXIMA EN MMORIA DISPONIBLE: %i", posicionProximaLibre);
+	//log_info(logger,"POSICION PROXIMA EN MMORIA DISPONIBLE: %i", posicionProximaLibre);
 	}
 /**
  	* @NAME: agregarPaginaASegmento
@@ -256,7 +273,7 @@ void paginaNueva(uint16_t key, char* value, long ts, char* tabla, char* memoria,
 void agregarPaginaASegmento(char* tabla, pagina* pagina, t_list* tablas){
 	segmento* segmentoBuscado = encontrarSegmento(tabla, tablas);
 	list_add(segmentoBuscado->paginas, pagina);
-	log_info(logger,"Se agrego la pagina con posicion en memoria: %i , al segmento: %s", pagina->posicionEnMemoria, segmentoBuscado->nombreTabla);
+	log_info(logger,"Se agrego la pagina con posicion en memoria: %i , al segmento: %s , con ultimo tiempo de lectura = %i", pagina->posicionEnMemoria, segmentoBuscado->nombreTabla, pagina->ultimaLectura);
 }
 /**
  	* @NAME: crearSegmento
@@ -286,12 +303,17 @@ int buscarRegistroEnTabla(char* tabla, uint16_t key, char* memoria_principal,t_l
 		{
 			pagina* pagin = list_get(segment->paginas,i);
 			uint16_t pos = pagin->posicionEnMemoria;
-			log_info(logger,"Pisicion en memoria: %i",pagin->posicionEnMemoria);
+			log_info(logger,"Posicion en memoria: %i",pagin->posicionEnMemoria);
 			pagina_concreta * pagc = malloc(sizeof(pagina_concreta));
 			pagc = traerPaginaDeMemoria(pos,memoria_principal);
 			log_info(logger,"Pagina Key: %i",pagc->key);
 			int posicion=pagin->posicionEnMemoria;
 			if(pagc->key == key){
+				log_info(logger,"Ultima lectura anterior: %i",pagin->ultimaLectura);
+				sleep(1); // si no hago sleep el ts es el mismo pq la ejecucion es super veloz jaja
+				pagin->ultimaLectura=(unsigned)time(NULL);;
+				log_info(logger,"TS: %i",(unsigned)time(NULL));
+				log_info(logger,"Ultima lectura(actual): %i",pagin->ultimaLectura);
 				free(pagc);
 				return posicion;
 			}
@@ -624,7 +646,60 @@ int buscarRegistroEnTabla(char* tabla, uint16_t key, char* memoria_principal,t_l
 	}
 
 
-/**
+	/**
+		* @NAME: lru
+		* @DESC: Se ejecuta el algoritmo de sustitucion, recorre todas las paginas, si encuentra
+		*  paginas sin modificar las compara y devuelve la que tenga el ts mas antiguo, si no
+		*  devuelve -1, lo que significa que estan todas las paginas modificadas y hay que hacer un journal.
+		*
+		*/
+		int lru(char* memoria_principal, t_list* tablas){
+				unsigned int posicionMemo=0;
+				long ultimaLectura=-1;
+				int segment=0;
+				int pagg=0;
+				log_info(logger, "[TABLAS= %i ]",tablas->elements_count);
+				for(int i=0; i<(tablas->elements_count); i++){	// recorro segmentos
+						segmento* segmente = list_get(tablas, i);
+						log_info(logger, "[Ciclo segmento %i , cant pags= %i ]",i, segmente->paginas->elements_count);
+						for(int j=0; j<segmente->paginas->elements_count; j++) {// en un segmento i, recorro sus paginas
+							pagina* pag = list_get(segmente->paginas, j);		// traigo pagina
+							if(ultimaLectura==-1 && pag->modificado==0)
+							{			// si es la primer pagina que leo sin modificar
+								posicionMemo=pag->posicionEnMemoria;			// asigno la posicion de memoria para retornarla
+								ultimaLectura=pag->ultimaLectura;				// guardo su ultima lectura para seguir comparando.
+								log_info(logger, "[PM=-1 // PRIMER VUELTA J=%i]Ultima lectura %i",j,ultimaLectura);
+								log_info(logger, "[PM=-1 // PRIMER VUELTA J=%i]Posicion memo %i",j,posicionMemo);
+								segment=i;										// determino el segmento y
+								pagg=j;											// la pagina para despues poder eliminarla de mis tablas
+
+							} else log_info(logger, "NO CUMPLE");
+							if(pag->modificado==0)
+							{// si no es la primer pagina que leo sin modificar y aparte hace mas tiempo que no se lee
+								if(pag->ultimaLectura<ultimaLectura){
+								posicionMemo=pag->posicionEnMemoria;							// asigo la posicion de memoria para retornarla
+								ultimaLectura=pag->ultimaLectura;								// guardo su ultima lectura para seguir comparando
+								log_info(logger, "[CICLO PAG J=%i]Ultima lectura %i",j,ultimaLectura);
+								log_info(logger, "[CICLO PAG J=%i]Posicion memo %i",j,posicionMemo);
+								segment=i;														// determino el segmento y
+								pagg=j;
+								}// la pagina para despues poder eliminarla de mis tablas
+							} else log_info(logger, "NO CUMPLE");
+						}
+					}
+															// termino de recorrer las tablas
+			if(ultimaLectura==-1) { return ultimaLectura; }	// si la posicion es -1 significa que no encontro ni una pagina que no estuviera modificada, devuevlo -1, hay que hacer journal
+			//segmento* segm = list_get(tablas,segment);		// si sigue la ejecucion, es que encontro paginas, procedo a eliminar esa pagina que va a ser sustituda, traigo el segmento
+			//list_remove(segm->paginas, pagg);				// elimino de la lista de paginas del segmento a la pagina indicada
+			log_info(logger, "TERMINE CICLOS? %i",posicionMemo);
+			return posicionMemo;							// retorno la direccion en memoria sobre el que voy a escribir mi nuevo registro dato.
+		}
+
+
+
+
+
+	/**
 	* @NAME: traerRegistroDeMemoria
 	* @DESC: Retorna una pagina desde memoria conociendo su posicion.
 	*

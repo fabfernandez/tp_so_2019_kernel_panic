@@ -142,6 +142,7 @@ typedef struct {
 typedef struct {
 	unsigned int posicionEnMemoria;
 	int modificado;
+	long ultimaLectura;
 } pagina; // para la lista
 
 typedef struct {

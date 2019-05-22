@@ -37,6 +37,7 @@ pagina_concreta* traerPaginaDeMemoria(unsigned int posicion,char* memoria_princi
 int existeTabla(char* tabla);
 void agregar_pagina_a_tabla(pagina* pagina,char* nombreTabla);
 pagina* crearPagina();
+int lru(char* memoria_principal, t_list* tablas);
 void agregarEnMemoriaElRegistro(char* key,char* value,long timestamp);
 int buscarRegistroEnTabla(char* tabla, uint16_t key, char* memoria_principal,t_list* tablas);
 void traerPaginaDeMemoria2(unsigned int posicion,char* memoria_principal,pagina_concreta* pagina);
