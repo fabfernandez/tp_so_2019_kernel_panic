@@ -72,19 +72,19 @@ void ejecutar_instruccion(t_instruccion_lql instruccion, int socket_memoria){
 			break;
 		case INSERT:
 			log_info(logger, "Kernel solicitó INSERT");
-			//aca debería enviarse el mensaje a LFS con INSERT
+			resolver_insert(instruccion, socket_memoria);
 			break;
 		case CREATE:
 			log_info(logger, "Kernel solicitó CREATE");
-			//aca debería enviarse el mensaje a LFS con CREATE
+			resolver_create(instruccion, socket_memoria);
 			break;
 		case DESCRIBE:
 			log_info(logger, "Kernel solicitó DESCRIBE");
-			//aca debería enviarse el mensaje a LFS con DESCRIBE
+			resolver_describe_drop(instruccion, socket_memoria, DESCRIBE);
 			break;
 		case DROP:
 			log_info(logger, "Kernel solicitó DROP");
-			//aca debería enviarse el mensaje a LFS con DROP
+			resolver_describe_drop(instruccion, socket_memoria, DROP);
 			break;
 		case RUN:
 			log_info(logger, "Kernel solicitó RUN");
@@ -102,12 +102,33 @@ void ejecutar_instruccion(t_instruccion_lql instruccion, int socket_memoria){
 			//exit(-1);
 	}
 };*/
+void resolver_describe_drop(t_instruccion_lql instruccion, int socket_memoria, t_operacion operacion){
+	t_paquete_drop_describe* paquete_describe = crear_paquete_drop_describe(instruccion);
+	paquete_describe->codigo_operacion=operacion;
+	enviar_paquete_drop_describe(socket_memoria, paquete_describe);
+	eliminar_paquete_drop_describe(paquete_describe);
+
+}
+
+void resolver_create(t_instruccion_lql instruccion, int socket_memoria){
+
+	t_paquete_create* paquete_create = crear_paquete_create(instruccion);
+
+	enviar_paquete_create(socket_memoria, paquete_create);
+	eliminar_paquete_create(paquete_create);
+}
 
 void resolver_select(t_instruccion_lql instruccion, int socket_memoria){
 
 	t_paquete_select* paquete_select = crear_paquete_select(instruccion);
 	enviar_paquete_select(socket_memoria, paquete_select);
 	eliminar_paquete_select(paquete_select);
+}
+
+void resolver_insert (t_instruccion_lql instruccion, int socket_memoria){
+	t_paquete_insert* paquete_insert = crear_paquete_insert(instruccion);
+	enviar_paquete_insert(socket_memoria, paquete_insert);
+	eliminar_paquete_insert(paquete_insert);
 }
 
 void resolver_run(t_instruccion_lql instruccion, int socket_memoria){

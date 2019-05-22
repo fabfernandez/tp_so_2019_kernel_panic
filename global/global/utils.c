@@ -17,6 +17,37 @@ void enviar_paquete_select(int socket_envio, t_paquete_select* consulta_select){
 	free(a_enviar);
 }
 
+void enviar_paquete_insert(int socket_envio, t_paquete_insert* consulta_insert){
+
+	int bytes = get_tamanio_paquete_insert(consulta_insert);
+	char* a_enviar = serializar_paquete_insert(consulta_insert, bytes);
+
+	send(socket_envio, a_enviar, bytes, MSG_WAITALL);
+
+	free(a_enviar);
+}
+
+void enviar_paquete_drop_describe(int socket_envio, t_paquete_drop_describe* consulta_drop_describe){
+	int bytes = get_tamanio_paquete_describe_drop(consulta_drop_describe);
+
+	char* a_enviar = serialiazar_paquete_drop_describe(consulta_drop_describe, bytes);
+
+	send(socket_envio, a_enviar, bytes, MSG_WAITALL);
+
+	free(a_enviar);
+
+}
+
+void enviar_paquete_create(int socket_envio, t_paquete_create* consulta_create){
+	int bytes = get_tamanio_paquete_create(consulta_create);
+
+	char* a_enviar = serializar_paquete_create(consulta_create, bytes);
+
+	send(socket_envio, a_enviar, bytes, MSG_WAITALL);
+
+	free(a_enviar);
+}
+
 
 void recibir_handshake(t_log* logger,int socket_fd){
 	int cod_op = recibir_operacion(socket_fd);
@@ -152,6 +183,27 @@ void enviar_paquete(t_paquete* paquete, int socket_cliente)
 	send(socket_cliente, a_enviar, bytes, 0);
 
 	free(a_enviar);
+}
+
+void eliminar_paquete_drop_describe(t_paquete_drop_describe* paquete_drop_describe){
+	free(paquete_drop_describe->nombre_tabla->palabra);
+	free(paquete_drop_describe->nombre_tabla);
+	free(paquete_drop_describe);
+}
+
+void eliminar_paquete_create(t_paquete_create* paquete_create){
+	free(paquete_create->nombre_tabla->palabra);
+	free(paquete_create->nombre_tabla);
+	free(paquete_create);
+
+}
+
+void eliminar_paquete_insert(t_paquete_insert* paquete_insert){
+	free(paquete_insert->nombre_tabla->palabra);
+	free(paquete_insert->nombre_tabla);
+	free(paquete_insert->valor->palabra);
+	free(paquete_insert->valor);
+	free(paquete_insert);
 }
 
 void eliminar_paquete_select(t_paquete_select* paquete_select){

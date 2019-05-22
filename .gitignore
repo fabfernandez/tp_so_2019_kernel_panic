@@ -67,7 +67,14 @@ local.properties
 .loadpath
 .recommenders
 
-# External tool builders
+#settings
+Kernel/.settings/
+Memoria/.settings/
+LFS/.settings/
+global/.settings/
+
+# External
+ tool builders
 .externalToolBuilders/
 
 # Locally stored "Eclipse launch configurations"

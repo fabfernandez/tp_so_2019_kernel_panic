@@ -33,8 +33,9 @@ char* serializar_pagina(pagina_concreta* pagina);
 pagina_concreta* deserializar_pagina(char* paginac);
 segmento* encontrarSegmento(char* nombredTabla, t_list* tablas);
 pagina* *encontrarPagina(segmento* unSegmento, uint16_t key);
-int cambiarBitModificado(char* tabla, uint16_t key,t_list* tablas);
+int cambiarBitModificado(char* tabla, uint16_t key,t_list* tablas, char* memoria_principal);
 void modificarRegistro(uint16_t key,char* dato,long tss,int posicion, char* memoria_principal, t_list* tablas);
+void resolver_insert2(int socket_kernel_fd, int socket_conexion_lfs);
 pagina_concreta* traerPaginaDeMemoria(unsigned int posicion,char* memoria_principal);
 int existeTabla(char* tabla);
 void agregar_pagina_a_tabla(pagina* pagina,char* nombreTabla);
@@ -99,5 +100,8 @@ int create(char* tabla, t_consistencia consistencia, int maximo_particiones, lon
 t_metadata describe(char* tabla);
 
 int journal(void);
+
+/*OPERACIONES*/
+void resolver_select (int socket_kernel_fd, int socket_conexion_lfs,char* memoria_principal, t_list* tablas);
 
 #endif /* MEMORIA_H_ */
