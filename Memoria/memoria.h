@@ -95,4 +95,7 @@ t_metadata describe(char* tabla);
 
 int journal(void);
 
+/*OPERACIONES*/
+void resolver_select (int socket_kernel_fd, int socket_conexion_lfs,char* memoria_principal, t_list* tablas);
+
 #endif /* MEMORIA_H_ */

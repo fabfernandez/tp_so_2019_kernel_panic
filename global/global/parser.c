@@ -15,9 +15,9 @@
 #define RUN_KEY "RUN"
 #define JOURNAL_KEY "JOURNAL"
 
-#define STRONG_TEXT "STRONG"
-#define STRONG_HASH_TEXT "STRONG_HASH"
-#define EVENTUAL_TEXT "EVENTUAL"
+#define STRONG_TEXT "SC"
+#define STRONG_HASH_TEXT "SHC"
+#define EVENTUAL_TEXT "SE"
 
 t_instruccion_lql parsear_linea(char* line){
 
@@ -40,13 +40,17 @@ t_instruccion_lql parsear_linea(char* line){
 	if(string_equals_ignore_case(keyword, INSERT_KEY)){
 
 		ret.operacion = INSERT;
-		if (split[1] == NULL || split[2]== NULL || split[3] == NULL || split[4] == NULL){
-			return lanzar_error("Formato incorrecto. INSERT TABLA TIMESTAMP KEY VALUE\n");
+		if (split[1] == NULL || split[2]== NULL || split[3] == NULL ){
+			return lanzar_error("Formato incorrecto. INSERT TABLA KEY VALUE TIMESTAMP - El ultimo valor es opcional\n");
 		}
 		ret.parametros.INSERT.tabla = split[1];
 		ret.parametros.INSERT.key= (uint16_t)atoi(split[2]);
 		ret.parametros.INSERT.value = (char*)split[3];
-		ret.parametros.INSERT.timestamp=(long)atoi(split[4]);
+		if(split[4] == NULL){
+			ret.parametros.INSERT.timestamp= (unsigned long)time(NULL);
+		} else{
+			ret.parametros.INSERT.timestamp=(long)atoi(split[4]);
+		}
 
 	} else if(string_equals_ignore_case(keyword, SELECT_KEY)){
 		ret.operacion=SELECT;

@@ -326,14 +326,45 @@ int buscarRegistroEnTabla(char* tabla, uint16_t key, char* memoria_principal,t_l
 		free(paginalala->value);
 		free(paginalala);
 	}
-	}
+}
 
-/**
- 	* @NAME: iniciar_logger
- 	* @DESC: Crea(lee,abre) el archivo de log
- 	*
- 	*/
-	void iniciar_logger() {
+void resolver_insert (int socket_kernel_fd, int socket_conexion_lfs){
+	t_paquete_insert* consulta_insert = deserealizar_insert(socket_kernel_fd);
+	log_info(logger, "Se realiza INSERT");
+	log_info(logger, "Tabla: %s", consulta_insert->nombre_tabla->palabra);
+	log_info(logger, "Key: %d", consulta_insert->key);
+	log_info(logger, "Valor: %s", consulta_insert->valor->palabra);
+	log_info(logger, "TIMESTAMP: %d", consulta_insert->timestamp);
+	enviar_paquete_insert(socket_conexion_lfs, consulta_insert);
+	eliminar_paquete_insert(consulta_insert);
+}
+
+void resolver_create (int socket_kernel_fd, int socket_conexion_lfs){
+	t_paquete_create* consulta_create = deserializar_create(socket_kernel_fd);
+	log_info(logger, "Se realiza CREATE");
+	log_info(logger, "Tabla: %s", consulta_create->nombre_tabla->palabra);
+	log_info(logger, "Num Particiones: %d", consulta_create->num_particiones);
+	log_info(logger, "Tiempo compactacion: %d", consulta_create->tiempo_compac);
+	log_info(logger, "Consistencia: %d", consulta_create->consistencia);
+	enviar_paquete_create(socket_conexion_lfs, consulta_create);
+	eliminar_paquete_create(consulta_create);
+}
+
+void resolver_describe_drop (int socket_kernel_fd, int socket_conexion_lfs, char* operacion){
+	t_paquete_drop_describe* consulta_describe_drop = deserealizar_drop_describe(socket_kernel_fd);
+	log_info(logger, "Se realiza %s", operacion);
+	log_info(logger, "Tabla: %s", consulta_describe_drop->nombre_tabla->palabra);
+	if (operacion == "DROP"){ //TODO: cambiar para que reciba el enum y en el log usar una funcion que devuelva el string
+		consulta_describe_drop->codigo_operacion=DROP;
+	}else{
+		consulta_describe_drop->codigo_operacion=DESCRIBE;
+	}
+	enviar_paquete_drop_describe(socket_conexion_lfs, consulta_describe_drop);
+	eliminar_paquete_drop_describe(consulta_describe_drop);
+}
+
+
+ void iniciar_logger() {
 	logger = log_create("/home/utnso/tp-2019-1c-Los-Dinosaurios-Del-Libro/Memoria/memoria.log", "Memoria", 1, LOG_LEVEL_INFO);
 	}
  /**
@@ -355,9 +386,7 @@ int buscarRegistroEnTabla(char* tabla, uint16_t key, char* memoria_principal,t_l
 	liberar_conexion(conexionALFS);
 	log_destroy(logger);
 	config_destroy(archivoconfig);
-	}
-
-
+}
 /**
 	* @NAME: resolver_operacion
 	* @DESC: resuelve la operacion recibida
@@ -381,18 +410,22 @@ int buscarRegistroEnTabla(char* tabla, uint16_t key, char* memoria_principal,t_l
 					break;
 				case INSERT:
 					log_info(logger, "%i solicitó INSERT", socket_memoria);
+					resolver_insert(socket_memoria, socket_conexion_lfs);
 					//aca debería enviarse el mensaje a LFS con INSERT
 					break;
 				case CREATE:
 					log_info(logger, "%i solicitó CREATE", socket_memoria);
+					resolver_create(socket_memoria, socket_conexion_lfs);
 					//aca debería enviarse el mensaje a LFS con CREATE
 					break;
 				case DESCRIBE:
 					log_info(logger, "%i solicitó DESCRIBE", socket_memoria);
+					resolver_describe_drop(socket_memoria, socket_conexion_lfs, "DESCRIBE");
 					//aca debería enviarse el mensaje a LFS con DESCRIBE
 					break;
 				case DROP:
 					log_info(logger, "%i solicitó DROP", socket_memoria);
+					resolver_describe_drop(socket_memoria, socket_conexion_lfs, "DROP");
 					//aca debería enviarse el mensaje a LFS con DROP
 					break;
 				case GOSSPING:
