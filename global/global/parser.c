@@ -105,7 +105,7 @@ t_instruccion_lql parsear_linea(char* line){
 
 	} else {
 
-		lanzar_error("Operacion no contemplada.\n");
+		return lanzar_error("Operacion no contemplada.\n");
 	}
 
 	free(auxLine);
