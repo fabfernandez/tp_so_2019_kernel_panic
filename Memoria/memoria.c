@@ -404,7 +404,7 @@ int buscarRegistroEnTabla(char* tabla, uint16_t key, char* memoria_principal,t_l
 				pagc = traerPaginaDeMemoria(pos,memoria_principal);
 				if(pagc->key == key){
 					pagin->ultimaLectura=(unsigned)time(NULL);;
-					pagin->modificado=(unsigned)time(NULL);;
+					pagin->modificado=1;
 					log_info(logger,"Pagina con posicion en memoria %i modificada, ultimo acceso: %i , Bit de MOD = %i",pagin->posicionEnMemoria,pagin->ultimaLectura, pagin->modificado);
 					free(pagc);
 					return 2;
