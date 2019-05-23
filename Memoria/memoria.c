@@ -21,14 +21,11 @@ int main(void)
 	 * HAY QUE CAMBIAR RUTA A UNA VARIABLE PARA PODER LEVANTAR MEMORIAS CON DIFERENTES CONFIGS
 	 */
 	levantar_datos_memoria();
-
 	char* memoria_principal = (char*) malloc(tamanio_memoria*sizeof(char));
 	log_info(logger,"Se reservaron %i bytes para la memoria", (tamanio_memoria*sizeof(char)));
 	tablas = list_create();
 	log_info(logger,"Tabla de segmentos creada, cantidad actual: %i ", tablas->elements_count);
-
 	levantar_datos_lfs();
-
 	/*
 	 * obtener socket a la escucha
 	 */
@@ -47,154 +44,22 @@ int main(void)
 	 * ME CONECTO CON LFS E INTENTO UN HANDSHAKE -----------------------INTENTA CONECTARSE, SI NO PUEDE CORTA LA EJECUCION
 	 */
 	socket_conexion_lfs = crear_conexion(ip__lfs,puerto__lfs); //
-	if(socket_conexion_lfs != -1){
-	log_info(logger,"Creada la conexion para LFS %i", socket_conexion_lfs);
-	intentar_handshake_a_lfs(socket_conexion_lfs); 										// diferente al handshake normal SE SETEA TAMANIO_PAGINA y CANTIDAD_PAGINAS
-	log_info(logger, "Conexion exitosa con con %i", socket_memoria);
-	log_info(logger,"El tamaño de cada pagina sera: %i", tamanio_pagina);
-	log_info(logger,"La cantidad de paginas en memoria principal será: %i", cantidad_paginas);
-	//void* tabla_paginas =  se crean dinamicamentes, hay que reservar espacio para tabla de segmentos
-	} else {
-		log_info(logger,"No se pudo realizar la conexion con LFS. Abortando.");
-		log_info(logger, "Se liberaran %i bytes de la memoria",(tamanio_memoria*sizeof(char)));
-		free(memoria_principal);
-		return -1;
-
-	}
-/*
- * PRUEBA PARA SELECT
- */
-	list_add(tablas, crearSegmento("Apellido"));
-	list_add(tablas, crearSegmento("Nombre"));
-	list_add(tablas, crearSegmento("DNI"));
-	list_add(tablas, crearSegmento("Genero"));
-	list_add(tablas, crearSegmento("Algo"));
-	list_add(tablas, crearSegmento("Algo2"));
-
-	paginaNueva(123,"Gon",125478,"DNI",memoria_principal,tablas); 					// si no le paso la memoria principal por parametro me hace un segmentation fault.
-	sleep(1);
-	paginaNueva(273,"Faba",15478,"Nombre",memoria_principal,tablas);
-	sleep(1);
-	paginaNueva(113,"Juan",15478,"Apellido",memoria_principal,tablas);
-	sleep(1);
-	paginaNueva(213,"Flor",15478,"Apellido",memoria_principal,tablas);
-	sleep(1);
-	paginaNueva(113,"Delfi",15478,"Genero",memoria_principal,tablas);
-	sleep(1);
-	paginaNueva(213,"Juana",15478,"Genero",memoria_principal,tablas);
-	sleep(1);
-	paginaNueva(113,"Vito",15478,"DNI",memoria_principal,tablas);
-	sleep(1);
-	paginaNueva(213,"Pess",15478,"Nombre",memoria_principal,tablas);
-
-	segmento* unS = encontrarSegmento("Apellido",tablas);
-	segmento* unS2 = encontrarSegmento("Nombre",tablas);
-	segmento* unS3 = encontrarSegmento("DNI",tablas);
-	segmento* unS4 = encontrarSegmento("Genero",tablas);
-	segmento* unS5 = encontrarSegmento("Algo",tablas);
-	segmento* unS6 = encontrarSegmento("Algo2",tablas);
-
-	log_info(logger,"SEGMENTO ENCONTRADO: %s , con %i elementos.", unS->nombreTabla, unS->paginas->elements_count);
-	log_info(logger,"SEGMENTO ENCONTRADO: %s , con %i elementos.", unS2->nombreTabla, unS2->paginas->elements_count);
-	log_info(logger,"SEGMENTO ENCONTRADO: %s , con %i elementos.", unS3->nombreTabla, unS3->paginas->elements_count);
-	log_info(logger,"SEGMENTO ENCONTRADO: %s , con %i elementos.", unS4->nombreTabla, unS4->paginas->elements_count);
-	log_info(logger,"SEGMENTO ENCONTRADO: %s , con %i elementos.", unS5->nombreTabla, unS5->paginas->elements_count);
-	log_info(logger,"SEGMENTO ENCONTRADO: %s , con %i elementos.", unS6->nombreTabla, unS6->paginas->elements_count);
-
-	/*
-	pagina_concreta* paginaM1= traerPaginaDeMemoria(0,memoria_principal);
-	pagina_concreta* paginaM2= traerPaginaDeMemoria(1,memoria_principal);
-	pagina_concreta* paginaM3= traerPaginaDeMemoria(2,memoria_principal);
-	pagina_concreta* paginaM4= traerPaginaDeMemoria(3,memoria_principal);
-	pagina_concreta* paginaM5= traerPaginaDeMemoria(4,memoria_principal);
-	pagina_concreta* paginaM6= traerPaginaDeMemoria(5,memoria_principal);
-	pagina_concreta* paginaM7= traerPaginaDeMemoria(6,memoria_principal);
-	pagina_concreta* paginaM8= traerPaginaDeMemoria(7,memoria_principal);
-
-	log_info(logger,"La key es: %i", paginaM1->key);
-	log_info(logger,"El ts es: %i", paginaM1->timestamp);
-	log_info(logger,"El value es: %s", paginaM1->value);
-
-	log_info(logger,"La key es: %i", paginaM2->key);
-	log_info(logger,"El ts es: %i", paginaM2->timestamp);
-	log_info(logger,"El value es: %s", paginaM2->value);
-
-	log_info(logger,"La key es: %i", paginaM3->key);
-	log_info(logger,"El ts es: %i", paginaM3->timestamp);
-	log_info(logger,"El value es: %s", paginaM3->value);
-
-	log_info(logger,"La key es: %i", paginaM4->key);
-	log_info(logger,"El ts es: %i", paginaM4->timestamp);
-	log_info(logger,"El value es: %s", paginaM4->value);
-
-	log_info(logger,"La key es: %i", paginaM5->key);
-	log_info(logger,"El ts es: %i", paginaM5->timestamp);
-	log_info(logger,"El value es: %s", paginaM5->value);
-
-	log_info(logger,"La key es: %i", paginaM6->key);
-	log_info(logger,"El ts es: %i", paginaM6->timestamp);
-	log_info(logger,"El value es: %s", paginaM6->value);
-
-	log_info(logger,"La key es: %i", paginaM7->key);
-	log_info(logger,"El ts es: %i", paginaM7->timestamp);
-	log_info(logger,"El value es: %s", paginaM7->value);
-
-	log_info(logger,"La key es: %i", paginaM8->key);
-	log_info(logger,"El ts es: %i", paginaM8->timestamp);
-	log_info(logger,"El value es: %s", paginaM8->value);
-
-	free(paginaM1->value);
-	free(paginaM1);
-	free(paginaM2->value);
-	free(paginaM2);
-	free(paginaM3->value);
-	free(paginaM3);
-	free(paginaM4->value);
-	free(paginaM4);
-	free(paginaM5->value);
-	free(paginaM5);		// siempre que uso traerPaginaDeMemoria tengo que liberar la memoria
-	free(paginaM6->value);
-	free(paginaM6);
-	free(paginaM7->value);
-	free(paginaM7);
-	free(paginaM8);
-	*/
-	/*
-	int eg = buscarRegistroEnTabla("Nombre",273,memoria_principal, tablas);
-	log_info(logger," **** POSICION %i ****", eg);
-	/*pagina_concreta* paginacc = traerPaginaDeMemoria(eg,memoria_principal);
-	log_info(logger,"La key es: %i", paginacc->key);
-	log_info(logger,"El ts es: %i", paginacc->timestamp);
-	log_info(logger,"El value es: %s", paginacc->value);
-	free(paginacc);*/
-	log_info(logger,"**** CANTIDAD DE SEGMENTOS: %i ****", tablas->elements_count);
-//	int leo=buscarRegistroEnTabla("DNI",123,memoria_principal,tablas);
-	int ultimaLeida = lru(memoria_principal,tablas); // tiene que ser el primer registro agregado
-	log_info(logger,"**** REGISTRO MENOS LEIDO, EL QUE HACE MAS TIEMPO NO SE LEE: %i ****", ultimaLeida);
-	pagina_concreta* paginacc2 = traerPaginaDeMemoria(ultimaLeida,memoria_principal);
-	log_info(logger,"La key es: %i", paginacc2->key);
-	log_info(logger,"El ts es: %i", paginacc2->timestamp);
-	log_info(logger,"El value es: %s", paginacc2->value);
-	free(paginacc2);
-	sleep(2);
-
-
-
-
-
-
-
-
-
-
-
-
-
-//	iniciar_servidor_memoria_y_esperar_conexiones_kernel();
+	if(socket_conexion_lfs != -1)
+		{
+		log_info(logger,"Creada la conexion para LFS %i", socket_conexion_lfs);
+		intentar_handshake_a_lfs(socket_conexion_lfs); 										// diferente al handshake normal SE SETEA TAMANIO_PAGINA y CANTIDAD_PAGINAS
+		log_info(logger, "Conexion exitosa con con %i", socket_memoria);
+		log_info(logger,"El tamaño de cada pagina sera: %i", tamanio_pagina);
+		log_info(logger,"La cantidad de paginas en memoria principal será: %i", cantidad_paginas);
+		} else
+			{
+			log_info(logger,"No se pudo realizar la conexion con LFS. Abortando.");
+			log_info(logger, "Se liberaran %i bytes de la memoria",(tamanio_memoria*sizeof(char)));
+			free(memoria_principal);
+			return -1;
+			}
 	iniciarHiloConsola(memoria_principal, tablas);
 	select_esperar_conexiones_o_peticiones(memoria_principal,tablas);
-//	esperar_operaciones(socket_kernel_conexion_entrante);
-//	terminar_programa(socket_kernel_fd, conexionALFS); // termina conexion, destroy log y destroy config.
 	return EXIT_SUCCESS;
 }
 
@@ -233,7 +98,7 @@ void iniciarHiloConsola(char* memo, t_list* tablas){
 			log_error(logger, "Error al crear el hilo");
 		}
 }
-void iniciar_consola(void* dato){
+void *iniciar_consola(void* dato){
 	datosSelect* datos = (datosSelect*) dato;
 	while(1){
 			char* linea = readline("Consola Memoria>");
@@ -295,12 +160,13 @@ void resolver_insert3(t_instruccion_lql insert,char* memoria_principal, t_list* 
 	uint16_t key = insert.parametros.INSERT.key;
 	char* dato = insert.parametros.INSERT.value;
 	segmento* segmentoBuscado = encontrarSegmento(tabla,tablas);
-	if(posicionProximaLibre+1>cantidad_paginas){
+	int reg00 = buscarRegistroEnTabla(tabla, key,memoria_principal,tablas);
+	if(posicionProximaLibre+1>cantidad_paginas&&(segmentoBuscado==NULL || reg00==-1)){
 		/*
 		 * PROCESO LRU
 		 * proceso de creacion/modificacion de registro
 		 */
-
+		log_error(logger, "No hay lugar en la memoria, debe realizarse JOURNAL", tabla);
 	} else {
 		if(segmentoBuscado==NULL)
 		{

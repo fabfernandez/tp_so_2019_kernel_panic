@@ -32,6 +32,7 @@
 void *iniciar_select(void* dato);
 void iniciarHiloKernel(datosSelect* dato);
 int socket_memoria;
+pthread_t consola;
 t_list* tablas;
 char* serializar_pagina(pagina_concreta* pagina);
 pagina_concreta* deserializar_pagina(char* paginac);
@@ -77,7 +78,7 @@ pagina_concreta* esperarRegistroYPocesarlo();
 char** levantarPuertosSeeds();
 void select_esperar_conexiones_o_peticiones(char* memoria_principal,t_list* tablas);
 void iniciarHiloConsola();
-void iniciar_consola(void* dato);
+void *iniciar_consola(void* dato);
 void parsear_y_ejecutar(char* linea, int flag_de_consola, char* memoria, t_list* tablas);
 void ejecutar_instruccion(t_instruccion_lql instruccion,char* memoria,t_list* tablas);
 void resolver_select2(t_instruccion_lql select,char* memoria_principal, t_list* tablas);

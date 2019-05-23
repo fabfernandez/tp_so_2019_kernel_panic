@@ -22,7 +22,7 @@
 t_instruccion_lql parsear_linea(char* line){
 
 	if(line == NULL || string_equals_ignore_case(line, "")){
-		lanzar_error("No se pudo interpretar una linea vacia\n");
+		return lanzar_error("No se pudo interpretar una linea vacia\n");
 	}
 
 	t_instruccion_lql ret = {
