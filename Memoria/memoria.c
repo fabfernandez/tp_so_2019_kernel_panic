@@ -191,6 +191,7 @@ int main(void)
 
 
 //	iniciar_servidor_memoria_y_esperar_conexiones_kernel();
+	iniciarHiloConsola(memoria_principal, tablas);
 	select_esperar_conexiones_o_peticiones(memoria_principal,tablas);
 //	esperar_operaciones(socket_kernel_conexion_entrante);
 //	terminar_programa(socket_kernel_fd, conexionALFS); // termina conexion, destroy log y destroy config.
@@ -206,6 +207,147 @@ int main(void)
 			##        ##  ##   ###    ##     ## ##       ##          ##     ## ##     ##  ##  ##   ###
 			##       #### ##    ##    ########  ######## ########    ##     ## ##     ## #### ##    ##
 */
+void *iniciar_select(void* dato){ // @suppress("No return")
+	datosSelect* datos = (datosSelect *)dato;
+	select_esperar_conexiones_o_peticiones(datos->memoria,datos->tabla);
+}
+void iniciarHiloKernel(datosSelect* dato){
+	pthread_t hiloSelect;
+	if (pthread_create(&hiloSelect, 0, iniciar_select, dato) !=0){
+		log_error(logger, "Error al crear el hilo");
+	}
+	if (pthread_detach(hiloSelect) != 0){
+		log_error(logger, "Error al crear el hilo");
+	}
+
+}
+void iniciarHiloConsola(char* memo, t_list* tablas){
+	pthread_t hiloSelect;
+	datosSelect* datos=malloc(sizeof(datosSelect));
+	datos->memoria=memo;
+	datos->tabla=tablas;
+		if (pthread_create(&hiloSelect, 0, iniciar_consola, datos) !=0){
+			log_error(logger, "Error al crear el hilo");
+		}
+		if (pthread_detach(hiloSelect) != 0){
+			log_error(logger, "Error al crear el hilo");
+		}
+}
+void iniciar_consola(void* dato){
+	datosSelect* datos = (datosSelect*) dato;
+	while(1){
+			char* linea = readline("Consola Memoria>");
+
+			parsear_y_ejecutar(linea, 1,datos->memoria,datos->tabla);
+
+			free(linea);
+		}
+}
+void parsear_y_ejecutar(char* linea, int flag_de_consola, char* memoria, t_list* tablas){
+	t_instruccion_lql instruccion = parsear_linea(linea);
+	if (instruccion.valido) {
+		ejecutar_instruccion(instruccion,memoria,tablas);
+	}else{
+		if (flag_de_consola){
+			log_error(logger, "Reingrese correctamente la instruccion");
+		}
+	}
+}
+void ejecutar_instruccion(t_instruccion_lql instruccion,char* memoria,t_list* tablas){
+	t_operacion operacion = instruccion.operacion;
+	switch(operacion) {
+		case SELECT:
+			log_info(logger, "Se solicita SELECT a memoria");
+			resolver_select2(instruccion,memoria,tablas);
+			break;
+		case INSERT:
+			log_info(logger, "Kernel solicitó INSERT");
+			resolver_insert3(instruccion,memoria,tablas);
+			break;
+		case CREATE:
+			log_info(logger, "Kernel solicitó CREATE");
+			//aca debería enviarse el mensaje a LFS con CREATE
+			break;
+		case DESCRIBE:
+			log_info(logger, "Kernel solicitó DESCRIBE");
+			//aca debería enviarse el mensaje a LFS con DESCRIBE
+			break;
+		case DROP:
+			log_info(logger, "Kernel solicitó DROP");
+			//aca debería enviarse el mensaje a LFS con DROP
+			break;
+		case RUN:
+			log_info(logger, "Kernel solicitó RUN");
+			break;
+		default:
+			log_warning(logger, "Operacion desconocida.");
+			break;
+		}
+}
+void resolver_insert3(t_instruccion_lql insert,char* memoria_principal, t_list* tablas){
+	log_info(logger, "Se realiza INSERT");
+	log_info(logger, "Se busca insertar en la tabla: %s", insert.parametros.INSERT.tabla);
+	log_info(logger, "en la key: %i", insert.parametros.INSERT.key);
+	log_info(logger, "el dato: %s", insert.parametros.INSERT.value);
+	log_info(logger, "El ts es: %i", insert.parametros.INSERT.timestamp);
+	long tsss =insert.parametros.INSERT.timestamp;
+	char* tabla = insert.parametros.INSERT.tabla;
+	uint16_t key = insert.parametros.INSERT.key;
+	char* dato = insert.parametros.INSERT.value;
+	segmento* segmentoBuscado = encontrarSegmento(tabla,tablas);
+	if(posicionProximaLibre+1>cantidad_paginas){
+		/*
+		 * PROCESO LRU
+		 * proceso de creacion/modificacion de registro
+		 */
+
+	} else {
+		if(segmentoBuscado==NULL)
+		{
+			log_info(logger, "No existe el segmento: $s", tabla);
+			list_add(tablas, crearSegmento(tabla));
+			paginaNuevaInsert(key,dato,tsss,tabla,memoria_principal,tablas);
+		} else
+			{
+			int reg2 = buscarRegistroEnTabla(tabla, key,memoria_principal,tablas);
+			if(reg2==-1)
+				{
+					log_info(logger, "El segmento existe y se encuentra en memoria, pero no la pagina");
+					paginaNuevaInsert(key,dato,tsss,tabla,memoria_principal,tablas);
+				} else
+					{
+					log_info(logger, "El registro se encuentra en la posicion de memoria: %i , se procede a modificarlo",reg2);
+					//modificarRegistro(key,dato,(unsigned)time(NULL),reg2,memoria_principal,tablas);
+					modificarRegistro(key,dato,tsss,reg2,memoria_principal,tablas);
+					int resultado = cambiarBitModificado(tabla,key,tablas,memoria_principal);
+					}
+			}
+	}
+	}
+
+void resolver_select2(t_instruccion_lql select,char* memoria_principal, t_list* tablas){
+	log_info(logger, "Se realiza SELECT");
+	log_info(logger, "Consulta en la tabla: %s", select.parametros.SELECT.tabla);
+	log_info(logger, "Consulta por key: %d", select.parametros.SELECT.key);
+	char* tabla = select.parametros.SELECT.tabla;
+	uint16_t key = select.parametros.SELECT.key;
+	int reg = 0;
+	reg = buscarRegistroEnTabla(tabla, key,memoria_principal,tablas);
+	log_info(logger, "registro numero: %i", reg);
+	if(reg==-1){
+		log_info(logger, "El registro con key '%d' NO se encuentra en memoria y procede a realizar la peticion a LFS", key);
+		//enviar_paquete_select(socket_conexion_lfs, select);
+		//eliminar_paquete_select(select);
+	} else {
+		log_info(logger, "El registro con key '%d' se encuentra en memoria en la posicion $i", key,reg);
+		pagina_concreta* paginalala= traerPaginaDeMemoria(reg,memoria_principal);
+		log_info(logger, "Se bajo de la memoria el registro: (%i,%s,%i)", paginalala->key, paginalala->value,paginalala->timestamp);
+		log_info(logger, "Se procede a enviar el dato a kernel");
+		free(paginalala->value);
+		free(paginalala);
+	}
+}
+
 /**
  	* @NAME: buscarSegmento
  	* @DESC: Busca un segmento y lo logea

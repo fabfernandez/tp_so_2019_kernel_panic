@@ -18,6 +18,10 @@
 #include <stdbool.h>
 #include "strings.h"
 
+typedef struct {
+	char* memoria;
+	t_list* tabla;
+} datosSelect ;
 typedef enum estado {
 	CONECTADA, DESCONECTADA
 }t_estado;

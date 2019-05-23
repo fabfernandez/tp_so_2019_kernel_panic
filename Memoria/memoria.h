@@ -6,7 +6,9 @@
  */
 #ifndef MEMORIA_H_
 #define MEMORIA_H_
-
+#include <readline/readline.h>
+#include <global/parser.h>
+#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <commons/log.h>
@@ -27,6 +29,8 @@
 	 //server_memoria  // descriptor de socket a la escucha
 	 int memoriaNuevaAceptada;        // descriptor de socket de nueva conexión aceptada
 //
+void *iniciar_select(void* dato);
+void iniciarHiloKernel(datosSelect* dato);
 int socket_memoria;
 t_list* tablas;
 char* serializar_pagina(pagina_concreta* pagina);
@@ -72,6 +76,11 @@ char** levantarSeeds();
 pagina_concreta* esperarRegistroYPocesarlo();
 char** levantarPuertosSeeds();
 void select_esperar_conexiones_o_peticiones(char* memoria_principal,t_list* tablas);
+void iniciarHiloConsola();
+void iniciar_consola(void* dato);
+void parsear_y_ejecutar(char* linea, int flag_de_consola, char* memoria, t_list* tablas);
+void ejecutar_instruccion(t_instruccion_lql instruccion,char* memoria,t_list* tablas);
+void resolver_select2(t_instruccion_lql select,char* memoria_principal, t_list* tablas);
 void seedsCargadas();
 void logearSeeds();
 void levantar_datos_memoria();
