@@ -317,6 +317,14 @@ int buscarRegistroEnTabla(char* tabla, uint16_t key, char* memoria_principal,t_l
 	if(reg==-1){
 		log_info(logger, "El registro con key '%d' NO se encuentra en memoria y procede a realizar la peticion a LFS", key);
 		enviar_paquete_select(socket_conexion_lfs, consulta_select);
+		t_status_solicitud* status= desearilizar_status_solicitud(socket_conexion_lfs);
+		if(status){
+			t_registro* registro = obtener_registro(status->mensaje->palabra);
+			//Mostrarlo o enviarlo a kernel si hay que enviarlo no parsearlo
+		}else{
+			//Mostrar el status.mensaje o enviarlo a Kernel
+		}
+
 		eliminar_paquete_select(consulta_select);
 	} else {
 		log_info(logger, "El registro con key '%d' se encuentra en memoria en la posicion $i", key,reg);

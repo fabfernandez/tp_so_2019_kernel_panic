@@ -31,6 +31,13 @@ typedef struct metadata{
 	int n_particiones;
 }t_metadata;
 
+typedef struct {
+	long timestamp;
+	char* value;
+	uint16_t key;
+}t_registro;
+
+
 typedef char* t_valor;	//valor que devuelve el select
 
 
@@ -61,5 +68,6 @@ void recibir_mensaje(t_log* logger, int socket_cliente);
 int confirmar_conexion_exitosa(int socket_kernel_fd);
 void recibir_handshake(t_log* logger,int socket_fd);
 int enviar_handshake(int socket_fd, char* mensaje);
+void enviar_status_resultado(t_status_solicitud* paquete_a_enviar, int socket_envio);
 
 #endif /* UTILS_H_ */

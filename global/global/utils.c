@@ -7,6 +7,19 @@
 
 #include "utils.h"
 
+
+
+void enviar_status_resultado(t_status_solicitud* paquete_a_enviar, int socket_envio){
+
+	int bytes = get_tamanio_paquete_status(paquete_a_enviar);
+	char* a_enviar = serializar_status_solicitud(paquete_a_enviar, bytes);
+	send(socket_envio, a_enviar, bytes, MSG_WAITALL);
+	free(a_enviar);
+	eliminar_paquete_status(paquete_a_enviar);
+
+}
+
+
 void enviar_paquete_select(int socket_envio, t_paquete_select* consulta_select){
 
 	int bytes = get_tamanio_paquete_select(consulta_select);
@@ -210,6 +223,12 @@ void eliminar_paquete_select(t_paquete_select* paquete_select){
 	free(paquete_select->nombre_tabla->palabra);
 	free(paquete_select->nombre_tabla);
 	free(paquete_select);
+}
+
+void eliminar_paquete_status(t_status_solicitud * paquete) {
+	free(paquete->mensaje->palabra);
+	free(paquete->mensaje);
+	free(paquete);
 }
 
 void eliminar_paquete(t_paquete* paquete)

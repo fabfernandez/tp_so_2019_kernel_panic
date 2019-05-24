@@ -96,6 +96,10 @@ typedef struct
 
 } t_paquete_drop_describe;
 
+typedef struct {
+	bool es_valido;
+	t_buffer* mensaje;
+}t_status_solicitud;
 
 typedef struct {
 	bool valido;
@@ -156,6 +160,7 @@ int get_tamanio_paquete_create(t_paquete_create* paquete_create);
 int get_tamanio_paquete_insert(t_paquete_insert* paquete_insert);
 int get_tamanio_paquete_add(t_paquete_add* paquete_add);
 int get_tamanio_paquete_describe_drop(t_paquete_drop_describe* paquete_drop_describe);
+int get_tamanio_paquete_status(t_status_solicitud* paquete);
 
 t_paquete_add* crear_paquete_add(t_instruccion_lql instruccion);
 t_paquete_select* crear_paquete_select(t_instruccion_lql instruccion);
@@ -168,11 +173,15 @@ char* serializar_paquete_create(t_paquete_create* paquete_create, int bytes);
 char* serializar_paquete_insert(t_paquete_insert* paquete_insert, int bytes);
 char* serializar_paquete_add(t_paquete_add* paquete_add, int bytes);
 char* serialiazar_paquete_drop_describe(t_paquete_drop_describe* paquete, int bytes);
+char* serializar_status_solicitud(t_status_solicitud* paquete, int bytes);
 
 t_paquete_select* deserializar_select (int socket_cliente);
 t_paquete_create* deserializar_create (int socket_cliente);
 t_paquete_insert* deserealizar_insert(int socket_cliente);
 t_paquete_add* desearilizar_add(int socket_cliente);
 t_paquete_drop_describe* deserealizar_drop_describe(int socket_cliente);
+t_status_solicitud* desearilizar_status_solicitud(int socket_cliente);
+
+char* generar_registro_string(long timestamp, uint16_t key, char* value);
 
 #endif /* GLOBAL_PROTOCOLOS_H_ */

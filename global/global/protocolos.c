@@ -8,6 +8,10 @@
 
 #include "protocolos.h"
 
+int get_tamanio_paquete_status(t_status_solicitud* paquete){
+	return sizeof(bool)+ paquete->mensaje->size;
+}
+
 int get_tamanio_paquete_select(t_paquete_select* paquete_select){
 	return paquete_select->nombre_tabla->size + sizeof(uint16_t)+ sizeof(t_operacion)+sizeof(int);
 }
@@ -100,6 +104,18 @@ t_paquete_drop_describe* crear_paquete_drop_describe(t_instruccion_lql instrucci
 	return paquete;
 }
 
+t_status_solicitud* crear_paquete_status(bool es_valido, char* mensaje ){
+	t_status_solicitud* paquete = malloc(sizeof(t_status_solicitud));
+	paquete->es_valido=es_valido;
+	paquete->mensaje = malloc(sizeof(t_buffer));
+	paquete->mensaje->size = string_size(mensaje);
+	paquete->mensaje->palabra = malloc(paquete->mensaje->size);
+	memcpy(paquete->mensaje->palabra, mensaje, paquete->mensaje->size);
+
+	return paquete;
+}
+
+
 //Serializacion de paquetes
 char* serializar_paquete_select(t_paquete_select* paquete_select, int bytes)
 {
@@ -181,6 +197,41 @@ char* serialiazar_paquete_drop_describe(t_paquete_drop_describe* paquete, int by
 	return serializado;
 }
 
+char* serializar_status_solicitud(t_status_solicitud* paquete, int bytes){
+
+	char* serializado = malloc(bytes);
+	int desplazamiento = 0;
+	memcpy(serializado + desplazamiento, &(paquete->es_valido), sizeof(bool));
+	desplazamiento+= sizeof(bool);
+	memcpy(serializado + desplazamiento, &(paquete->mensaje->size), sizeof(int));
+	desplazamiento+= sizeof(int);
+	memcpy(serializado + desplazamiento, paquete->mensaje->palabra, paquete->mensaje->size);
+	desplazamiento+= paquete->mensaje->size;
+	return serializado;
+}
+
+char* generar_registro_string(long timestamp, uint16_t key, char* value){
+
+	char* time_to_string=string_itoa(timestamp);
+	char* key_to_string= string_itoa(key);
+	char *resultado = string_new();
+	string_append(&resultado, time_to_string);
+	string_append(&resultado, ";");
+	string_append(&resultado, key_to_string);
+	string_append(&resultado, ";");
+	string_append(&resultado, value);
+	return resultado;
+}
+
+t_registro* obtener_registro(char* registro_serealizado){
+	char** split = string_split(registro_serealizado,";");
+	t_registro* registro = malloc(sizeof(t_registro));
+	registro->timestamp =(long) atoi(split[0]);
+	registro->key =(uint16_t) atoi(split[1]);
+	registro->value = malloc(string_size(registro->value));
+	memcpy(registro->value ,split[2], string_size(registro->value) );
+	return registro;
+}
 
 //Desearializacion de paquetes
 
@@ -251,6 +302,20 @@ t_paquete_add* desearilizar_add(int socket_cliente){
 	return consulta_add;//Acordarse de hacer un free despues de usarse
 }
 
+t_status_solicitud* desearilizar_status_solicitud(int socket_cliente){
+	t_status_solicitud* status = malloc(sizeof(t_status_solicitud));
+	recv(socket_cliente,  &(status->es_valido), sizeof(bool), MSG_WAITALL);
+	status->mensaje=malloc(sizeof(t_buffer));
+	recv(socket_cliente,  &(status->mensaje->size), sizeof(int), MSG_WAITALL);
+	int size_mensaje = status->mensaje->size;
+	char * mensaje = malloc(size_mensaje);
+	status->mensaje->palabra = malloc(status->mensaje->size);
+	recv(socket_cliente, mensaje, size_mensaje, MSG_WAITALL);
+	memcpy(status->mensaje->palabra ,mensaje, size_mensaje );
+	return status;//Acordarse de hacer un free despues de usarse
+}
+
+
 t_paquete_drop_describe* deserealizar_drop_describe(int socket_cliente) {
 	t_paquete_drop_describe* consulta = malloc(sizeof(t_paquete_drop_describe));
 	consulta->nombre_tabla = malloc(sizeof(t_buffer));
@@ -263,6 +328,8 @@ t_paquete_drop_describe* deserealizar_drop_describe(int socket_cliente) {
 
 	return consulta;//Acordarse de hacer un free despues de usarse
 }
+
+
 
 /*struct tablaMemoriaGossip crearTablaGossip(){
 	struct tablaMemoriaGossip* elementoCreado = malloc(sizeof(struct tablaMemoriaGossip));
