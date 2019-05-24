@@ -31,11 +31,6 @@ typedef struct metadata{
 	int n_particiones;
 }t_metadata;
 
-typedef struct {
-	long timestamp;
-	char* value;
-	uint16_t key;
-}t_registro;
 
 
 typedef char* t_valor;	//valor que devuelve el select
@@ -58,6 +53,7 @@ t_paquete* crear_super_paquete(void);
 void agregar_a_paquete(t_paquete* paquete, void* valor, int tamanio);
 void enviar_paquete(t_paquete* paquete, int socket_cliente);
 void enviar_paquete_select(int socket_envio, t_paquete_select* consulta_select);
+void enviar_paquete_select_consola(int socket_envio, t_instruccion_lql consulta_select);
 void liberar_conexion(int socket_cliente);
 void eliminar_paquete(t_paquete* paquete);
 int recibir_operacion(int socket_cliente);
@@ -69,5 +65,12 @@ int confirmar_conexion_exitosa(int socket_kernel_fd);
 void recibir_handshake(t_log* logger,int socket_fd);
 int enviar_handshake(int socket_fd, char* mensaje);
 void enviar_status_resultado(t_status_solicitud* paquete_a_enviar, int socket_envio);
+void eliminar_paquete_select(t_paquete_select* paquete_select);
+void enviar_paquete_insert(int socket_envio, t_paquete_insert* consulta_insert);
+void enviar_paquete_drop_describe(int socket_envio, t_paquete_drop_describe* consulta_drop_describe);
+void enviar_paquete_create(int socket_envio, t_paquete_create* consulta_create);
+void eliminar_paquete_drop_describe(t_paquete_drop_describe* paquete_drop_describe);
+void eliminar_paquete_create(t_paquete_create* paquete_create);
+void eliminar_paquete_insert(t_paquete_insert* paquete_insert);
 
 #endif /* UTILS_H_ */

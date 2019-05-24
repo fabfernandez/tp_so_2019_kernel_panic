@@ -6,7 +6,9 @@
  */
 #ifndef MEMORIA_H_
 #define MEMORIA_H_
-
+#include <readline/readline.h>
+#include <global/parser.h>
+#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <commons/log.h>
@@ -27,16 +29,24 @@
 	 //server_memoria  // descriptor de socket a la escucha
 	 int memoriaNuevaAceptada;        // descriptor de socket de nueva conexión aceptada
 //
+void *iniciar_select(void* dato);
+void iniciarHiloKernel(datosSelect* dato);
 int socket_memoria;
+pthread_t consola;
 t_list* tablas;
 char* serializar_pagina(pagina_concreta* pagina);
 pagina_concreta* deserializar_pagina(char* paginac);
 segmento* encontrarSegmento(char* nombredTabla, t_list* tablas);
 pagina* *encontrarPagina(segmento* unSegmento, uint16_t key);
+int cambiarBitModificado(char* tabla, uint16_t key,t_list* tablas, char* memoria_principal);
+void modificarRegistro(uint16_t key,char* dato,long tss,int posicion, char* memoria_principal, t_list* tablas);
+void resolver_insert2(int socket_kernel_fd, int socket_conexion_lfs);
 pagina_concreta* traerPaginaDeMemoria(unsigned int posicion,char* memoria_principal);
 int existeTabla(char* tabla);
 void agregar_pagina_a_tabla(pagina* pagina,char* nombreTabla);
 pagina* crearPagina();
+pagina* crearPaginaInsert();
+int lru(char* memoria_principal, t_list* tablas);
 void agregarEnMemoriaElRegistro(char* key,char* value,long timestamp);
 int buscarRegistroEnTabla(char* tabla, uint16_t key, char* memoria_principal,t_list* tablas);
 void traerPaginaDeMemoria2(unsigned int posicion,char* memoria_principal,pagina_concreta* pagina);
@@ -67,6 +77,11 @@ char** levantarSeeds();
 pagina_concreta* esperarRegistroYPocesarlo();
 char** levantarPuertosSeeds();
 void select_esperar_conexiones_o_peticiones(char* memoria_principal,t_list* tablas);
+void iniciarHiloConsola();
+void *iniciar_consola(void* dato);
+void parsear_y_ejecutar(char* linea, int flag_de_consola, char* memoria, t_list* tablas);
+void ejecutar_instruccion(t_instruccion_lql instruccion,char* memoria,t_list* tablas);
+void resolver_select2(t_instruccion_lql select,char* memoria_principal, t_list* tablas);
 void seedsCargadas();
 void logearSeeds();
 void levantar_datos_memoria();
@@ -86,6 +101,7 @@ pagina_concreta* traerRegistroDeMemoria(int posicion);
 /*segmento**/segmento* crearSegmento(char* nombreTabla);
 t_valor select_(char* tabla, uint16_t key);
 void paginaNueva(uint16_t key, char* value, long ts, char* tabla, char* memoria,t_list* tablas);
+void paginaNuevaInsert(uint16_t key, char* value, long ts, char* tabla, char* memoria,t_list* tablas);
 void agregarPaginaASegmento(char* tabla, pagina* pagina, t_list* tablas);
 int drop(char* tabla);
 

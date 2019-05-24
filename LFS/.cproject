@@ -44,6 +44,7 @@
 									<listOptionValue builtIn="false" value="global"/>
 									<listOptionValue builtIn="false" value="pthread"/>
 									<listOptionValue builtIn="false" value="commons"/>
+									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="readline"/>
 								</option>
 								<option id="gnu.c.link.option.paths.217925551" name="Library search path (-L)" superClass="gnu.c.link.option.paths" useByScannerDiscovery="false" valueType="libPaths">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/global/Debug}&quot;"/>

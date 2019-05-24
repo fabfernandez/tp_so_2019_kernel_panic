@@ -18,6 +18,17 @@
 #include <stdbool.h>
 #include "strings.h"
 
+typedef struct {
+	long timestamp;
+	char* value;
+	uint16_t key;
+}t_registro;
+
+
+typedef struct {
+	char* memoria;
+	t_list* tabla;
+} datosSelect ;
 typedef enum estado {
 	CONECTADA, DESCONECTADA
 }t_estado;
@@ -147,6 +158,7 @@ typedef struct {
 typedef struct {
 	unsigned int posicionEnMemoria;
 	int modificado;
+	long ultimaLectura;
 } pagina; // para la lista
 
 typedef struct {
@@ -182,6 +194,7 @@ t_paquete_add* desearilizar_add(int socket_cliente);
 t_paquete_drop_describe* deserealizar_drop_describe(int socket_cliente);
 t_status_solicitud* desearilizar_status_solicitud(int socket_cliente);
 
+t_registro* obtener_registro(char* registro_serealizado);
 char* generar_registro_string(long timestamp, uint16_t key, char* value);
 
 #endif /* GLOBAL_PROTOCOLOS_H_ */
