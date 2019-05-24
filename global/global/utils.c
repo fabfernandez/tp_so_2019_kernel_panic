@@ -16,7 +16,14 @@ void enviar_paquete_select(int socket_envio, t_paquete_select* consulta_select){
 
 	free(a_enviar);
 }
-
+void enviar_paquete_select_consola(int socket_envio, t_instruccion_lql consulta_select){
+	t_paquete_select* paquete = crear_paquete_select(consulta_select);
+	int bytes = get_tamanio_paquete_select(paquete);
+	char* a_enviar = serializar_paquete_select(paquete, bytes);
+	send(socket_envio, a_enviar, bytes, MSG_WAITALL);
+	eliminar_paquete_select(paquete);
+	free(a_enviar);
+}
 void enviar_paquete_insert(int socket_envio, t_paquete_insert* consulta_insert){
 
 	int bytes = get_tamanio_paquete_insert(consulta_insert);

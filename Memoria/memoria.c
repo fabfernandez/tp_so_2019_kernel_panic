@@ -202,8 +202,8 @@ void resolver_select2(t_instruccion_lql select,char* memoria_principal, t_list* 
 	log_info(logger, "registro numero: %i", reg);
 	if(reg==-1){
 		log_info(logger, "El registro con key '%d' NO se encuentra en memoria y procede a realizar la peticion a LFS", key);
-		//enviar_paquete_select(socket_conexion_lfs, select);
-		//eliminar_paquete_select(select);
+		enviar_paquete_select_consola(socket_conexion_lfs, select);
+		// recibir paquete select
 	} else {
 		log_info(logger, "El registro con key '%d' se encuentra en memoria en la posicion $i", key,reg);
 		pagina_concreta* paginalala= traerPaginaDeMemoria(reg,memoria_principal);
