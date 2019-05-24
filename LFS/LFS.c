@@ -286,7 +286,7 @@ t_registro* buscar_registro_memtable(char* nombre_tabla, uint16_t key){
 			return string_equals_ignore_case(tabla->nombre, nombre_tabla);
 		}
 	int _es_registro_con_key(t_registro* registro){
-		return string_equals_ignore_case(registro->key, key);
+		return registro->key== key;
 	}
 
 	t_registro* registro;
@@ -299,7 +299,7 @@ t_registro* buscar_registro_memtable(char* nombre_tabla, uint16_t key){
 }
 
  void iniciar_logger() { 								// CREACION DE LOG
-	logger = log_create("/home/utnso/tp-2019-1c-Los-Dinosaurios-Del-Libro/LFS/lfs.log", "Memoria", 1, LOG_LEVEL_INFO);
+	logger = log_create("/home/utnso/tp-2019-1c-Los-Dinosaurios-Del-Libro/LFS/lfs.log", "LFS", 1, LOG_LEVEL_INFO);
 }
 
 void leer_config() {				// APERTURA DE CONFIG

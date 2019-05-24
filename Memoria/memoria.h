@@ -6,9 +6,9 @@
  */
 #ifndef MEMORIA_H_
 #define MEMORIA_H_
+#include <pthread.h>
 #include <readline/readline.h>
 #include <global/parser.h>
-#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <commons/log.h>

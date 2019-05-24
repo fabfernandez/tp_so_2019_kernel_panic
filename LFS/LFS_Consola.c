@@ -34,7 +34,7 @@ int resolver_operacion_por_consola(t_instruccion_lql instruccion){
 		{
 		case SELECT:
 			log_info(logger, "Se solicito SELECT por consola");
-			resolver_select(instruccion.parametros.SELECT.tabla, instruccion.parametros.SELECT.key);
+			resolver_select_consola(instruccion.parametros.SELECT.tabla, instruccion.parametros.SELECT.key);
 			break;
 		case INSERT:
 			log_info(logger, "Se solicitó INSERT por consola");
@@ -67,5 +67,27 @@ int resolver_operacion_por_consola(t_instruccion_lql instruccion){
 	return EXIT_SUCCESS;
 }
 
+void resolver_select_consola (char* nombre_tabla, uint16_t key){
+	t_status_solicitud* status;
+	log_info(logger, "Se realiza SELECT");
+	log_info(logger, "Consulta en la tabla: %s", nombre_tabla);
+	log_info(logger, "Consulta por key: %d", key);
+	if (existe_tabla(nombre_tabla)){
+		t_registro* registro_buscado = buscar_registro_memtable(nombre_tabla, key);
+		//TODO: buscar en archivos temporales y en bloques
+		if(registro_buscado !=NULL){
+			char* resultado = generar_registro_string(registro_buscado->timestamp, registro_buscado->key, registro_buscado->value);
+			log_info(logger, "Resultado: %s", resultado);
+
+		}else{
+			char * mje_error = string_from_format("No se encontró registro con key: %d en la tabla %s", key, nombre_tabla);
+			log_error(logger, mje_error);
+		}
+
+	}else{
+		char * mje_error = string_from_format("La tabla %s no existe", nombre_tabla);
+		log_error(logger, mje_error);
+	}
+}
 
 
