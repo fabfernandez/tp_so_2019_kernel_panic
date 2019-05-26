@@ -6,10 +6,13 @@
  */
 #include "Kernel.h"
 
+int ID=0;
+
 int main(void)
 {
 	char* IP_MEMORIA;
 	char* PUERTO_MEMORIA;
+
 	iniciar_logger(); // creamos log
 	leer_config(); // abrimos config
 
@@ -90,6 +93,18 @@ void ejecutar_instruccion(t_instruccion_lql instruccion, int socket_memoria){
 			log_info(logger, "Kernel solicitó RUN");
 			resolver_run(instruccion, socket_memoria);
 			break;
+		case JOURNAL:
+			log_info(logger, "Kernel solicitó JOURNAL");
+			//aca resuelve el journal//
+			break;
+		case METRICS:
+			log_info(logger, "Kernel solicitó METRICS");
+			//aca resuelve metrics//
+			break;
+		case ADD:
+			log_info(logger, "Kernel solicitó ADD");
+			//aca resuelve ADD//
+			break;
 		default:
 			log_warning(logger, "Operacion desconocida.");
 			break;
@@ -169,6 +184,12 @@ void iniciar_logger() { 							// CREACION DE LOG
 void leer_config() {								// APERTURA DE CONFIG
 	archivoconfig = config_create("/home/utnso/tp-2019-1c-Los-Dinosaurios-Del-Libro/Kernel/kernel.config");
 }
+
+int generarID(){
+	ID=ID++;
+	return ID;
+}
+
 
 void terminar_programa(int conexion)
 {
