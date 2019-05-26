@@ -16,15 +16,26 @@
 #include<commons/log.h>
 #include<commons/string.h>
 #include<commons/config.h>
+#include<commons/collections/queue.h>
 #include <stdint.h>
 #include <time.h>
 
 							// ******* TIPOS NECESARIOS ******* //
 t_log* logger;
 t_config* archivoconfig;
+t_queue* ready_queue;
+t_queue* exec_queue;
+t_queue* exit_queue;
+
 
 
 typedef char* t_valor;					// VALOR QUE DEVUELVE EL SELECT(TODAVIA NO SABEMOS QUE ALMACENA EN TABLAS?)
+struct script{
+	int id;
+	char* path;
+	FILE* readfrom;
+	} t_script ;
+
 
 						// ******* FIN VARIABLES NECESARIAS ******* //
 
@@ -54,6 +65,7 @@ void chequearSocket(int socketin);
 void iniciar_logger(void);
 void leer_config(void);
 void terminar_programa(int conexion);
+int generarID();
 
 
 //				***** REVISAR COMO CREAR LAS CONEXIONES *****					//
