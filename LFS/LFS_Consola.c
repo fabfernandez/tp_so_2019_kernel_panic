@@ -68,7 +68,7 @@ int resolver_operacion_por_consola(t_instruccion_lql instruccion){
 }
 
 void resolver_select_consola (char* nombre_tabla, uint16_t key){
-	t_status_solicitud* status;
+
 	log_info(logger, "Se realiza SELECT");
 	log_info(logger, "Consulta en la tabla: %s", nombre_tabla);
 	log_info(logger, "Consulta por key: %d", key);

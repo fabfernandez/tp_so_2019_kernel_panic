@@ -178,7 +178,7 @@ void crear_buffer(t_paquete* paquete)
 int esperar_cliente(int socket_servidor)
 {
 	struct sockaddr_in dir_cliente;
-	int tam_direccion = sizeof(struct sockaddr_in);
+	socklen_t tam_direccion = sizeof(struct sockaddr_in);
 
 	int socket_cliente = accept(socket_servidor, (void*) &dir_cliente, &tam_direccion);
 

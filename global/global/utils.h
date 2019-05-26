@@ -72,5 +72,6 @@ void enviar_paquete_create(int socket_envio, t_paquete_create* consulta_create);
 void eliminar_paquete_drop_describe(t_paquete_drop_describe* paquete_drop_describe);
 void eliminar_paquete_create(t_paquete_create* paquete_create);
 void eliminar_paquete_insert(t_paquete_insert* paquete_insert);
+void eliminar_paquete_status(t_status_solicitud * paquete);
 
 #endif /* UTILS_H_ */

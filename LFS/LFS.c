@@ -21,6 +21,7 @@ int main(void)
 	log_info(logger, "El puerto de la memoria es %s",puerto_lfs);
 	montaje = config_get_string_value(archivoconfig, "PUNTO_MONTAJE");
 	max_size_value = config_get_int_value(archivoconfig, "MAX_SIZE_VALUE");
+	//crear_lfs(montaje);
 	levantar_lfs(montaje);
 
 	crear_hilo_consola();
@@ -79,7 +80,8 @@ void agregar_cliente(fd_set* master, int cliente, int* fdmax){
 }
 
 int resolver_operacion(int socket_memoria, t_operacion cod_op){
-	switch(cod_op)
+	t_status_solicitud* status;
+	switch((int)cod_op)
 		{
 		case HANDSHAKE:
 			log_info(logger, "Inicia handshake con memoria");
@@ -90,19 +92,23 @@ int resolver_operacion(int socket_memoria, t_operacion cod_op){
 		case SELECT:
 			log_info(logger, "memoria solicitó SELECT");
 			t_paquete_select* select = deserializar_select(socket_memoria);
-			resolver_select(select->nombre_tabla->palabra, select->key);
+			status = resolver_select(select->nombre_tabla->palabra, select->key);
+			enviar_status_resultado(status, socket_memoria);
 			eliminar_paquete_select(select);
 			break;
 		case INSERT:
 			log_info(logger, "memoria solicitó INSERT");
 			t_paquete_insert* consulta_insert = deserealizar_insert(socket_memoria);
-			t_status_solicitud* status = resolver_insert(consulta_insert->nombre_tabla->palabra, consulta_insert->key, consulta_insert->valor->palabra, consulta_insert->timestamp);
+			status = resolver_insert(consulta_insert->nombre_tabla->palabra, consulta_insert->key, consulta_insert->valor->palabra, consulta_insert->timestamp);
 			enviar_status_resultado(status, socket_memoria);
 			eliminar_paquete_insert(consulta_insert);
 			break;
 		case CREATE:
 			log_info(logger, "memoria solicitó CREATE");
-			resolver_create(socket_memoria);
+			t_paquete_create* create = deserializar_create (socket_memoria);
+			status = resolver_create(create->nombre_tabla->palabra, create->consistencia, create->num_particiones, create->tiempo_compac);
+			enviar_status_resultado(status, socket_memoria);
+			eliminar_paquete_create(create);
 			//aca debería enviarse el mensaje a LFS con CREATE
 			break;
 		case DESCRIBE:
@@ -126,6 +132,30 @@ int resolver_operacion(int socket_memoria, t_operacion cod_op){
 	return EXIT_SUCCESS;
 }
 
+void crear_lfs(char* montaje){
+	log_info(logger, "Inicia filesystem");
+	path_montaje = malloc(string_size(montaje));
+	memcpy(path_montaje, montaje,string_size(montaje) );
+	obtener_info_metadata();
+	//CREACION BITMAP PRUEBA
+
+	int tamanioBitarray = blocks/8;
+	if(blocks % 8 != 0){
+	tamanioBitarray++;
+	}
+	char* bits=malloc(tamanioBitarray);
+	t_bitarray * bitarray = bitarray_create_with_mode(bits,tamanioBitarray,MSB_FIRST);
+
+	for(int cont=0; cont < tamanioBitarray*8; cont++){
+		bitarray_clean_bit(bitarray, cont);
+	}
+	bitarray_set_bit(bitarray, 1);
+	bitarray_set_bit(bitarray, 2);
+	bitarray_set_bit(bitarray, 10);
+	bitarray_set_bit(bitarray, 5);
+	bitarray_set_bit(bitarray, 6);
+}
+
 void levantar_lfs(char* montaje){
 
 	log_info(logger, "Inicia filesystem");
@@ -143,22 +173,22 @@ void obtener_bitmap(){
 
 void obtener_info_metadata(){
 
-	char* path_metadata = string_from_format("/home/utnso/tp-2019-1c-Los-Dinosaurios-Del-Libro/LFS/%s/Metadata/Metadata.bin", path_montaje);
+	char* path_metadata = string_from_format("%s/Metadata/Metadata.bin", path_montaje);
 	t_config* metadata  = config_create(path_metadata);
 	block_size = config_get_int_value(metadata, "BLOCK_SIZE");
 	blocks = config_get_int_value(metadata, "BLOCKS");
 	//Abrir carpeta metadata y leer los datos
 }
 
-void resolver_create (int socket_memoria){
-	t_paquete_create* consulta_create = deserializar_create(socket_memoria);
+t_status_solicitud* resolver_create (char* nombre_tabla, t_consistencia consistencia, int num_particiones, long compactacion){
+	t_status_solicitud* status;
 	log_info(logger, "Se realiza CREATE");
-	log_info(logger, "Tabla: %s", consulta_create->nombre_tabla->palabra);
-	log_info(logger, "Num Particiones: %d", consulta_create->num_particiones);
-	log_info(logger, "Tiempo compactacion: %d", consulta_create->tiempo_compac);
-	log_info(logger, "Consistencia: %d", consulta_create->consistencia);
+	log_info(logger, "Tabla: %s",nombre_tabla);
+	log_info(logger, "Num Particiones: %d",num_particiones);
+	log_info(logger, "Tiempo compactacion: %d", compactacion);
+	log_info(logger, "Consistencia: %d", consistencia);
+	return status;
 
-	eliminar_paquete_create(consulta_create);
 }
 
 void resolver_describe_drop (int socket_memoria, char* operacion){
@@ -243,7 +273,7 @@ t_cache_tabla* buscar_tabla_memtable(char* nombre_tabla){
 }
 
 bool existe_tabla(char* nombre_tabla){
-	char* path_tabla = string_from_format("/home/utnso/tp-2019-1c-Los-Dinosaurios-Del-Libro/LFS/%s/Tables/%s", path_montaje, nombre_tabla);
+	char* path_tabla = string_from_format("%s/Tables/%s", path_montaje, nombre_tabla);
 
 	struct stat sb;
 

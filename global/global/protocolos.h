@@ -179,6 +179,7 @@ t_paquete_select* crear_paquete_select(t_instruccion_lql instruccion);
 t_paquete_create* create_paquete_create(t_instruccion_lql instruccion);
 t_paquete_insert* crear_paquete_insert(t_instruccion_lql instruccion);
 t_paquete_drop_describe* crear_paquete_drop_describe(t_instruccion_lql instruccion);
+t_status_solicitud* crear_paquete_status(bool es_valido, char* mensaje );
 
 char* serializar_paquete_select(t_paquete_select* paquete_select, int bytes);
 char* serializar_paquete_create(t_paquete_create* paquete_create, int bytes);
