@@ -7,6 +7,7 @@
 #include "Kernel.h"
 
 int ID=0;
+t_list* memorias_sin_asignar;
 
 int main(void)
 {
@@ -44,6 +45,21 @@ int main(void)
 		recibir_handshake(logger, socket_memoria);
 		log_info(logger,"Conexion exitosa con Memoria");
 	}
+
+	t_memoria* memoria_principal = malloc(sizeof(t_memoria*));
+	memoria_principal->ip = IP_MEMORIA;
+	memoria_principal->puerto= PUERTO_MEMORIA;
+	memoria_principal->numero_memoria= 1;
+	memoria_principal->socket_memoria=socket_memoria;
+
+	memorias_sin_asignar = list_create();
+	strong_consistency = list_create();
+	strong_hash_consistency = list_create();
+	eventual_consistency = list_create();
+	list_add(memorias_sin_asignar, memoria_principal);
+
+
+
 	while(1){
 		char* linea = readline("Consola kernel>");
 
@@ -103,7 +119,7 @@ void ejecutar_instruccion(t_instruccion_lql instruccion, int socket_memoria){
 			break;
 		case ADD:
 			log_info(logger, "Kernel solicitó ADD");
-			//aca resuelve ADD//
+			resolver_add(instruccion, socket_memoria);
 			break;
 		default:
 			log_warning(logger, "Operacion desconocida.");
@@ -154,6 +170,36 @@ void resolver_run(t_instruccion_lql instruccion, int socket_memoria){
 	leer_archivo(archivo, socket_memoria);
 
 	fclose(archivo);
+}
+
+void resolver_add (t_instruccion_lql instruccion, int socket_memoria){
+	uint16_t numero_memoria = instruccion.parametros.ADD.numero_memoria;
+	t_consistencia consistencia = instruccion.parametros.ADD.consistencia;
+
+	int es_la_memoria(t_memoria* memoria){
+		return memoria->numero_memoria == numero_memoria;
+	}
+
+	t_memoria* memoria = list_find(memorias_sin_asignar, (void*) es_la_memoria);
+	if(memoria != NULL){
+		asignar_consistencia(memoria, consistencia);
+	}
+}
+
+void asignar_consistencia(t_memoria* memoria, t_consistencia consistencia){
+	switch(consistencia){
+		case STRONG:
+			list_add(strong_consistency, memoria);
+			break;
+		case STRONG_HASH:
+			list_add(strong_hash_consistency, memoria);
+			break;
+		case EVENTUAL:
+			list_add(eventual_consistency, memoria);
+			break;
+		default:
+			break;
+	}
 }
 
 void leer_archivo(FILE* archivo, int socket_memoria){

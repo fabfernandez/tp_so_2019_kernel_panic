@@ -30,11 +30,27 @@ t_queue* exit_queue;
 
 
 typedef char* t_valor;					// VALOR QUE DEVUELVE EL SELECT(TODAVIA NO SABEMOS QUE ALMACENA EN TABLAS?)
-struct script{
+typedef struct script{
 	int id;
 	char* path;
 	FILE* readfrom;
 	} t_script ;
+
+
+typedef struct memoria{
+		char* ip;
+		char* puerto;
+		uint16_t numero_memoria;
+		int socket_memoria;
+	} t_memoria ;
+
+t_list* memorias_sin_asignar;
+
+t_list* strong_consistency;
+t_list* eventual_consistency;
+t_list* strong_hash_consistency;
+
+
 
 
 						// ******* FIN VARIABLES NECESARIAS ******* //
