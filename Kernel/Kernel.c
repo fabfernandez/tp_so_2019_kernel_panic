@@ -176,6 +176,11 @@ void resolver_add (t_instruccion_lql instruccion, int socket_memoria){
 	uint16_t numero_memoria = instruccion.parametros.ADD.numero_memoria;
 	t_consistencia consistencia = instruccion.parametros.ADD.consistencia;
 
+	if(consistencia == STRONG && list_size(strong_consistency)==1) {
+		t_memoria* memoria_antigua = list_remove(strong_consistency, 0);
+		list_add(memorias_sin_asignar, memoria_antigua);
+	}
+
 	int es_la_memoria(t_memoria* memoria){
 		return memoria->numero_memoria == numero_memoria;
 	}
