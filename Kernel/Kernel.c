@@ -46,9 +46,12 @@ int main(void)
 		log_info(logger,"Conexion exitosa con Memoria");
 	}
 
-	t_memoria* memoria_principal = malloc(sizeof(t_memoria*));
-	memoria_principal->ip = IP_MEMORIA;
-	memoria_principal->puerto= PUERTO_MEMORIA;
+	t_memoria* memoria_principal = malloc(sizeof(t_memoria));
+	memoria_principal->ip = malloc(string_size(IP_MEMORIA));
+	memcpy(memoria_principal->ip, IP_MEMORIA, string_size(IP_MEMORIA));
+	memoria_principal->puerto = malloc(string_size(PUERTO_MEMORIA));
+	memcpy(memoria_principal->puerto, PUERTO_MEMORIA, string_size(PUERTO_MEMORIA));
+
 	memoria_principal->numero_memoria= 1;
 	memoria_principal->socket_memoria=socket_memoria;
 
