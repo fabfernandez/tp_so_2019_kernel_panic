@@ -137,9 +137,12 @@ void ejecutar_instruccion(t_instruccion_lql instruccion, int socket_memoria){
 	}
 };*/
 void resolver_describe_drop(t_instruccion_lql instruccion, int socket_memoria, t_operacion operacion){
+	//separar entre describe y drop
 	t_paquete_drop_describe* paquete_describe = crear_paquete_drop_describe(instruccion);
 	paquete_describe->codigo_operacion=operacion;
 	enviar_paquete_drop_describe(socket_memoria, paquete_describe);
+	//esperar numero de tblas si fue DESCRIBE
+	//deserealizar_metadata(socket_memoria) en un for
 	eliminar_paquete_drop_describe(paquete_describe);
 
 }

@@ -390,7 +390,7 @@ t_status_solicitud* resolver_select (char* nombre_tabla, uint16_t key){
 			status = crear_paquete_status(true, resultado );
 
 		}else{
-			char * mje_error = string_from_format("No se encontró registro con key: %s en la tabla %s", key, nombre_tabla);
+			char * mje_error = string_from_format("No se encontró registro con key: %d en la tabla %s", key, nombre_tabla);
 			log_error(logger, mje_error);
 			status = crear_paquete_status(false, mje_error);
 		}

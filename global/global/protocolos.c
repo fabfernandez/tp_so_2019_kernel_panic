@@ -9,7 +9,7 @@
 #include "protocolos.h"
 
 int get_tamanio_paquete_status(t_status_solicitud* paquete){
-	return sizeof(bool)+ paquete->mensaje->size;
+	return sizeof(bool)+ paquete->mensaje->size+ sizeof(int);
 }
 
 int get_tamanio_paquete_select(t_paquete_select* paquete_select){
