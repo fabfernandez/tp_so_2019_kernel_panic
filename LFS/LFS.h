@@ -19,14 +19,22 @@
 #include <stdint.h>
 #include <time.h>
 #include <global/utils.h>
-#include<global/protocolos.h>
+#include <global/protocolos.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <time.h>
+#include <sys/mman.h>
+#include <fcntl.h>
+#include <errno.h>
+
+
+
+
 #include "LFS_Consola.h"
 
 t_list* memtable;
-
+char* bmap;
+t_bitarray* bitarray;
 
 typedef struct{
 	char* nombre;
@@ -65,6 +73,7 @@ t_registro* buscar_registro_memtable(char* nombre_tabla, uint16_t key);
 bool existe_tabla(char* nombre_tabla);
 void crear_hilo_memoria(int socket_memoria);
 int resolver_operacion(int socket_memoria, t_operacion cod_op);
+char* string_block();
 
 //t_metadata describe(char* tabla);
 

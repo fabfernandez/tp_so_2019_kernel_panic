@@ -7,7 +7,21 @@
 
 #include "utils.h"
 
-
+char* consistencia_to_string(t_consistencia consistencia){
+	char* cons;
+	switch (consistencia){
+		case STRONG :
+			 cons = STRONG_TEXT;
+			 break;
+		case STRONG_HASH:
+			cons= STRONG_HASH_TEXT;
+			break;
+		case EVENTUAL:
+			cons= EVENTUAL_TEXT;
+			break;
+	}
+	return cons;
+}
 
 void enviar_status_resultado(t_status_solicitud* paquete_a_enviar, int socket_envio){
 

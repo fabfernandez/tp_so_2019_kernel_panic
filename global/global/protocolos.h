@@ -18,12 +18,36 @@
 #include <stdbool.h>
 #include "strings.h"
 
+
+#define STRONG_TEXT "SC"
+#define STRONG_HASH_TEXT "SHC"
+#define EVENTUAL_TEXT "SE"
+
+
+typedef struct
+{
+	int size;
+	char* palabra;
+} t_buffer;
+
+typedef enum consistencias{
+	STRONG, STRONG_HASH, EVENTUAL
+}t_consistencia;
+
+
+typedef struct{
+	t_buffer* nombre_tabla;
+	t_consistencia consistencia;
+	int n_particiones;
+	long tiempo_compactacion;
+}t_metadata;
+
+
 typedef struct {
 	long timestamp;
 	char* value;
 	uint16_t key;
 }t_registro;
-
 
 typedef struct {
 	char* memoria;
@@ -32,10 +56,6 @@ typedef struct {
 typedef enum estado {
 	CONECTADA, DESCONECTADA
 }t_estado;
-
-typedef enum consistencias{
-	STRONG, STRONG_HASH, EVENTUAL
-}t_consistencia;
 
 struct memoriaGossip {
 	char* nombre; // -> nombre memoria archivo config
@@ -55,13 +75,6 @@ void agregarMemoriaALaTablaGossip(struct tablaMemoriaGossip* tabla, struct tabla
 typedef enum operaciones {
 	INSERT,SELECT,CREATE,DESCRIBE,DROP, JOURNAL,ADD,METRICS,RUN, HANDSHAKE,GOSSPING
 }t_operacion;
-
-typedef struct
-{
-	int size;
-	char* palabra;
-} t_buffer;
-
 
 
 typedef struct

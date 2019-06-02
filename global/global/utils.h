@@ -25,14 +25,6 @@ typedef struct // REVISAR <-
 	t_buffer* buffer;
 } t_paquete;
 
-typedef struct metadata{
-	char* nombre;
-	t_consistencia consistencia;
-	int n_particiones;
-}t_metadata;
-
-
-
 typedef char* t_valor;	//valor que devuelve el select
 
 

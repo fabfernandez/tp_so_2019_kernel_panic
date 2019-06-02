@@ -15,10 +15,6 @@
 #define RUN_KEY "RUN"
 #define JOURNAL_KEY "JOURNAL"
 
-#define STRONG_TEXT "SC"
-#define STRONG_HASH_TEXT "SHC"
-#define EVENTUAL_TEXT "SE"
-
 t_instruccion_lql parsear_linea(char* line){
 
 	if(line == NULL || string_equals_ignore_case(line, "")){
@@ -43,6 +39,7 @@ t_instruccion_lql parsear_linea(char* line){
 		if (split[1] == NULL || split[2]== NULL || split[3] == NULL ){
 			return lanzar_error("Formato incorrecto. INSERT TABLA KEY VALUE TIMESTAMP - El ultimo valor es opcional\n");
 		}
+		string_to_upper(split[1]);
 		ret.parametros.INSERT.tabla = split[1];
 		ret.parametros.INSERT.key= (uint16_t)atoi(split[2]);
 		ret.parametros.INSERT.value = (char*)split[3];
@@ -57,6 +54,7 @@ t_instruccion_lql parsear_linea(char* line){
 		if (split[1] == NULL || split[2]== NULL){
 			return lanzar_error("Formato incorrecto. SELECT TABLA KEY\n");
 		}
+		string_to_upper(split[1]);
 		ret.parametros.SELECT.tabla = split[1];
 		ret.parametros.SELECT.key= (uint16_t)atoi(split[2]);
 	} else if(string_equals_ignore_case(keyword, CREATE_KEY)){
@@ -64,6 +62,7 @@ t_instruccion_lql parsear_linea(char* line){
 		if (split[1] == NULL || split[2]== NULL || split[3] == NULL || split[4] == NULL){
 			return lanzar_error("Formato incorrecto. CREATE TABLE SC NumPart COMPACTACION\n");
 		}
+		string_to_upper(split[1]);
 		ret.parametros.CREATE.tabla = split[1];
 		string_to_upper(split[2]);
 		if (!check_consistencia(split[2])){
@@ -74,15 +73,21 @@ t_instruccion_lql parsear_linea(char* line){
 		ret.parametros.CREATE.compactacion_time=(long)atoi(split[4]);
 	} else if(string_equals_ignore_case(keyword, DESCRIBE_KEY)){
 		ret.operacion=DESCRIBE;
-		if (split[1] == NULL || split[2]!= NULL){
-			return lanzar_error("Formato incorrecto. DESCRIBE TABLE\n");
+		if  (split[2]!= NULL){
+			return lanzar_error("Formato incorrecto. DESCRIBE TABLE o DESCRIBE\n");
 		}
-		ret.parametros.DESCRIBE.tabla = split[1];
+		if(split[1] !=NULL){
+			string_to_upper(split[1]);
+			ret.parametros.DESCRIBE.tabla = split[1];
+		}else{
+			ret.parametros.DESCRIBE.tabla=NULL;
+		}
 	} else if(string_equals_ignore_case(keyword, DROP_KEY)){
 		ret.operacion=DROP;
 		if (split[1] == NULL || split[2]!= NULL){
 			return lanzar_error("Formato incorrecto. DROPE TABLE\n");
 		}
+		string_to_upper(split[1]);
 		ret.parametros.DROP.tabla = split[1];
 	} else if(string_equals_ignore_case(keyword, RUN_KEY)){
 		ret.operacion=RUN;

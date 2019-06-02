@@ -32,6 +32,9 @@ int get_tamanio_paquete_describe_drop(t_paquete_drop_describe* paquete_drop_desc
 	return sizeof(t_operacion) + sizeof(int) + paquete_drop_describe->nombre_tabla->size;
 }
 
+int get_tamanio_paquete_metadata(t_metadata* paquete_metadata) {
+	return paquete_metadata->nombre_tabla->size + sizeof(t_consistencia) + 2*sizeof(int)+sizeof(long);
+}
 
 //Creacion de paquetes
 t_paquete_add* crear_paquete_add(t_instruccion_lql instruccion){
@@ -113,6 +116,18 @@ t_status_solicitud* crear_paquete_status(bool es_valido, char* mensaje ){
 	memcpy(paquete->mensaje->palabra, mensaje, paquete->mensaje->size);
 
 	return paquete;
+}
+
+t_metadata* crear_paquete_metadata(char*nombre_tabla, t_consistencia consistencia, int particiones, long compactacion){
+	t_metadata* metadata = malloc(sizeof(t_metadata));
+	metadata->consistencia = consistencia;
+	metadata->n_particiones= particiones;
+	metadata->tiempo_compactacion=compactacion;
+	metadata->nombre_tabla = malloc(sizeof(t_buffer));
+	metadata->nombre_tabla->size = string_size(nombre_tabla);
+	metadata->nombre_tabla->palabra = malloc(metadata->nombre_tabla->size);
+	memcpy(metadata->nombre_tabla->palabra, nombre_tabla, metadata->nombre_tabla->size);
+	return metadata;
 }
 
 
@@ -207,6 +222,24 @@ char* serializar_status_solicitud(t_status_solicitud* paquete, int bytes){
 	desplazamiento+= sizeof(int);
 	memcpy(serializado + desplazamiento, paquete->mensaje->palabra, paquete->mensaje->size);
 	desplazamiento+= paquete->mensaje->size;
+	return serializado;
+}
+
+char* serializar_metadata(t_metadata* metadata, int bytes){
+
+	char* serializado = malloc(bytes);
+	int desplazamiento = 0;
+	memcpy(serializado + desplazamiento, &(metadata->consistencia), sizeof(t_consistencia));
+	desplazamiento += sizeof(t_consistencia);
+	memcpy(serializado + desplazamiento, &(metadata->n_particiones), sizeof(int));
+	desplazamiento += sizeof(int);
+	memcpy(serializado + desplazamiento, &(metadata->tiempo_compactacion), sizeof(long));
+	desplazamiento += sizeof(long);
+	memcpy(serializado + desplazamiento, &(metadata->nombre_tabla->size), sizeof(int));
+	desplazamiento += sizeof(int);
+	memcpy(serializado + desplazamiento, metadata->nombre_tabla->palabra, metadata->nombre_tabla->size);
+	desplazamiento += metadata->nombre_tabla->size;
+
 	return serializado;
 }
 
@@ -327,6 +360,19 @@ t_paquete_drop_describe* deserealizar_drop_describe(int socket_cliente) {
 	memcpy(consulta->nombre_tabla->palabra ,nombre_tabla, size_nombre_tabla );
 
 	return consulta;//Acordarse de hacer un free despues de usarse
+}
+
+t_metadata* deserealizar_metadata(int socket_cliente){
+	t_metadata* metadata = malloc(sizeof(t_metadata));
+	recv(socket_cliente, &(metadata->consistencia), sizeof(t_consistencia), MSG_WAITALL);
+	recv(socket_cliente, &(metadata->n_particiones), sizeof(int), MSG_WAITALL);
+	recv(socket_cliente, &(metadata->tiempo_compactacion), sizeof(long), MSG_WAITALL);
+	int size_nombre_tabla = metadata->nombre_tabla->size;
+	char * nombre_tabla = malloc(size_nombre_tabla);
+	metadata->nombre_tabla->palabra = malloc(metadata->nombre_tabla->size);
+	recv(socket_cliente, nombre_tabla, size_nombre_tabla, MSG_WAITALL);
+	memcpy(metadata->nombre_tabla->palabra ,nombre_tabla, size_nombre_tabla );
+	return metadata;
 }
 
 

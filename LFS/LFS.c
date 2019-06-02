@@ -21,9 +21,8 @@ int main(void)
 	log_info(logger, "El puerto de la memoria es %s",puerto_lfs);
 	montaje = config_get_string_value(archivoconfig, "PUNTO_MONTAJE");
 	max_size_value = config_get_int_value(archivoconfig, "MAX_SIZE_VALUE");
-	//crear_lfs(montaje);
-	levantar_lfs(montaje);
 
+	levantar_lfs(montaje);
 	crear_hilo_consola();
 	int server_LFS = iniciar_servidor(ip_lfs, puerto_lfs);
 
@@ -113,12 +112,13 @@ int resolver_operacion(int socket_memoria, t_operacion cod_op){
 			break;
 		case DESCRIBE:
 			log_info(logger, "memoria solicitó DESCRIBE");
-			resolver_describe_drop(socket_memoria, "DESCRIBE");
+
+			//resolver_describe(socket_memoria, "DESCRIBE");
 			//aca debería enviarse el mensaje a LFS con DESCRIBE
 			break;
 		case DROP:
 			log_info(logger, "memoria solicitó DROP");
-			resolver_describe_drop(socket_memoria, "DROP");
+			//resolver_drop(socket_memoria, "DROP");
 			//aca debería enviarse el mensaje a LFS con DROP
 			break;
 		case -1:
@@ -132,64 +132,161 @@ int resolver_operacion(int socket_memoria, t_operacion cod_op){
 	return EXIT_SUCCESS;
 }
 
-void crear_lfs(char* montaje){
-	log_info(logger, "Inicia filesystem");
-	path_montaje = malloc(string_size(montaje));
-	memcpy(path_montaje, montaje,string_size(montaje) );
-	obtener_info_metadata();
-	//CREACION BITMAP PRUEBA
-
-	int tamanioBitarray = blocks/8;
-	if(blocks % 8 != 0){
-	tamanioBitarray++;
-	}
-	char* bits=malloc(tamanioBitarray);
-	t_bitarray * bitarray = bitarray_create_with_mode(bits,tamanioBitarray,MSB_FIRST);
-
-	for(int cont=0; cont < tamanioBitarray*8; cont++){
-		bitarray_clean_bit(bitarray, cont);
-	}
-	bitarray_set_bit(bitarray, 1);
-	bitarray_set_bit(bitarray, 2);
-	bitarray_set_bit(bitarray, 10);
-	bitarray_set_bit(bitarray, 5);
-	bitarray_set_bit(bitarray, 6);
-}
-
 void levantar_lfs(char* montaje){
 
 	log_info(logger, "Inicia filesystem");
 	path_montaje = malloc(string_size(montaje));
 	memcpy(path_montaje, montaje,string_size(montaje) );
 
+	memtable = list_create();
 	obtener_info_metadata();
 	obtener_bitmap();
 
 }
 
 void obtener_bitmap(){
-	//TODO: Se lee el bitmap.bin, se lo mapea con un bitarray, tiene que ser global y tiene que estar inicializado.
+
+	char* nombre_bitmap = string_from_format("%s/Metadata/Bitmap.bin", path_montaje);
+	struct stat mystat;
+	int fd = open(nombre_bitmap, O_RDWR);
+    if (fstat(fd, &mystat) < 0) {
+        printf("Error al establecer fstat\n");
+        close(fd);
+    }
+
+    bmap = mmap(NULL, mystat.st_size, PROT_READ | PROT_WRITE, MAP_SHARED,	fd, 0);
+    int tamanioBitarray = blocks/8;
+
+	bitarray = bitarray_create_with_mode(bmap, blocks/8, MSB_FIRST);
+}
+
+void obtener_info_metadata_tabla(char* dir_tabla){
+	char* path_metadata_tabla = string_from_format("%s/Metadata", dir_tabla);
+
+	t_config* metadata_tabla  = config_create(path_metadata_tabla);
+
+	char* consistencia_string;
+	long compactacion ;
+
+	int num_particiones = config_get_int_value(metadata_tabla, "PARTITIONS");
+
+	consistencia_string= config_get_string_value(metadata_tabla, "CONSISTENCY");
+
+	compactacion =  config_get_long_value(metadata_tabla, "COMPACTION_TIME");
+
 }
 
 void obtener_info_metadata(){
 
-	char* path_metadata = string_from_format("%s/Metadata/Metadata.bin", path_montaje);
+	char* path_metadata = string_from_format("%s/Metadata/Metadata", path_montaje);
 	t_config* metadata  = config_create(path_metadata);
 	block_size = config_get_int_value(metadata, "BLOCK_SIZE");
 	blocks = config_get_int_value(metadata, "BLOCKS");
-	//Abrir carpeta metadata y leer los datos
 }
 
 t_status_solicitud* resolver_create (char* nombre_tabla, t_consistencia consistencia, int num_particiones, long compactacion){
+
+	/*
+	 * Verificar que la tabla no exista en el file system. Por convención, una tabla existe si ya hay
+		otra con el mismo nombre. Para dichos nombres de las tablas siempre tomaremos sus
+		valores en UPPERCASE (mayúsculas). En caso que exista, se guardará el resultado en un
+		archivo .log y se retorna un error indicando dicho resultado.
+		2. Crear el directorio para dicha tabla.
+		3. Crear el archivo Metadata asociado al mismo.
+		4. Grabar en dicho archivo los parámetros pasados por el request.
+		5. Crear los archivos binarios asociados a cada partición de la tabla y asignar a cada uno un
+		bloque
+	 * */
 	t_status_solicitud* status;
 	log_info(logger, "Se realiza CREATE");
 	log_info(logger, "Tabla: %s",nombre_tabla);
 	log_info(logger, "Num Particiones: %d",num_particiones);
 	log_info(logger, "Tiempo compactacion: %d", compactacion);
 	log_info(logger, "Consistencia: %d", consistencia);
+
+	if(existe_tabla(nombre_tabla)){
+		char * mje_error = string_from_format("La tabla %s ya existe", nombre_tabla);
+		log_error(logger, mje_error);
+		status = crear_paquete_status(false, mje_error);
+	}else{
+		char* dir_tabla = string_from_format("%s/Tables/%s", path_montaje, nombre_tabla);
+		if (crear_directorio_tabla(dir_tabla)){
+			crear_archivo_metadata_tabla(dir_tabla, num_particiones, compactacion, consistencia);
+			crear_particiones(dir_tabla, num_particiones);
+			//obtener_info_metadata_tabla(dir_tabla);
+			status = crear_paquete_status(true, "OK");
+		}else{
+			char * mje_error = string_from_format("No pudo crearse la tabla %s", nombre_tabla);
+			log_error(logger, mje_error);
+			status = crear_paquete_status(false, mje_error);
+		}
+
+	}
+
 	return status;
 
 }
+
+void crear_particiones(char* dir_tabla,int  num_particiones){
+
+	int ind;
+	for(ind =0;ind < num_particiones; ind++){
+		char* dir_particion = string_from_format("%s/%i.bin", dir_tabla, ind);
+		FILE* file = fopen(dir_particion, "wb+");
+		fclose(file);
+
+		t_config* particion_tabla = config_create(dir_particion);
+		dictionary_put(particion_tabla->properties,"SIZE", "0" );
+		dictionary_put(particion_tabla->properties, "BLOCKS", string_block());
+
+		config_save(particion_tabla);
+
+	}
+}
+
+char* string_block(){
+
+	int bloque = obtener_bloque_disponible();
+	return string_from_format("[%d]", bloque);
+}
+
+int obtener_bloque_disponible(){
+
+	bool esta_ocupado=true;
+	int nro_bloque=0;
+	while(esta_ocupado == true){
+		esta_ocupado = bitarray_test_bit(bitarray, nro_bloque);
+		nro_bloque=nro_bloque+1;
+	}
+	nro_bloque=nro_bloque-1;
+	bitarray_set_bit(bitarray,nro_bloque);
+	msync(bmap, sizeof(bitarray), MS_SYNC);
+
+	return nro_bloque;
+
+}
+
+void crear_archivo_metadata_tabla(char* dir_tabla, int num_particiones,long compactacion,t_consistencia consistencia){
+
+	char* dir_metadata_tabla = string_from_format("%s/Metadata", dir_tabla);
+	FILE* file = fopen(dir_metadata_tabla, "wb+");
+	fclose(file);
+
+	t_config* metadata_tabla = config_create(dir_metadata_tabla);
+	dictionary_put(metadata_tabla->properties,"CONSISTENCY", consistencia_to_string(consistencia) );
+	dictionary_put(metadata_tabla->properties, "PARTITIONS", string_itoa(num_particiones));
+	dictionary_put(metadata_tabla->properties, "COMPACTION_TIME", string_itoa(compactacion));
+
+	config_save(metadata_tabla);
+}
+
+
+int crear_directorio_tabla (char* dir_tabla){
+
+	return !(mkdir(dir_tabla, 0777) != 0 && errno != EEXIST);
+}
+
+
 
 void resolver_describe_drop (int socket_memoria, char* operacion){
 	t_paquete_drop_describe* consulta_describe_drop = deserealizar_drop_describe(socket_memoria);
@@ -220,6 +317,8 @@ t_status_solicitud*  resolver_insert(char* nombre_tabla, uint16_t key, char* val
 
 }
 
+
+
 t_registro* crear_registro(char* value, uint16_t key, long timestamp){
 
 	t_registro* nuevo_registro = malloc(sizeof(t_registro));
@@ -242,9 +341,6 @@ void agregar_registro_memtable(t_registro* registro_a_insertar, char * nombre_ta
 
 t_cache_tabla* obtener_tabla_memtable(char* nombre_tabla){
 
-	if(memtable==NULL){
-		memtable = list_create();
-	}
 	t_cache_tabla* tabla_cache = buscar_tabla_memtable(nombre_tabla);
 	if(tabla_cache == NULL){
 		tabla_cache = crear_tabla_cache(nombre_tabla);
@@ -319,7 +415,7 @@ t_registro* buscar_registro_memtable(char* nombre_tabla, uint16_t key){
 		return registro->key== key;
 	}
 
-	t_registro* registro;
+	t_registro* registro=NULL;
 	t_cache_tabla* tabla_cache= list_find(memtable, (void*) _es_tabla_con_nombre);
 	if(tabla_cache!=NULL){
 		registro = list_find(tabla_cache->registros,(void*) _es_registro_con_key);

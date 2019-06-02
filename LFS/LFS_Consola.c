@@ -46,7 +46,13 @@ int resolver_operacion_por_consola(t_instruccion_lql instruccion){
 			break;
 		case CREATE:
 			log_info(logger, "Se solicitó CREATE por consola");
-			//resolver_create(instruccion);
+			status = resolver_create(instruccion.parametros.CREATE.tabla,
+					instruccion.parametros.CREATE.consistencia,
+					instruccion.parametros.CREATE.num_particiones,
+					instruccion.parametros.CREATE.compactacion_time);
+			//enviar_status_resultado(status, socket_memoria);
+			log_info(logger, status->mensaje->palabra);
+			eliminar_paquete_status(status);
 			//aca debería enviarse el mensaje a LFS con CREATE
 			break;
 		case DESCRIBE:
