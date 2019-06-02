@@ -111,23 +111,23 @@ void *iniciar_consola(void* dato){
 void parsear_y_ejecutar(char* linea, int flag_de_consola, char* memoria, t_list* tablas){
 	t_instruccion_lql instruccion = parsear_linea(linea);
 	if (instruccion.valido) {
-		ejecutar_instruccion(instruccion,memoria,tablas);
+		ejecutar_API_desde_consola(instruccion,memoria,tablas);
 	}else{
 		if (flag_de_consola){
 			log_error(logger, "Reingrese correctamente la instruccion");
 		}
 	}
 }
-void ejecutar_instruccion(t_instruccion_lql instruccion,char* memoria,t_list* tablas){
+void ejecutar_API_desde_consola(t_instruccion_lql instruccion,char* memoria,t_list* tablas){
 	t_operacion operacion = instruccion.operacion;
 	switch(operacion) {
 		case SELECT:
 			log_info(logger, "Se solicita SELECT a memoria");
-			resolver_select2(instruccion,memoria,tablas);
+			resolver_select_para_consola(instruccion,memoria,tablas);
 			break;
 		case INSERT:
 			log_info(logger, "Kernel solicitó INSERT");
-			resolver_insert3(instruccion,memoria,tablas);
+			resolver_insert_para_consola(instruccion,memoria,tablas);
 			break;
 		case CREATE:
 			log_info(logger, "Kernel solicitó CREATE");
@@ -149,7 +149,7 @@ void ejecutar_instruccion(t_instruccion_lql instruccion,char* memoria,t_list* ta
 			break;
 		}
 }
-void resolver_insert3(t_instruccion_lql insert,char* memoria_principal, t_list* tablas){
+void resolver_insert_para_consola(t_instruccion_lql insert,char* memoria_principal, t_list* tablas){
 	log_info(logger, "Se realiza INSERT");
 	log_info(logger, "Se busca insertar en la tabla: %s", insert.parametros.INSERT.tabla);
 	log_info(logger, "en la key: %i", insert.parametros.INSERT.key);
@@ -191,20 +191,36 @@ void resolver_insert3(t_instruccion_lql insert,char* memoria_principal, t_list* 
 	}
 	}
 
-void resolver_select2(t_instruccion_lql select,char* memoria_principal, t_list* tablas){
+void resolver_select_para_consola(t_instruccion_lql instruccion_select,char* memoria_principal, t_list* tablas){
+
 	log_info(logger, "Se realiza SELECT");
-	log_info(logger, "Consulta en la tabla: %s", select.parametros.SELECT.tabla);
-	log_info(logger, "Consulta por key: %d", select.parametros.SELECT.key);
-	char* tabla = select.parametros.SELECT.tabla;
-	uint16_t key = select.parametros.SELECT.key;
+	log_info(logger, "Consulta en la tabla: %s", instruccion_select.parametros.SELECT.tabla);
+	log_info(logger, "Consulta por key: %d", instruccion_select.parametros.SELECT.key);
+
+	char* tabla = instruccion_select.parametros.SELECT.tabla;
+	uint16_t key = instruccion_select.parametros.SELECT.key;
 	int reg = 0;
+
 	reg = buscarRegistroEnTabla(tabla, key,memoria_principal,tablas);
-	log_info(logger, "registro numero: %i", reg);
+
+	//log_info(logger, "Se encontro el registro numero: %i en la tabla", reg);
+
 	if(reg==-1){
-		log_info(logger, "El registro con key '%d' NO se encuentra en memoria y procede a realizar la peticion a LFS", key);
-		enviar_paquete_select_consola(socket_conexion_lfs, select);
-		// recibir paquete select
-	} else {
+		log_info(logger, "El registro con key '%d' NO se encuentra en memoria principal y procede a realizar la peticion a LFS", key);
+		enviar_paquete_select_consola(socket_conexion_lfs, instruccion_select);
+		t_status_solicitud* status= desearilizar_status_solicitud(socket_conexion_lfs);
+			if(status){
+				t_registro* registro = obtener_registro(status->mensaje->palabra);
+				log_info(logger, "El registro de la tabla %s con la key %d tiene el value %s", tabla, registro->key, registro->value);
+				free(registro);
+			}
+			else{
+				//para que esta este else??????
+
+				//Mostrar el status.mensaje o enviarlo a Kernel
+			}
+	}
+	else {
 		log_info(logger, "El registro con key '%d' se encuentra en memoria en la posicion $i", key,reg);
 		pagina_concreta* paginalala= traerPaginaDeMemoria(reg,memoria_principal);
 		log_info(logger, "Se bajo de la memoria el registro: (%i,%s,%i)", paginalala->key, paginalala->value,paginalala->timestamp);
@@ -355,11 +371,11 @@ int buscarRegistroEnTabla(char* tabla, uint16_t key, char* memoria_principal,t_l
 
 
 /**
- 	* @NAME: resolver_select
- 	* @DESC: resuelve el select
+ 	* @NAME: resolver_insert_para_kernel
+ 	* @DESC: resuelve el insert
  	*
  	*/
-	void resolver_insert(int socket_kernel_fd, int socket_conexion_lfs,char* memoria_principal, t_list* tablas){
+	void resolver_insert_para_kernel(int socket_kernel_fd, int socket_conexion_lfs,char* memoria_principal, t_list* tablas){
 	t_paquete_insert* consulta_insert= deserealizar_insert(socket_kernel_fd);
 	log_info(logger, "Se realiza INSERT");
 	log_info(logger, "Se busca insertar en la tabla: %s", consulta_insert->nombre_tabla->palabra);
@@ -427,43 +443,50 @@ int buscarRegistroEnTabla(char* tabla, uint16_t key, char* memoria_principal,t_l
 		strcpy(&memoria_principal[posicion*tamanio_pagina+sizeof(uint16_t)+sizeof(long)], dato);
 	}
 /**
- 	* @NAME: resolver_select
+ 	* @NAME: resolver_select_para_kernel
  	* @DESC: resuelve el select
  	*
  	*/
-	void resolver_select (int socket_kernel_fd, int socket_conexion_lfs,char* memoria_principal, t_list* tablas){
-	t_paquete_select* consulta_select = deserializar_select(socket_kernel_fd);
-	log_info(logger, "Se realiza SELECT");
-	log_info(logger, "Consulta en la tabla: %s", consulta_select->nombre_tabla->palabra);
-	log_info(logger, "Consulta por key: %d", consulta_select->key);
-	char* tabla = consulta_select->nombre_tabla->palabra;
-	uint16_t key = consulta_select->key;
-	int reg = 0;
-	reg = buscarRegistroEnTabla(tabla, key,memoria_principal,tablas);
-	log_info(logger, "registro numero: %i", reg);
-	if(reg==-1){
-		log_info(logger, "El registro con key '%d' NO se encuentra en memoria y procede a realizar la peticion a LFS", key);
-		enviar_paquete_select(socket_conexion_lfs, consulta_select);
-		t_status_solicitud* status= desearilizar_status_solicitud(socket_conexion_lfs);
-		if(status){
-			t_registro* registro = obtener_registro(status->mensaje->palabra);
-			//Mostrarlo o enviarlo a kernel si hay que enviarlo no parsearlo
-		}else{
+	void resolver_select_para_kernel (int socket_kernel_fd, int socket_conexion_lfs,char* memoria_principal, t_list* tablas){
+		t_paquete_select* consulta_select = deserializar_select(socket_kernel_fd);
+
+		log_info(logger, "Se realiza SELECT");
+		log_info(logger, "Consulta en la tabla: %s", consulta_select->nombre_tabla->palabra);
+		log_info(logger, "Consulta por key: %d", consulta_select->key);
+
+		char* tabla = consulta_select->nombre_tabla->palabra;
+		uint16_t key = consulta_select->key;
+		int reg = 0;
+		reg = buscarRegistroEnTabla(tabla, key,memoria_principal,tablas);
+
+		log_info(logger, "registro numero: %i", reg);
+
+		if(reg==-1){
+			log_info(logger, "El registro con key '%d' NO se encuentra en memoria y procede a realizar la peticion a LFS", key);
+			enviar_paquete_select(socket_conexion_lfs, consulta_select);
+			t_status_solicitud* status= desearilizar_status_solicitud(socket_conexion_lfs);
+			if(status){
+				t_registro* registro = obtener_registro(status->mensaje->palabra);
+				//Enviar el dato a kernel (no parsearlo)
+				free(registro);
+			}
+			else{
 			//Mostrar el status.mensaje o enviarlo a Kernel
-		}
+			}
 
 		eliminar_paquete_select(consulta_select);
-	} else {
+		}
+		else {
 		log_info(logger, "El registro con key '%d' se encuentra en memoria en la posicion $i", key,reg);
 		pagina_concreta* paginalala= traerPaginaDeMemoria(reg,memoria_principal);
 		log_info(logger, "Se bajo de la memoria el registro: (%i,%s,%i)", paginalala->key, paginalala->value,paginalala->timestamp);
 		log_info(logger, "Se procede a enviar el dato a kernel");
 		free(paginalala->value);
 		free(paginalala);
+		}
 	}
-}
 
-void resolver_insert2(int socket_kernel_fd, int socket_conexion_lfs){
+/*void resolver_insert2(int socket_kernel_fd, int socket_conexion_lfs){
 	t_paquete_insert* consulta_insert = deserealizar_insert(socket_kernel_fd);
 	log_info(logger, "Se realiza INSERT");
 	log_info(logger, "Tabla: %s", consulta_insert->nombre_tabla->palabra);
@@ -472,7 +495,7 @@ void resolver_insert2(int socket_kernel_fd, int socket_conexion_lfs){
 	log_info(logger, "TIMESTAMP: %d", consulta_insert->timestamp);
 	enviar_paquete_insert(socket_conexion_lfs, consulta_insert);
 	eliminar_paquete_insert(consulta_insert);
-}
+}*/ //#########  FUNCION QUE NO SE USA
 
 void resolver_create (int socket_kernel_fd, int socket_conexion_lfs){
 	t_paquete_create* consulta_create = deserializar_create(socket_kernel_fd);
@@ -523,11 +546,11 @@ void resolver_describe_drop (int socket_kernel_fd, int socket_conexion_lfs, char
 	config_destroy(archivoconfig);
 }
 /**
-	* @NAME: resolver_operacion
+	* @NAME: ejecutar_API_desde_Kernel
 	* @DESC: resuelve la operacion recibida
 	*
 	*/
-	void resolver_operacion(int socket_memoria, t_operacion cod_op,char* memoria_principal, t_list* tablas){
+	void ejecutar_API_desde_Kernel(int socket_memoria, t_operacion cod_op,char* memoria_principal, t_list* tablas){
 	switch(cod_op)
 				{
 				case HANDSHAKE:
@@ -540,13 +563,13 @@ void resolver_describe_drop (int socket_kernel_fd, int socket_conexion_lfs, char
 					break;
 				case SELECT:
 					log_info(logger, "%i solicitó SELECT", socket_memoria);
-					resolver_select(socket_memoria, socket_conexion_lfs,memoria_principal,tablas);
+					resolver_select_para_kernel(socket_memoria, socket_conexion_lfs,memoria_principal,tablas);
 					//aca debería enviarse el mensaje a LFS con SELECT
 					break;
 				case INSERT:
 					log_info(logger, "%i solicitó INSERT", socket_memoria);
 
-					resolver_insert(socket_memoria, socket_conexion_lfs,memoria_principal, tablas);
+					resolver_insert_para_kernel(socket_memoria, socket_conexion_lfs,memoria_principal, tablas);
 					//aca debería enviarse el mensaje a LFS con INSERT
 					break;
 				case CREATE:
@@ -783,7 +806,7 @@ void resolver_describe_drop (int socket_kernel_fd, int socket_conexion_lfs, char
 	                    			                        }
 	                    			else {
 	                    			                            // tenemos datos de algún cliente
-	                    				resolver_operacion(i,cod_op,memoria_principal,tablas);
+	                    				ejecutar_API_desde_Kernel(i,cod_op,memoria_principal,tablas);
 	                    			    log_info(logger, "Se recibio una operacion de %i", i);
 
 	                    			}}
