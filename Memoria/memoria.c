@@ -191,20 +191,36 @@ void resolver_insert_para_consola(t_instruccion_lql insert,char* memoria_princip
 	}
 	}
 
-void resolver_select_para_consola(t_instruccion_lql select,char* memoria_principal, t_list* tablas){
+void resolver_select_para_consola(t_instruccion_lql instruccion_select,char* memoria_principal, t_list* tablas){
+
 	log_info(logger, "Se realiza SELECT");
-	log_info(logger, "Consulta en la tabla: %s", select.parametros.SELECT.tabla);
-	log_info(logger, "Consulta por key: %d", select.parametros.SELECT.key);
-	char* tabla = select.parametros.SELECT.tabla;
-	uint16_t key = select.parametros.SELECT.key;
+	log_info(logger, "Consulta en la tabla: %s", instruccion_select.parametros.SELECT.tabla);
+	log_info(logger, "Consulta por key: %d", instruccion_select.parametros.SELECT.key);
+
+	char* tabla = instruccion_select.parametros.SELECT.tabla;
+	uint16_t key = instruccion_select.parametros.SELECT.key;
 	int reg = 0;
+
 	reg = buscarRegistroEnTabla(tabla, key,memoria_principal,tablas);
-	log_info(logger, "registro numero: %i", reg);
+
+	//log_info(logger, "Se encontro el registro numero: %i en la tabla", reg);
+
 	if(reg==-1){
-		log_info(logger, "El registro con key '%d' NO se encuentra en memoria y procede a realizar la peticion a LFS", key);
-		enviar_paquete_select_consola(socket_conexion_lfs, select);
-		// recibir paquete select
-	} else {
+		log_info(logger, "El registro con key '%d' NO se encuentra en memoria principal y procede a realizar la peticion a LFS", key);
+		enviar_paquete_select_consola(socket_conexion_lfs, instruccion_select);
+		t_status_solicitud* status= desearilizar_status_solicitud(socket_conexion_lfs);
+			if(status){
+				t_registro* registro = obtener_registro(status->mensaje->palabra);
+				log_info(logger, "El registro de la tabla %s con la key %d tiene el value %s", tabla, registro->key, registro->value);
+				free(registro);
+			}
+			else{
+				//para que esta este else??????
+
+				//Mostrar el status.mensaje o enviarlo a Kernel
+			}
+	}
+	else {
 		log_info(logger, "El registro con key '%d' se encuentra en memoria en la posicion $i", key,reg);
 		pagina_concreta* paginalala= traerPaginaDeMemoria(reg,memoria_principal);
 		log_info(logger, "Se bajo de la memoria el registro: (%i,%s,%i)", paginalala->key, paginalala->value,paginalala->timestamp);
@@ -432,36 +448,43 @@ int buscarRegistroEnTabla(char* tabla, uint16_t key, char* memoria_principal,t_l
  	*
  	*/
 	void resolver_select_para_kernel (int socket_kernel_fd, int socket_conexion_lfs,char* memoria_principal, t_list* tablas){
-	t_paquete_select* consulta_select = deserializar_select(socket_kernel_fd);
-	log_info(logger, "Se realiza SELECT");
-	log_info(logger, "Consulta en la tabla: %s", consulta_select->nombre_tabla->palabra);
-	log_info(logger, "Consulta por key: %d", consulta_select->key);
-	char* tabla = consulta_select->nombre_tabla->palabra;
-	uint16_t key = consulta_select->key;
-	int reg = 0;
-	reg = buscarRegistroEnTabla(tabla, key,memoria_principal,tablas);
-	log_info(logger, "registro numero: %i", reg);
-	if(reg==-1){
-		log_info(logger, "El registro con key '%d' NO se encuentra en memoria y procede a realizar la peticion a LFS", key);
-		enviar_paquete_select(socket_conexion_lfs, consulta_select);
-		t_status_solicitud* status= desearilizar_status_solicitud(socket_conexion_lfs);
-		if(status){
-			t_registro* registro = obtener_registro(status->mensaje->palabra);
-			//Mostrarlo o enviarlo a kernel si hay que enviarlo no parsearlo
-		}else{
+		t_paquete_select* consulta_select = deserializar_select(socket_kernel_fd);
+
+		log_info(logger, "Se realiza SELECT");
+		log_info(logger, "Consulta en la tabla: %s", consulta_select->nombre_tabla->palabra);
+		log_info(logger, "Consulta por key: %d", consulta_select->key);
+
+		char* tabla = consulta_select->nombre_tabla->palabra;
+		uint16_t key = consulta_select->key;
+		int reg = 0;
+		reg = buscarRegistroEnTabla(tabla, key,memoria_principal,tablas);
+
+		log_info(logger, "registro numero: %i", reg);
+
+		if(reg==-1){
+			log_info(logger, "El registro con key '%d' NO se encuentra en memoria y procede a realizar la peticion a LFS", key);
+			enviar_paquete_select(socket_conexion_lfs, consulta_select);
+			t_status_solicitud* status= desearilizar_status_solicitud(socket_conexion_lfs);
+			if(status){
+				t_registro* registro = obtener_registro(status->mensaje->palabra);
+				//Enviar el dato a kernel (no parsearlo)
+				free(registro);
+			}
+			else{
 			//Mostrar el status.mensaje o enviarlo a Kernel
-		}
+			}
 
 		eliminar_paquete_select(consulta_select);
-	} else {
+		}
+		else {
 		log_info(logger, "El registro con key '%d' se encuentra en memoria en la posicion $i", key,reg);
 		pagina_concreta* paginalala= traerPaginaDeMemoria(reg,memoria_principal);
 		log_info(logger, "Se bajo de la memoria el registro: (%i,%s,%i)", paginalala->key, paginalala->value,paginalala->timestamp);
 		log_info(logger, "Se procede a enviar el dato a kernel");
 		free(paginalala->value);
 		free(paginalala);
+		}
 	}
-}
 
 /*void resolver_insert2(int socket_kernel_fd, int socket_conexion_lfs){
 	t_paquete_insert* consulta_insert = deserealizar_insert(socket_kernel_fd);
@@ -472,7 +495,7 @@ int buscarRegistroEnTabla(char* tabla, uint16_t key, char* memoria_principal,t_l
 	log_info(logger, "TIMESTAMP: %d", consulta_insert->timestamp);
 	enviar_paquete_insert(socket_conexion_lfs, consulta_insert);
 	eliminar_paquete_insert(consulta_insert);
-}/* #########  FUNCION QUE NO SE USA
+}*/ //#########  FUNCION QUE NO SE USA
 
 void resolver_create (int socket_kernel_fd, int socket_conexion_lfs){
 	t_paquete_create* consulta_create = deserializar_create(socket_kernel_fd);
