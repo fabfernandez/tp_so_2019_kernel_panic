@@ -111,14 +111,14 @@ void *iniciar_consola(void* dato){
 void parsear_y_ejecutar(char* linea, int flag_de_consola, char* memoria, t_list* tablas){
 	t_instruccion_lql instruccion = parsear_linea(linea);
 	if (instruccion.valido) {
-		ejecutar_instruccion(instruccion,memoria,tablas);
+		ejecutar_API_desde_consola(instruccion,memoria,tablas);
 	}else{
 		if (flag_de_consola){
 			log_error(logger, "Reingrese correctamente la instruccion");
 		}
 	}
 }
-void ejecutar_instruccion(t_instruccion_lql instruccion,char* memoria,t_list* tablas){
+void ejecutar_API_desde_consola(t_instruccion_lql instruccion,char* memoria,t_list* tablas){
 	t_operacion operacion = instruccion.operacion;
 	switch(operacion) {
 		case SELECT:
@@ -523,11 +523,11 @@ void resolver_describe_drop (int socket_kernel_fd, int socket_conexion_lfs, char
 	config_destroy(archivoconfig);
 }
 /**
-	* @NAME: resolver_operacion
+	* @NAME: ejecutar_API_desde_Kernel
 	* @DESC: resuelve la operacion recibida
 	*
 	*/
-	void resolver_operacion(int socket_memoria, t_operacion cod_op,char* memoria_principal, t_list* tablas){
+	void ejecutar_API_desde_Kernel(int socket_memoria, t_operacion cod_op,char* memoria_principal, t_list* tablas){
 	switch(cod_op)
 				{
 				case HANDSHAKE:
@@ -783,7 +783,7 @@ void resolver_describe_drop (int socket_kernel_fd, int socket_conexion_lfs, char
 	                    			                        }
 	                    			else {
 	                    			                            // tenemos datos de algún cliente
-	                    				resolver_operacion(i,cod_op,memoria_principal,tablas);
+	                    				ejecutar_API_desde_Kernel(i,cod_op,memoria_principal,tablas);
 	                    			    log_info(logger, "Se recibio una operacion de %i", i);
 
 	                    			}}

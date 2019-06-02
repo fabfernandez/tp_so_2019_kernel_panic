@@ -80,7 +80,7 @@ void select_esperar_conexiones_o_peticiones(char* memoria_principal,t_list* tabl
 void iniciarHiloConsola();
 void *iniciar_consola(void* dato);
 void parsear_y_ejecutar(char* linea, int flag_de_consola, char* memoria, t_list* tablas);
-void ejecutar_instruccion(t_instruccion_lql instruccion,char* memoria,t_list* tablas);
+void ejecutar_API_desde_consola(t_instruccion_lql instruccion,char* memoria,t_list* tablas);
 void resolver_select2(t_instruccion_lql select,char* memoria_principal, t_list* tablas);
 void seedsCargadas();
 void logearSeeds();
@@ -88,7 +88,7 @@ void levantar_datos_memoria();
 void levantar_datos_lfs();
 int esperar_operaciones();
 void iniciarTablaDeGossiping();
-void resolver_operacion(int socket_memoria, t_operacion cod_op,char* memoria_principal, t_list* tablas);
+void ejecutar_API_desde_Kernel(int socket_memoria, t_operacion cod_op,char* memoria_principal, t_list* tablas);
 void leer_config();
 void iniciar_logger();
 void iniciar_servidor_memoria_y_esperar_conexiones_kernel();
