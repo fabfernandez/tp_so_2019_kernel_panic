@@ -40,7 +40,7 @@ segmento* encontrarSegmento(char* nombredTabla, t_list* tablas);
 pagina* *encontrarPagina(segmento* unSegmento, uint16_t key);
 int cambiarBitModificado(char* tabla, uint16_t key,t_list* tablas, char* memoria_principal);
 void modificarRegistro(uint16_t key,char* dato,long tss,int posicion, char* memoria_principal, t_list* tablas);
-void resolver_insert2(int socket_kernel_fd, int socket_conexion_lfs);
+//void resolver_insert2(int socket_kernel_fd, int socket_conexion_lfs);
 pagina_concreta* traerPaginaDeMemoria(unsigned int posicion,char* memoria_principal);
 int existeTabla(char* tabla);
 void agregar_pagina_a_tabla(pagina* pagina,char* nombreTabla);
@@ -81,7 +81,7 @@ void iniciarHiloConsola();
 void *iniciar_consola(void* dato);
 void parsear_y_ejecutar(char* linea, int flag_de_consola, char* memoria, t_list* tablas);
 void ejecutar_API_desde_consola(t_instruccion_lql instruccion,char* memoria,t_list* tablas);
-void resolver_select2(t_instruccion_lql select,char* memoria_principal, t_list* tablas);
+void resolver_select_para_consola(t_instruccion_lql select,char* memoria_principal, t_list* tablas);
 void seedsCargadas();
 void logearSeeds();
 void levantar_datos_memoria();
@@ -112,6 +112,6 @@ t_metadata describe(char* tabla);
 int journal(void);
 
 /*OPERACIONES*/
-void resolver_select (int socket_kernel_fd, int socket_conexion_lfs,char* memoria_principal, t_list* tablas);
+void resolver_select_para_kernel (int socket_kernel_fd, int socket_conexion_lfs,char* memoria_principal, t_list* tablas);
 
 #endif /* MEMORIA_H_ */

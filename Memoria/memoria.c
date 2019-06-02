@@ -123,11 +123,11 @@ void ejecutar_API_desde_consola(t_instruccion_lql instruccion,char* memoria,t_li
 	switch(operacion) {
 		case SELECT:
 			log_info(logger, "Se solicita SELECT a memoria");
-			resolver_select2(instruccion,memoria,tablas);
+			resolver_select_para_consola(instruccion,memoria,tablas);
 			break;
 		case INSERT:
 			log_info(logger, "Kernel solicitó INSERT");
-			resolver_insert3(instruccion,memoria,tablas);
+			resolver_insert_para_consola(instruccion,memoria,tablas);
 			break;
 		case CREATE:
 			log_info(logger, "Kernel solicitó CREATE");
@@ -149,7 +149,7 @@ void ejecutar_API_desde_consola(t_instruccion_lql instruccion,char* memoria,t_li
 			break;
 		}
 }
-void resolver_insert3(t_instruccion_lql insert,char* memoria_principal, t_list* tablas){
+void resolver_insert_para_consola(t_instruccion_lql insert,char* memoria_principal, t_list* tablas){
 	log_info(logger, "Se realiza INSERT");
 	log_info(logger, "Se busca insertar en la tabla: %s", insert.parametros.INSERT.tabla);
 	log_info(logger, "en la key: %i", insert.parametros.INSERT.key);
@@ -191,7 +191,7 @@ void resolver_insert3(t_instruccion_lql insert,char* memoria_principal, t_list* 
 	}
 	}
 
-void resolver_select2(t_instruccion_lql select,char* memoria_principal, t_list* tablas){
+void resolver_select_para_consola(t_instruccion_lql select,char* memoria_principal, t_list* tablas){
 	log_info(logger, "Se realiza SELECT");
 	log_info(logger, "Consulta en la tabla: %s", select.parametros.SELECT.tabla);
 	log_info(logger, "Consulta por key: %d", select.parametros.SELECT.key);
@@ -355,11 +355,11 @@ int buscarRegistroEnTabla(char* tabla, uint16_t key, char* memoria_principal,t_l
 
 
 /**
- 	* @NAME: resolver_select
- 	* @DESC: resuelve el select
+ 	* @NAME: resolver_insert_para_kernel
+ 	* @DESC: resuelve el insert
  	*
  	*/
-	void resolver_insert(int socket_kernel_fd, int socket_conexion_lfs,char* memoria_principal, t_list* tablas){
+	void resolver_insert_para_kernel(int socket_kernel_fd, int socket_conexion_lfs,char* memoria_principal, t_list* tablas){
 	t_paquete_insert* consulta_insert= deserealizar_insert(socket_kernel_fd);
 	log_info(logger, "Se realiza INSERT");
 	log_info(logger, "Se busca insertar en la tabla: %s", consulta_insert->nombre_tabla->palabra);
@@ -427,11 +427,11 @@ int buscarRegistroEnTabla(char* tabla, uint16_t key, char* memoria_principal,t_l
 		strcpy(&memoria_principal[posicion*tamanio_pagina+sizeof(uint16_t)+sizeof(long)], dato);
 	}
 /**
- 	* @NAME: resolver_select
+ 	* @NAME: resolver_select_para_kernel
  	* @DESC: resuelve el select
  	*
  	*/
-	void resolver_select (int socket_kernel_fd, int socket_conexion_lfs,char* memoria_principal, t_list* tablas){
+	void resolver_select_para_kernel (int socket_kernel_fd, int socket_conexion_lfs,char* memoria_principal, t_list* tablas){
 	t_paquete_select* consulta_select = deserializar_select(socket_kernel_fd);
 	log_info(logger, "Se realiza SELECT");
 	log_info(logger, "Consulta en la tabla: %s", consulta_select->nombre_tabla->palabra);
@@ -463,7 +463,7 @@ int buscarRegistroEnTabla(char* tabla, uint16_t key, char* memoria_principal,t_l
 	}
 }
 
-void resolver_insert2(int socket_kernel_fd, int socket_conexion_lfs){
+/*void resolver_insert2(int socket_kernel_fd, int socket_conexion_lfs){
 	t_paquete_insert* consulta_insert = deserealizar_insert(socket_kernel_fd);
 	log_info(logger, "Se realiza INSERT");
 	log_info(logger, "Tabla: %s", consulta_insert->nombre_tabla->palabra);
@@ -472,7 +472,7 @@ void resolver_insert2(int socket_kernel_fd, int socket_conexion_lfs){
 	log_info(logger, "TIMESTAMP: %d", consulta_insert->timestamp);
 	enviar_paquete_insert(socket_conexion_lfs, consulta_insert);
 	eliminar_paquete_insert(consulta_insert);
-}
+}/* #########  FUNCION QUE NO SE USA
 
 void resolver_create (int socket_kernel_fd, int socket_conexion_lfs){
 	t_paquete_create* consulta_create = deserializar_create(socket_kernel_fd);
@@ -540,13 +540,13 @@ void resolver_describe_drop (int socket_kernel_fd, int socket_conexion_lfs, char
 					break;
 				case SELECT:
 					log_info(logger, "%i solicitó SELECT", socket_memoria);
-					resolver_select(socket_memoria, socket_conexion_lfs,memoria_principal,tablas);
+					resolver_select_para_kernel(socket_memoria, socket_conexion_lfs,memoria_principal,tablas);
 					//aca debería enviarse el mensaje a LFS con SELECT
 					break;
 				case INSERT:
 					log_info(logger, "%i solicitó INSERT", socket_memoria);
 
-					resolver_insert(socket_memoria, socket_conexion_lfs,memoria_principal, tablas);
+					resolver_insert_para_kernel(socket_memoria, socket_conexion_lfs,memoria_principal, tablas);
 					//aca debería enviarse el mensaje a LFS con INSERT
 					break;
 				case CREATE:
