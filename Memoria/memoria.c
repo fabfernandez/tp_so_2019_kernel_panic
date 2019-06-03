@@ -209,14 +209,15 @@ void resolver_select_para_consola(t_instruccion_lql instruccion_select,char* mem
 		log_info(logger, "El registro con key '%d' NO se encuentra en memoria principal y procede a realizar la peticion a LFS", key);
 		enviar_paquete_select_consola(socket_conexion_lfs, instruccion_select);
 		t_status_solicitud* status= desearilizar_status_solicitud(socket_conexion_lfs);
-			if(status){
+			if(status->es_valido){
 				t_registro* registro = obtener_registro(status->mensaje->palabra);
 				log_info(logger, "El registro de la tabla %s con la key %d tiene el value %s", tabla, registro->key, registro->value);
+				free(registro->value);
 				free(registro);
 			}
 			else{
 				//para que esta este else??????
-
+				log_error(logger, "No existe el registro buscado");
 				//Mostrar el status.mensaje o enviarlo a Kernel
 			}
 	}
