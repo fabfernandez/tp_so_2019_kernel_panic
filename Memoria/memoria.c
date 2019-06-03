@@ -206,28 +206,44 @@ void resolver_select_para_consola(t_instruccion_lql instruccion_select,char* mem
 	//log_info(logger, "Se encontro el registro numero: %i en la tabla", reg);
 
 	if(reg==-1){
-		log_info(logger, "El registro con key '%d' NO se encuentra en memoria principal y procede a realizar la peticion a LFS", key);
-		enviar_paquete_select_consola(socket_conexion_lfs, instruccion_select);
-		t_status_solicitud* status= desearilizar_status_solicitud(socket_conexion_lfs);
+		log_info(logger, "El registro con key '%d' NO se encuentra en memoria principal", key);
+		if(posicionProximaLibre+1>cantidad_paginas&&(lru(memoria_principal,tablas)==-1)){ //
+								/*
+								 * NO HAY ESPACIO PROXIMO DISPONIBLE Y LRU DICE QUE ESTÁ TODO OCPUADO
+								 * -> hay que hacer journaling
+								 *
+								 */
+								log_error(logger, "No hay lugar en la memoria, debe realizarse JOURNAL", tabla);
+		} else {
+			log_info(logger, "Hay espacio en memoria, se procede a realizar la peticion a LFS", key);
+			enviar_paquete_select_consola(socket_conexion_lfs, instruccion_select);
+			t_status_solicitud* status= desearilizar_status_solicitud(socket_conexion_lfs);
 			if(status->es_valido){
 				t_registro* registro = obtener_registro(status->mensaje->palabra);
-				log_info(logger, "El registro de la tabla %s con la key %d tiene el value %s", tabla, registro->key, registro->value);
-				free(registro->value);
-				free(registro);
+				log_info(logger, "%s ; %d ; %s ; %i | (TABLA;KEY;VALUE;TS)", tabla, registro->key, registro->value,registro->timestamp);
+				segmento* segmentoBuscado = encontrarSegmento(tabla,tablas);
+					if(segmentoBuscado==NULL)
+						{
+							log_info(logger, "No existe el segmento: %s", tabla);
+							list_add(tablas, crearSegmento(tabla));
+							paginaNueva(key,registro->value,registro->timestamp,tabla,memoria_principal,tablas);
+						} else { paginaNuevaInsert(key,registro->value,registro->timestamp,tabla,memoria_principal,tablas); }
+					free(registro->value);
+					free(registro);
 			}
 			else{
 				//para que esta este else??????
 				log_error(logger, "No existe el registro buscado");
 				//Mostrar el status.mensaje o enviarlo a Kernel
 			}
-	}
-	else {
-		log_info(logger, "El registro con key '%d' se encuentra en memoria en la posicion $i", key,reg);
-		pagina_concreta* paginalala= traerPaginaDeMemoria(reg,memoria_principal);
-		log_info(logger, "Se bajo de la memoria el registro: (%i,%s,%i)", paginalala->key, paginalala->value,paginalala->timestamp);
-		log_info(logger, "Se procede a enviar el dato a kernel");
-		free(paginalala->value);
-		free(paginalala);
+		}
+	}	else {
+			log_info(logger, "El registro con key '%d' se encuentra en memoria en la posicion %i", key,reg);
+			pagina_concreta* paginalala= traerPaginaDeMemoria(reg,memoria_principal);
+			log_info(logger, "Se bajo de la memoria el registro: (%i,%s,%i)", paginalala->key, paginalala->value,paginalala->timestamp);
+			log_info(logger, "Se procede a enviar el dato a kernel");
+			free(paginalala->value);
+			free(paginalala);
 	}
 }
 
@@ -270,7 +286,14 @@ void traerPaginaDeMemoria2(unsigned int posicion,char* memoriappal,pagina_concre
 pagina* crearPagina(){
 	pagina* paginaa = malloc(sizeof(pagina));
 	paginaa->modificado=0;
-	paginaa->posicionEnMemoria=posicionProximaLibre;
+	unsigned int posicionDondePonerElDatoEnMemoria;
+		if(posicionProximaLibre+1>cantidad_paginas){
+			posicionDondePonerElDatoEnMemoria = lru(memoria_principal, tablas);
+			} else {
+				posicionDondePonerElDatoEnMemoria=posicionProximaLibre;
+				posicionProximaLibre+=1;
+	}
+	paginaa->posicionEnMemoria=posicionDondePonerElDatoEnMemoria;
 	paginaa->ultimaLectura=(unsigned)time(NULL);;
 	posicionProximaLibre+=1;
 	return paginaa;
@@ -278,12 +301,19 @@ pagina* crearPagina(){
 pagina* crearPaginaInsert(){
 	pagina* paginaa = malloc(sizeof(pagina));
 	paginaa->modificado=1;
-	paginaa->posicionEnMemoria=posicionProximaLibre;
+	unsigned int posicionDondePonerElDatoEnMemoria;
+	if(posicionProximaLibre+1>cantidad_paginas){
+		posicionDondePonerElDatoEnMemoria = lru(memoria_principal, tablas);
+		} else {
+			posicionDondePonerElDatoEnMemoria=posicionProximaLibre;
+			posicionProximaLibre+=1;
+	}
+	paginaa->posicionEnMemoria=posicionDondePonerElDatoEnMemoria;
 	paginaa->ultimaLectura=(unsigned)time(NULL);;
 	log_info(logger,"Se creo una pagina con insert, bit MOD=%i", paginaa->modificado);
-	posicionProximaLibre+=1;
 	return paginaa;
 }
+
 
 
 /**
