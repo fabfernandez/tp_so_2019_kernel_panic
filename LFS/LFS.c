@@ -113,7 +113,7 @@ int resolver_operacion(int socket_memoria, t_operacion cod_op){
 		case DESCRIBE:
 			log_info(logger, "memoria solicitó DESCRIBE");
 
-			//resolver_describe(socket_memoria, "DESCRIBE");
+			resolver_describe(socket_memoria);
 			//aca debería enviarse el mensaje a LFS con DESCRIBE
 			break;
 		case DROP:
@@ -286,7 +286,13 @@ int crear_directorio_tabla (char* dir_tabla){
 	return !(mkdir(dir_tabla, 0777) != 0 && errno != EEXIST);
 }
 
+void resolver_describe(int socket_memoria, char* operacion){
+	t_paquete_drop_describe* consulta_describe_drop = deserealizar_drop_describe(socket_memoria);
+	log_info(logger, "Se realiza %s", operacion);
 
+	log_info(logger, "Tabla: %s", consulta_describe_drop->nombre_tabla->palabra);
+	eliminar_paquete_drop_describe(consulta_describe_drop);
+}
 
 void resolver_describe_drop (int socket_memoria, char* operacion){
 	t_paquete_drop_describe* consulta_describe_drop = deserealizar_drop_describe(socket_memoria);
