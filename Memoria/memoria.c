@@ -160,12 +160,31 @@ void resolver_insert_para_consola(t_instruccion_lql insert,char* memoria_princip
 	uint16_t key = insert.parametros.INSERT.key;
 	char* dato = insert.parametros.INSERT.value;
 	segmento* segmentoBuscado = encontrarSegmento(tabla,tablas);
-	int reg00 = buscarRegistroEnTabla(tabla, key,memoria_principal,tablas);
-	if(posicionProximaLibre+1>cantidad_paginas&&(segmentoBuscado==NULL || reg00==-1)){
-		/*
-		 * PROCESO LRU
-		 * proceso de creacion/modificacion de registro
-		 */
+	int lruu= lru(memoria_principal,tablas);
+	int registroAInsertar = buscarRegistroEnTabla(tabla, key,memoria_principal,tablas);
+	if(registroAInsertar==-1){
+
+	}
+	if(posicionProximaLibre>=cantidad_paginas&&(lruu==-1)&&(registroAInsertar==-1)){ //
+		log_error(logger, "No hay lugar en la memoria, debe realizarse JOURNAL", tabla);
+	} else {
+	if(registroAInsertar==-1){ // no está el registro, hay que agregarlo -> bit mod en 1
+		if(segmentoBuscado==NULL) // si el segmento no existe lo creo, y luego la pagina.
+			{
+			list_add(tablas, crearSegmento(tabla));
+			paginaNuevaInsert(key,dato,tsss,tabla,memoria_principal,tablas);
+			} else { // existe el segmento, agrego la pagina al segmento
+					log_error(logger, "no encontre el registro en la tabla");
+					paginaNuevaInsert(key,dato,tsss,tabla,memoria_principal,tablas);
+					}
+	} else // el registro con esa key ya existe
+			//modificarRegistro(key,dato,(unsigned)time(NULL),reg2,memoria_principal,tablas);
+			modificarRegistro(key,dato,tsss,registroAInsertar,memoria_principal,tablas);
+			cambiarBitModificado(tabla, key,tablas, memoria_principal);
+	}
+	}
+	/*	if(posicionProximaLibre+1>cantidad_paginas&&(segmentoBuscado==NULL || reg00==-1)){
+
 		log_error(logger, "No hay lugar en la memoria, debe realizarse JOURNAL", tabla);
 	} else {
 		if(segmentoBuscado==NULL)
@@ -189,7 +208,7 @@ void resolver_insert_para_consola(t_instruccion_lql insert,char* memoria_princip
 					}
 			}
 	}
-	}
+	}*/
 
 void resolver_select_para_consola(t_instruccion_lql instruccion_select,char* memoria_principal, t_list* tablas){
 
@@ -203,30 +222,45 @@ void resolver_select_para_consola(t_instruccion_lql instruccion_select,char* mem
 
 	reg = buscarRegistroEnTabla(tabla, key,memoria_principal,tablas);
 
-	//log_info(logger, "Se encontro el registro numero: %i en la tabla", reg);
 
 	if(reg==-1){
-		log_info(logger, "El registro con key '%d' NO se encuentra en memoria principal y procede a realizar la peticion a LFS", key);
-		enviar_paquete_select_consola(socket_conexion_lfs, instruccion_select);
-		t_status_solicitud* status= desearilizar_status_solicitud(socket_conexion_lfs);
-			if(status){
+		log_info(logger, "El registro con key '%d' NO se encuentra en memoria principal", key);
+		int lruu = lru(memoria_principal,tablas);
+		if(posicionProximaLibre>=cantidad_paginas&&(lruu==-1)){ //
+								/*
+								 * NO HAY ESPACIO PROXIMO DISPONIBLE Y LRU DICE QUE ESTÁ TODO OCPUADO
+								 * -> hay que hacer journaling
+								 *
+								 */
+								log_error(logger, "No hay lugar en la memoria, debe realizarse JOURNAL", tabla);
+		} else {
+			log_info(logger, "Hay espacio en memoria, se procede a realizar la peticion a LFS", key);
+			enviar_paquete_select_consola(socket_conexion_lfs, instruccion_select);
+			t_status_solicitud* status= desearilizar_status_solicitud(socket_conexion_lfs);
+			if(status->es_valido){
 				t_registro* registro = obtener_registro(status->mensaje->palabra);
-				log_info(logger, "El registro de la tabla %s con la key %d tiene el value %s", tabla, registro->key, registro->value);
-				free(registro);
+				log_info(logger, "%s ; %d ; %s ; %i | (TABLA;KEY;VALUE;TS)", tabla, registro->key, registro->value,registro->timestamp);
+				segmento* segmentoBuscado = encontrarSegmento(tabla,tablas);
+					if(segmentoBuscado==NULL)
+						{
+							log_info(logger, "No existe el segmento: %s", tabla);
+							list_add(tablas, crearSegmento(tabla));
+							paginaNueva(key,registro->value,registro->timestamp,tabla,memoria_principal,tablas);
+						} else { paginaNueva(key,registro->value,registro->timestamp,tabla,memoria_principal,tablas); }
+					free(registro->value);
+					free(registro);
 			}
 			else{
 				//para que esta este else??????
-
+				log_error(logger, "No existe el registro buscado");
 				//Mostrar el status.mensaje o enviarlo a Kernel
 			}
-	}
-	else {
-		log_info(logger, "El registro con key '%d' se encuentra en memoria en la posicion $i", key,reg);
-		pagina_concreta* paginalala= traerPaginaDeMemoria(reg,memoria_principal);
-		log_info(logger, "Se bajo de la memoria el registro: (%i,%s,%i)", paginalala->key, paginalala->value,paginalala->timestamp);
-		log_info(logger, "Se procede a enviar el dato a kernel");
-		free(paginalala->value);
-		free(paginalala);
+		}
+	}	else {
+			pagina_concreta* paginalala= traerPaginaDeMemoria(reg,memoria_principal);
+			log_info(logger, "Posicion %i: (%i,%s,%i)", reg,paginalala->key, paginalala->value,paginalala->timestamp);
+			free(paginalala->value);
+			free(paginalala);
 	}
 }
 
@@ -269,7 +303,14 @@ void traerPaginaDeMemoria2(unsigned int posicion,char* memoriappal,pagina_concre
 pagina* crearPagina(){
 	pagina* paginaa = malloc(sizeof(pagina));
 	paginaa->modificado=0;
-	paginaa->posicionEnMemoria=posicionProximaLibre;
+	unsigned int posicionDondePonerElDatoEnMemoria;
+	if(posicionProximaLibre>=cantidad_paginas){
+			posicionDondePonerElDatoEnMemoria = lru(memoria_principal, tablas);
+			eliminarPagina(posicionDondePonerElDatoEnMemoria, memoria_principal,tablas);
+			} else {
+				posicionDondePonerElDatoEnMemoria=posicionProximaLibre;
+	}
+	paginaa->posicionEnMemoria=posicionDondePonerElDatoEnMemoria;
 	paginaa->ultimaLectura=(unsigned)time(NULL);;
 	posicionProximaLibre+=1;
 	return paginaa;
@@ -277,12 +318,35 @@ pagina* crearPagina(){
 pagina* crearPaginaInsert(){
 	pagina* paginaa = malloc(sizeof(pagina));
 	paginaa->modificado=1;
-	paginaa->posicionEnMemoria=posicionProximaLibre;
+	unsigned int posicionDondePonerElDatoEnMemoria;
+	if(posicionProximaLibre>=cantidad_paginas){
+		posicionDondePonerElDatoEnMemoria = lru(memoria_principal, tablas);
+		eliminarPagina(posicionDondePonerElDatoEnMemoria, memoria_principal,tablas); // hay q eliminar la pagina!
+		log_info(logger,"posicionProxima:%i, cantidad:%i(lru encontro espacio)-> %i", posicionProximaLibre,cantidad_paginas,posicionDondePonerElDatoEnMemoria);
+		} else {
+			posicionDondePonerElDatoEnMemoria=posicionProximaLibre;
+			log_info(logger,"posicionProxima:%i, cantidad:%i(hay espacio de una)", posicionProximaLibre,cantidad_paginas);
+			posicionProximaLibre+=1;
+	}
+	paginaa->posicionEnMemoria=posicionDondePonerElDatoEnMemoria;
 	paginaa->ultimaLectura=(unsigned)time(NULL);;
 	log_info(logger,"Se creo una pagina con insert, bit MOD=%i", paginaa->modificado);
-	posicionProximaLibre+=1;
 	return paginaa;
 }
+void eliminarPagina(int posicionDondePonerElDatoEnMemoria, char* memoria_princial, t_list* tablas) {
+	for(int j=0; j<tablas->elements_count; j++) {
+		segmento* unSegmento=list_get(tablas, j);
+		for(int i=0 ; i < unSegmento->paginas->elements_count ; i++)
+		{
+			pagina* pagin = list_get(unSegmento->paginas,i);
+			if(pagin->posicionEnMemoria == posicionDondePonerElDatoEnMemoria){
+				list_remove(unSegmento->paginas,i);
+				free(pagin);
+			}
+		}
+	}
+}
+
 
 
 /**
@@ -316,6 +380,7 @@ void paginaNuevaInsert(uint16_t key, char* value, long ts, char* tabla, char* me
  	*/
 void agregarPaginaASegmento(char* tabla, pagina* pagina, t_list* tablas){
 	segmento* segmentoBuscado = encontrarSegmento(tabla, tablas);
+	pagina->ultimaLectura=(unsigned)time(NULL);
 	list_add(segmentoBuscado->paginas, pagina);
 	log_info(logger,"Se agrego la pagina con posicion en memoria: %i , al segmento: %s , con ultimo tiempo de lectura = %i", pagina->posicionEnMemoria, segmentoBuscado->nombreTabla, pagina->ultimaLectura);
 }
@@ -342,15 +407,17 @@ segmento* crearSegmento(char* nombreTabla)
 
 int buscarRegistroEnTabla(char* tabla, uint16_t key, char* memoria_principal,t_list* tablas){
 		segmento* segment = encontrarSegmento(tabla,tablas);
-		if(segment==NULL){return -1;}
+		if(segment==NULL){
+			log_error(logger,"El registro no se encuentra en memoria");
+			return -1;}
 		for(int i=0 ; i < segment->paginas->elements_count ; i++)
 		{
 			pagina* pagin = list_get(segment->paginas,i);
 			uint16_t pos = pagin->posicionEnMemoria;
-			log_info(logger,"Posicion en memoria: %i",pagin->posicionEnMemoria);
+			//log_info(logger,"Posicion en memoria: %i",pagin->posicionEnMemoria);
 			pagina_concreta * pagc = malloc(sizeof(pagina_concreta));
 			pagc = traerPaginaDeMemoria(pos,memoria_principal);
-			log_info(logger,"Pagina Key: %i",pagc->key);
+			//log_info(logger,"Pagina Key: %i",pagc->key);
 			int posicion=pagin->posicionEnMemoria;
 			if(pagc->key == key){
 				log_info(logger,"Ultima lectura anterior: %i",pagin->ultimaLectura);
@@ -411,15 +478,16 @@ int buscarRegistroEnTabla(char* tabla, uint16_t key, char* memoria_principal,t_l
 					log_info(logger, "El registro se encuentra en la posicion de memoria: %i , se procede a modificarlo",reg2);
 					//modificarRegistro(key,dato,(unsigned)time(NULL),reg2,memoria_principal,tablas);
 					modificarRegistro(key,dato,tsss,reg2,memoria_principal,tablas);
-					int resultado = cambiarBitModificado(tabla,key,tablas,memoria_principal);
+					cambiarBitModificado(tabla, key,tablas,memoria_principal);
+					cambiarBitModificado(tabla,key,tablas,memoria_principal);
 					}
 			}
 	}
 	}
 
-	int cambiarBitModificado(char* tabla, uint16_t key,t_list* tablas, char* memoria_principal){
+	void cambiarBitModificado(char* tabla, uint16_t key,t_list* tablas, char* memoria_principal){
 			segmento* segment = encontrarSegmento(tabla,tablas);
-			if(segment==NULL){return -1;}
+			if(segment==NULL){log_error(logger,"No existe el segmento");}
 			for(int i=0 ; i < segment->paginas->elements_count ; i++)
 			{
 				pagina* pagin = list_get(segment->paginas,i);
@@ -430,12 +498,10 @@ int buscarRegistroEnTabla(char* tabla, uint16_t key, char* memoria_principal,t_l
 					pagin->ultimaLectura=(unsigned)time(NULL);;
 					pagin->modificado=1;
 					log_info(logger,"Pagina con posicion en memoria %i modificada, ultimo acceso: %i , Bit de MOD = %i",pagin->posicionEnMemoria,pagin->ultimaLectura, pagin->modificado);
+					log_info(logger,"vuelta %i",i);
 					free(pagc);
-					return 2;
 				}
 			}
-			log_error(logger,"El registro no se encuentra en memoria");
-			return -1;
 	}
 	void modificarRegistro(uint16_t key,char* dato,long tss,int posicion, char* memoria_principal, t_list* tablas){
 		memcpy(&memoria_principal[posicion*tamanio_pagina],&key,sizeof(uint16_t)); 					//deberia ser &key? POR ACA SEGMENTATION FAULT
@@ -824,7 +890,7 @@ void resolver_describe_drop (int socket_kernel_fd, int socket_conexion_lfs, char
 		*
 		*/
 		int lru(char* memoria_principal, t_list* tablas){
-				unsigned int posicionMemo=0;
+				unsigned int posicionMemo=-1;
 				long ultimaLectura=-1;
 				int segment=0;
 				int pagg=0;
@@ -843,8 +909,7 @@ void resolver_describe_drop (int socket_kernel_fd, int socket_conexion_lfs, char
 								segment=i;										// determino el segmento y
 								pagg=j;											// la pagina para despues poder eliminarla de mis tablas
 
-							} else log_info(logger, "NO CUMPLE");
-							if(pag->modificado==0)
+							} else if(pag->modificado==0)
 							{// si no es la primer pagina que leo sin modificar y aparte hace mas tiempo que no se lee
 								if(pag->ultimaLectura<ultimaLectura){
 								posicionMemo=pag->posicionEnMemoria;							// asigo la posicion de memoria para retornarla
