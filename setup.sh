@@ -8,7 +8,7 @@ cd ..
 #cd ..
 echo "Compilacion de proyecto"
 cd tp-2019-1c-Los-Dinosaurios-Del-Libro
-cd /global/Debug/
+cd global/Debug/
 make clean
 make all
 cd ../../Kernel/Debug/
