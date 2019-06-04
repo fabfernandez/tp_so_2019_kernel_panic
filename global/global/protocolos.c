@@ -261,7 +261,7 @@ t_registro* obtener_registro(char* registro_serealizado){
 	t_registro* registro = malloc(sizeof(t_registro));
 	registro->timestamp =(long) atoi(split[0]);
 	registro->key =(uint16_t) atoi(split[1]);
-	registro->value = malloc(string_size(&(registro->value)));
+	registro->value = malloc(string_size(split[2]));
 	strcpy(registro->value ,split[2]);//, string_size(&(registro->value)));
 	return registro;
 }

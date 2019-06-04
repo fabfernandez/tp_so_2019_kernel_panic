@@ -235,6 +235,8 @@ void resolver_select_para_consola(t_instruccion_lql instruccion_select,char* mem
 								 */
 								log_error(logger, "No hay lugar en la memoria, debe realizarse JOURNAL", tabla);
 								journaling(memoria_principal, tablas);
+								list_destroy(tablas);
+								tablas = list_create();
 		} else {
 			log_info(logger, "Hay espacio en memoria, se procede a realizar la peticion a LFS", key);
 			enviar_paquete_select_consola(socket_conexion_lfs, instruccion_select);
@@ -934,10 +936,15 @@ void resolver_describe_drop (int socket_kernel_fd, int socket_conexion_lfs, char
 				//list_remove(unSegmento->paginas,0);
 				free(unaPagina);
 			}
-			list_clean(unSegmento->paginas);
+			for(int q=0;q<unSegmento->paginas->elements_count;q++){
+						list_remove(unSegmento->paginas,0);
+					}
 			free(unSegmento);
 
-		} 	list_clean(tablas);
+		} 	//list_clean(tablas);
+			for(int k=0;k<tablas->elements_count;k++){
+				list_remove(tablas,(tablas->elements_count)-1);
+			}
 			posicionProximaLibre=0;
 			//log_info(logger,"CANTIDAD DE TABLAS: %",tablas->elements_count);
 			log_info(logger,"FinJournaling");
