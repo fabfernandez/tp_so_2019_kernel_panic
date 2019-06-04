@@ -167,6 +167,7 @@ void resolver_insert_para_consola(t_instruccion_lql insert,char* memoria_princip
 	}
 	if(posicionProximaLibre>=cantidad_paginas&&(lruu==-1)&&(registroAInsertar==-1)){ //
 		log_error(logger, "No hay lugar en la memoria, debe realizarse JOURNAL", tabla);
+		journaling(memoria_principal, tablas);
 	} else {
 	if(registroAInsertar==-1){ // no está el registro, hay que agregarlo -> bit mod en 1
 		if(segmentoBuscado==NULL) // si el segmento no existe lo creo, y luego la pagina.
@@ -233,6 +234,7 @@ void resolver_select_para_consola(t_instruccion_lql instruccion_select,char* mem
 								 *
 								 */
 								log_error(logger, "No hay lugar en la memoria, debe realizarse JOURNAL", tabla);
+								journaling(memoria_principal, tablas);
 		} else {
 			log_info(logger, "Hay espacio en memoria, se procede a realizar la peticion a LFS", key);
 			enviar_paquete_select_consola(socket_conexion_lfs, instruccion_select);
@@ -881,6 +883,65 @@ void resolver_describe_drop (int socket_kernel_fd, int socket_conexion_lfs, char
 	}
 	}
 
+	/**
+		* @NAME: journaling
+		* @DESC:
+		*  envia todos los datos modificados de la memoria al lfs
+		*
+		*
+		*/
+	void journaling(char* memoria_principal,t_list* tablas){
+		log_info(logger,"EmpiezoJournaling");
+		for(int i=0;i<tablas->elements_count;i++){
+			log_info(logger,"TABLA %i",i);
+			segmento* unSegmento=list_get(tablas,i);
+
+			for(int j=0;j<unSegmento->paginas->elements_count;j++) {
+				pagina* unaPagina = list_get(unSegmento->paginas,j);
+				pagina_concreta* datosPagina = traerPaginaDeMemoria(unaPagina->posicionEnMemoria,memoria_principal);
+				/* envio todo */
+				t_paquete_insert* paquete_insert = malloc(sizeof(t_paquete_insert));
+				paquete_insert->codigo_operacion=INSERT;
+				memcpy(&(paquete_insert->key),&(datosPagina->key),sizeof(uint16_t));
+				memcpy(&(paquete_insert->timestamp),&(datosPagina->timestamp),sizeof(long));
+				char* nombre = datosPagina->value;
+				//log_info(logger,"datopagi %s",nombre);
+				char* tablan = unSegmento->nombreTabla;
+				paquete_insert->valor = malloc(sizeof(int)+string_size(nombre));
+				paquete_insert->nombre_tabla=malloc(sizeof(int)+string_size(tablan));
+				paquete_insert->valor->palabra= malloc(string_size(nombre));
+				paquete_insert->valor->size=string_size(nombre);
+				memcpy(paquete_insert->valor->palabra,nombre,string_size(nombre));
+				paquete_insert->nombre_tabla->palabra = malloc(string_size(tablan));
+				memcpy(paquete_insert->nombre_tabla->palabra,tablan,string_size(tablan));
+				paquete_insert->nombre_tabla->size=string_size(tablan);
+				log_info(logger,"Key %i",paquete_insert->key);
+				log_info(logger,"Ts %i",paquete_insert->timestamp);
+				log_info(logger,"Valor %s",paquete_insert->valor->palabra);
+				log_info(logger,"Tabla %s",paquete_insert->nombre_tabla->palabra);
+				enviar_paquete_insert(socket_conexion_lfs,paquete_insert);
+				free(paquete_insert->valor->palabra);
+				free(paquete_insert->nombre_tabla->palabra);
+				free(paquete_insert->valor);
+				free(paquete_insert->nombre_tabla);
+				free(paquete_insert);
+/*
+				char* lineaa="insert "+ &unSegmento->nombreTabla + " " + keyy+ " " + &datosPagina->value + " " + timest;
+				t_instruccion_lql instruccion = parsear_linea(lineaa);
+				t_paquete_insert* paquete = crear_paquete_insert(instruccion);
+				enviar_paquete_insert(socket_conexion_lfs,paquete);
+				/* envio todo*/
+				//list_remove(unSegmento->paginas,0);
+				free(unaPagina);
+			}
+			list_clean(unSegmento->paginas);
+			free(unSegmento);
+
+		} 	list_clean(tablas);
+			posicionProximaLibre=0;
+			//log_info(logger,"CANTIDAD DE TABLAS: %",tablas->elements_count);
+			log_info(logger,"FinJournaling");
+	}
 
 	/**
 		* @NAME: lru

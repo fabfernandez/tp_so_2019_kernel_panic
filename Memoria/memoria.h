@@ -48,6 +48,7 @@ pagina* crearPagina();
 pagina* crearPaginaInsert();
 void eliminarPagina(int posicionDondePonerElDatoEnMemoria, char* memoria_princial, t_list* tablas);
 int lru(char* memoria_principal, t_list* tablas);
+void journaling(char* memoria_principal,t_list* tablas);
 void agregarEnMemoriaElRegistro(char* key,char* value,long timestamp);
 int buscarRegistroEnTabla(char* tabla, uint16_t key, char* memoria_principal,t_list* tablas);
 void traerPaginaDeMemoria2(unsigned int posicion,char* memoria_principal,pagina_concreta* pagina);
