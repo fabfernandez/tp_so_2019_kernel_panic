@@ -922,6 +922,9 @@ void resolver_describe_drop (int socket_kernel_fd, int socket_conexion_lfs, char
 				log_info(logger,"Valor %s",paquete_insert->valor->palabra);
 				log_info(logger,"Tabla %s",paquete_insert->nombre_tabla->palabra);
 				enviar_paquete_insert(socket_conexion_lfs,paquete_insert);
+				t_status_solicitud* status =  desearilizar_status_solicitud(socket_conexion_lfs);
+				//esto se puede mostrar o no, pero hay qe recibirlo si o si
+				log_info(logger, "Resultado: %s", status->mensaje->palabra);
 				free(paquete_insert->valor->palabra);
 				free(paquete_insert->nombre_tabla->palabra);
 				free(paquete_insert->valor);
