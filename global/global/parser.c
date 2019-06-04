@@ -42,7 +42,8 @@ t_instruccion_lql parsear_linea(char* line){
 		string_to_upper(split[1]);
 		ret.parametros.INSERT.tabla = split[1];
 		ret.parametros.INSERT.key= (uint16_t)atoi(split[2]);
-		ret.parametros.INSERT.value = (char*)split[3];
+		char* value = string_substring((char*)split[3], 1, strlen((char*)split[3])-2);
+		ret.parametros.INSERT.value = value;
 		if(split[4] == NULL){
 			ret.parametros.INSERT.timestamp= (unsigned long)time(NULL);
 		} else{
@@ -80,7 +81,7 @@ t_instruccion_lql parsear_linea(char* line){
 			string_to_upper(split[1]);
 			ret.parametros.DESCRIBE.tabla = split[1];
 		}else{
-			ret.parametros.DESCRIBE.tabla=NULL;
+			ret.parametros.DESCRIBE.tabla=string_new();
 		}
 	} else if(string_equals_ignore_case(keyword, DROP_KEY)){
 		ret.operacion=DROP;
