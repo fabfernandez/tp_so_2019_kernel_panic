@@ -123,11 +123,11 @@ void ejecutar_API_desde_consola(t_instruccion_lql instruccion,char* memoria,t_li
 	switch(operacion) {
 		case SELECT:
 			log_info(logger, "Se solicita SELECT a memoria");
-			resolver_select_para_consola(instruccion,memoria,tablas);
+			if(resolver_select_para_consola(instruccion,memoria,tablas)==-1){resolver_select_para_consola(instruccion,memoria,tablas);}
 			break;
 		case INSERT:
 			log_info(logger, "Kernel solicitó INSERT");
-			resolver_insert_para_consola(instruccion,memoria,tablas);
+			if(resolver_insert_para_consola(instruccion,memoria,tablas)==-1){resolver_insert_para_consola(instruccion,memoria,tablas);}
 			break;
 		case CREATE:
 			log_info(logger, "Kernel solicitó CREATE");
@@ -149,7 +149,7 @@ void ejecutar_API_desde_consola(t_instruccion_lql instruccion,char* memoria,t_li
 			break;
 		}
 }
-void resolver_insert_para_consola(t_instruccion_lql insert,char* memoria_principal, t_list* tablas){
+int resolver_insert_para_consola(t_instruccion_lql insert,char* memoria_principal, t_list* tablas){
 	log_info(logger, "Se realiza INSERT");
 	log_info(logger, "Se busca insertar en la tabla: %s", insert.parametros.INSERT.tabla);
 	log_info(logger, "en la key: %i", insert.parametros.INSERT.key);
@@ -168,50 +168,29 @@ void resolver_insert_para_consola(t_instruccion_lql insert,char* memoria_princip
 	if(posicionProximaLibre>=cantidad_paginas&&(lruu==-1)&&(registroAInsertar==-1)){ //
 		log_error(logger, "No hay lugar en la memoria, debe realizarse JOURNAL", tabla);
 		journaling(memoria_principal, tablas);
+		return -1;
 	} else {
 	if(registroAInsertar==-1){ // no está el registro, hay que agregarlo -> bit mod en 1
 		if(segmentoBuscado==NULL) // si el segmento no existe lo creo, y luego la pagina.
 			{
 			list_add(tablas, crearSegmento(tabla));
 			paginaNuevaInsert(key,dato,tsss,tabla,memoria_principal,tablas);
+			return 1;
 			} else { // existe el segmento, agrego la pagina al segmento
 					log_error(logger, "no encontre el registro en la tabla");
 					paginaNuevaInsert(key,dato,tsss,tabla,memoria_principal,tablas);
+					return 1;
 					}
 	} else // el registro con esa key ya existe
 			//modificarRegistro(key,dato,(unsigned)time(NULL),reg2,memoria_principal,tablas);
 			modificarRegistro(key,dato,tsss,registroAInsertar,memoria_principal,tablas);
 			cambiarBitModificado(tabla, key,tablas, memoria_principal);
+			return 1;
 	}
 	}
-	/*	if(posicionProximaLibre+1>cantidad_paginas&&(segmentoBuscado==NULL || reg00==-1)){
 
-		log_error(logger, "No hay lugar en la memoria, debe realizarse JOURNAL", tabla);
-	} else {
-		if(segmentoBuscado==NULL)
-		{
-			log_info(logger, "No existe el segmento: $s", tabla);
-			list_add(tablas, crearSegmento(tabla));
-			paginaNuevaInsert(key,dato,tsss,tabla,memoria_principal,tablas);
-		} else
-			{
-			int reg2 = buscarRegistroEnTabla(tabla, key,memoria_principal,tablas);
-			if(reg2==-1)
-				{
-					log_info(logger, "El segmento existe y se encuentra en memoria, pero no la pagina");
-					paginaNuevaInsert(key,dato,tsss,tabla,memoria_principal,tablas);
-				} else
-					{
-					log_info(logger, "El registro se encuentra en la posicion de memoria: %i , se procede a modificarlo",reg2);
-					//modificarRegistro(key,dato,(unsigned)time(NULL),reg2,memoria_principal,tablas);
-					modificarRegistro(key,dato,tsss,reg2,memoria_principal,tablas);
-					int resultado = cambiarBitModificado(tabla,key,tablas,memoria_principal);
-					}
-			}
-	}
-	}*/
 
-void resolver_select_para_consola(t_instruccion_lql instruccion_select,char* memoria_principal, t_list* tablas){
+int resolver_select_para_consola(t_instruccion_lql instruccion_select,char* memoria_principal, t_list* tablas){
 
 	log_info(logger, "Se realiza SELECT");
 	log_info(logger, "Consulta en la tabla: %s", instruccion_select.parametros.SELECT.tabla);
@@ -235,8 +214,7 @@ void resolver_select_para_consola(t_instruccion_lql instruccion_select,char* mem
 								 */
 								log_error(logger, "No hay lugar en la memoria, debe realizarse JOURNAL", tabla);
 								journaling(memoria_principal, tablas);
-								list_destroy(tablas);
-								tablas = list_create();
+								return -1;
 		} else {
 			log_info(logger, "Hay espacio en memoria, se procede a realizar la peticion a LFS", key);
 			enviar_paquete_select_consola(socket_conexion_lfs, instruccion_select);
@@ -253,10 +231,12 @@ void resolver_select_para_consola(t_instruccion_lql instruccion_select,char* mem
 						} else { paginaNueva(key,registro->value,registro->timestamp,tabla,memoria_principal,tablas); }
 					free(registro->value);
 					free(registro);
+					return 1;
 			}
 			else{
 				//para que esta este else??????
 				log_error(logger, "No existe el registro buscado");
+				return 1;
 				//Mostrar el status.mensaje o enviarlo a Kernel
 			}
 		}
@@ -265,6 +245,7 @@ void resolver_select_para_consola(t_instruccion_lql instruccion_select,char* mem
 			log_info(logger, "Posicion %i: (%i,%s,%i)", reg,paginalala->key, paginalala->value,paginalala->timestamp);
 			free(paginalala->value);
 			free(paginalala);
+			return 1;
 	}
 }
 
