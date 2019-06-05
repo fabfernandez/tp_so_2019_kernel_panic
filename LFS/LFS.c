@@ -236,19 +236,32 @@ void crear_particiones(char* dir_tabla,int  num_particiones){
 		FILE* file = fopen(dir_particion, "wb+");
 		fclose(file);
 
-		t_config* particion_tabla = config_create(dir_particion);
-		dictionary_put(particion_tabla->properties,"SIZE", "0" );
-		dictionary_put(particion_tabla->properties, "BLOCKS", string_block());
-
-		config_save(particion_tabla);
-
+		int bloque[] = {obtener_bloque_disponible()};
+		crear_particion(dir_particion,"0", bloque);
 	}
 }
 
-char* string_block(){
+void crear_particion(char* dir_particion ,char* size, int** array_bloques){
+	char * array_bloques_string = array_int_to_array_char(array_bloques);
 
-	int bloque = obtener_bloque_disponible();
-	return string_from_format("[%d]", bloque);
+	t_config* particion_tabla = config_create(dir_particion);
+	dictionary_put(particion_tabla->properties,"SIZE", "0" );
+	dictionary_put(particion_tabla->properties, "BLOCKS", array_bloques_string);
+
+	config_save(particion_tabla);
+}
+
+char* array_int_to_array_char(int** array_int) {
+	char * array_char = "[";
+
+	for(int i = 0; array_int[i]!= NULL; i++){
+		string_append(&array_char, string_itoa(array_int[i]));
+		string_append(&array_char, ",");
+	}
+
+	char* array_char_sin_ultima_coma = string_substring_until(array_char, string_size(array_char) -1);
+	string_append(&array_char_sin_ultima_coma,"]");
+	return array_char_sin_ultima_coma;
 }
 
 int obtener_bloque_disponible(){

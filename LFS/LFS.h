@@ -70,10 +70,11 @@ t_cache_tabla* obtener_tabla_memtable(char* nombre_tabla);
 t_cache_tabla* crear_tabla_cache(char* nombre_tabla);
 t_cache_tabla* buscar_tabla_memtable(char* nombre_tabla);
 t_registro* buscar_registro_memtable(char* nombre_tabla, uint16_t key);
-bool existe_tabla(char* nombre_tabla);
+bool existe_tabla_fisica(char* nombre_tabla);
 void crear_hilo_memoria(int socket_memoria);
 int resolver_operacion(int socket_memoria, t_operacion cod_op);
 char* string_block();
+char* array_int_to_array_char(int** array_int);
 
 //t_metadata describe(char* tabla);
 
