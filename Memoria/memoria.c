@@ -876,8 +876,8 @@ void resolver_describe_drop (int socket_kernel_fd, int socket_conexion_lfs, char
 	void journaling(char* memoria_principal,t_list* tablas){
 		log_info(logger,"EmpiezoJournaling");
 		for(int i=0;i<tablas->elements_count;i++){
-			log_info(logger,"TABLA %i",i);
 			segmento* unSegmento=list_get(tablas,i);
+			log_info(logger,"TABLA %i : %s ",i,unSegmento->nombreTabla);
 
 			for(int j=0;j<unSegmento->paginas->elements_count;j++) {
 				pagina* unaPagina = list_get(unSegmento->paginas,j);
@@ -888,7 +888,6 @@ void resolver_describe_drop (int socket_kernel_fd, int socket_conexion_lfs, char
 				memcpy(&(paquete_insert->key),&(datosPagina->key),sizeof(uint16_t));
 				memcpy(&(paquete_insert->timestamp),&(datosPagina->timestamp),sizeof(long));
 				char* nombre = datosPagina->value;
-				//log_info(logger,"datopagi %s",nombre);
 				char* tablan = unSegmento->nombreTabla;
 				paquete_insert->valor = malloc(sizeof(int)+string_size(nombre));
 				paquete_insert->nombre_tabla=malloc(sizeof(int)+string_size(tablan));
@@ -911,25 +910,12 @@ void resolver_describe_drop (int socket_kernel_fd, int socket_conexion_lfs, char
 				free(paquete_insert->valor);
 				free(paquete_insert->nombre_tabla);
 				free(paquete_insert);
-/*
-				char* lineaa="insert "+ &unSegmento->nombreTabla + " " + keyy+ " " + &datosPagina->value + " " + timest;
-				t_instruccion_lql instruccion = parsear_linea(lineaa);
-				t_paquete_insert* paquete = crear_paquete_insert(instruccion);
-				enviar_paquete_insert(socket_conexion_lfs,paquete);
-				/* envio todo*/
-				//list_remove(unSegmento->paginas,0);
 				free(unaPagina);
 			}
-			for(int q=0;q<unSegmento->paginas->elements_count;q++){
-						list_remove(unSegmento->paginas,0);
-					}
-			free(unSegmento);
+			list_clean(unSegmento->paginas);
+			log_info(logger, "[Paginas en segmento %s : %i]", unSegmento->nombreTabla, unSegmento->paginas->elements_count);
 
-		} 	//list_clean(tablas);
-			for(int k=0;k<tablas->elements_count;k++){
-				list_remove(tablas,(tablas->elements_count)-1);
-			}
-			posicionProximaLibre=0;
+		} 	posicionProximaLibre=0;
 			//log_info(logger,"CANTIDAD DE TABLAS: %",tablas->elements_count);
 			log_info(logger,"FinJournaling");
 	}
