@@ -83,7 +83,8 @@ void iniciarHiloConsola();
 void *iniciar_consola(void* dato);
 void parsear_y_ejecutar(char* linea, int flag_de_consola, char* memoria, t_list* tablas);
 void ejecutar_API_desde_consola(t_instruccion_lql instruccion,char* memoria,t_list* tablas);
-void resolver_select_para_consola(t_instruccion_lql select,char* memoria_principal, t_list* tablas);
+int resolver_select_para_consola(t_instruccion_lql select,char* memoria_principal, t_list* tablas);
+int resolver_insert_para_consola(t_instruccion_lql insert,char* memoria_principal, t_list* tablas);
 void seedsCargadas();
 void logearSeeds();
 void levantar_datos_memoria();
@@ -114,6 +115,9 @@ t_metadata describe(char* tabla);
 int journal(void);
 
 /*OPERACIONES*/
-void resolver_select_para_kernel (int socket_kernel_fd, int socket_conexion_lfs,char* memoria_principal, t_list* tablas);
-
+int resolver_select_para_kernel (int socket_kernel_fd, int socket_conexion_lfs,char* memoria_principal, t_list* tablas);
+t_paquete_select* consulta_select_a_usar;
+t_paquete_insert* consulta_insert_a_usar;
+void resolver_despues_de_journaling (t_paquete_select* consulta_select ,int socket_conexion_lfs,char* memoria_principal, t_list* tablas);
+void resolver_insert_despues_de_journaling(t_paquete_insert* consulta_insert, int socket_conexion_lfs,char* memoria_principal, t_list* tablas);
 #endif /* MEMORIA_H_ */

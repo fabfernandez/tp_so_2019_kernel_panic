@@ -24,6 +24,7 @@ int main(void)
 
 	levantar_lfs(montaje);
 	crear_hilo_consola();
+	//crear_hilo_dump();
 	int server_LFS = iniciar_servidor(ip_lfs, puerto_lfs);
 
 	while (1){
@@ -204,7 +205,7 @@ t_status_solicitud* resolver_create (char* nombre_tabla, t_consistencia consiste
 	log_info(logger, "Tiempo compactacion: %d", compactacion);
 	log_info(logger, "Consistencia: %d", consistencia);
 
-	if(existe_tabla(nombre_tabla)){
+	if(existe_tabla_fisica(nombre_tabla)){
 		char * mje_error = string_from_format("La tabla %s ya existe", nombre_tabla);
 		log_error(logger, mje_error);
 		status = crear_paquete_status(false, mje_error);
@@ -235,19 +236,32 @@ void crear_particiones(char* dir_tabla,int  num_particiones){
 		FILE* file = fopen(dir_particion, "wb+");
 		fclose(file);
 
-		t_config* particion_tabla = config_create(dir_particion);
-		dictionary_put(particion_tabla->properties,"SIZE", "0" );
-		dictionary_put(particion_tabla->properties, "BLOCKS", string_block());
-
-		config_save(particion_tabla);
-
+		int bloque[] = {obtener_bloque_disponible()};
+		crear_particion(dir_particion,"0", bloque);
 	}
 }
 
-char* string_block(){
+void crear_particion(char* dir_particion ,char* size, int** array_bloques){
+	char * array_bloques_string = array_int_to_array_char(array_bloques);
 
-	int bloque = obtener_bloque_disponible();
-	return string_from_format("[%d]", bloque);
+	t_config* particion_tabla = config_create(dir_particion);
+	dictionary_put(particion_tabla->properties,"SIZE", "0" );
+	dictionary_put(particion_tabla->properties, "BLOCKS", array_bloques_string);
+
+	config_save(particion_tabla);
+}
+
+char* array_int_to_array_char(int** array_int) {
+	char * array_char = "[";
+
+	for(int i = 0; array_int[i]!= NULL; i++){
+		string_append(&array_char, string_itoa(array_int[i]));
+		string_append(&array_char, ",");
+	}
+
+	char* array_char_sin_ultima_coma = string_substring_until(array_char, string_size(array_char) -1);
+	string_append(&array_char_sin_ultima_coma,"]");
+	return array_char_sin_ultima_coma;
 }
 
 int obtener_bloque_disponible(){
@@ -309,7 +323,7 @@ t_status_solicitud*  resolver_insert(char* nombre_tabla, uint16_t key, char* val
 	log_info(logger, "Consulta por key: %d", key);
 	log_info(logger, "Valor: %s", value);
 	log_info(logger, "TIMESTAMP: %d",timestamp);
-	if (existe_tabla(nombre_tabla)){
+	if (existe_tabla_fisica(nombre_tabla)){
 		//llenar los datos de consistencia, particion que estan en la metadata de la tabla (ingresar al directorio de la tabla) Metadata
 		agregar_registro_memtable(crear_registro(value, key,  timestamp), nombre_tabla);
 		paquete_a_enviar = crear_paquete_status(true, "OK");
@@ -374,7 +388,7 @@ t_cache_tabla* buscar_tabla_memtable(char* nombre_tabla){
 	return list_find(memtable, (void*) _es_tabla_con_nombre);
 }
 
-bool existe_tabla(char* nombre_tabla){
+bool existe_tabla_fisica(char* nombre_tabla){
 	char* path_tabla = string_from_format("%s/Tables/%s", path_montaje, nombre_tabla);
 
 	struct stat sb;
@@ -388,7 +402,7 @@ t_status_solicitud* resolver_select (char* nombre_tabla, uint16_t key){
 	log_info(logger, "Se realiza SELECT");
 	log_info(logger, "Consulta en la tabla: %s", nombre_tabla);
 	log_info(logger, "Consulta por key: %d", key);
-	if (existe_tabla(nombre_tabla)){
+	if (existe_tabla_fisica(nombre_tabla)){
 		t_registro* registro_buscado = buscar_registro_memtable(nombre_tabla, key);
 		//TODO: buscar en archivos temporales y en bloques
 		if(registro_buscado !=NULL){
@@ -444,5 +458,7 @@ void leer_config() {				// APERTURA DE CONFIG
 	liberar_conexion(conexionALFS);
 	log_destroy(logger);
 	config_destroy(archivoconfig);
+	destuir_hilo_dump;
+	destruir_hilo_consola;
 }
 */
