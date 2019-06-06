@@ -78,7 +78,7 @@ void resolver_select_consola (char* nombre_tabla, uint16_t key){
 	log_info(logger, "Se realiza SELECT");
 	log_info(logger, "Consulta en la tabla: %s", nombre_tabla);
 	log_info(logger, "Consulta por key: %d", key);
-	if (existe_tabla(nombre_tabla)){
+	if (existe_tabla_fisica(nombre_tabla)){
 		t_registro* registro_buscado = buscar_registro_memtable(nombre_tabla, key);
 		//TODO: buscar en archivos temporales y en bloques
 		if(registro_buscado !=NULL){
