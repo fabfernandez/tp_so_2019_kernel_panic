@@ -292,16 +292,20 @@ int resolver_select_para_kernel (int socket_kernel_fd, int socket_conexion_lfs,c
 									list_add(tablas, crearSegmento(tabla));
 									paginaNueva(key,registro->value,registro->timestamp,tabla,memoria_principal,tablas);
 								} else { paginaNueva(key,registro->value,registro->timestamp,tabla,memoria_principal,tablas); }
+							//enviar_status_resultado(status, socket_kernel_fd);
 							free(registro->value);
 							free(registro);
 							free(consulta_select);
+
 							return 1;
 					}
 					else{
 						//para que esta este else??????
 						log_error(logger, "No existe el registro buscado");
 						log_info(logger, "Se procede a enviar el error a kernel");
+						//enviar_status_resultado(status, socket_kernel_fd);
 						free(consulta_select);
+
 						return 1;
 						//Mostrar el status.mensaje o enviarlo a Kernel
 					}
@@ -310,9 +314,13 @@ int resolver_select_para_kernel (int socket_kernel_fd, int socket_conexion_lfs,c
 					pagina_concreta* paginalala= traerPaginaDeMemoria(reg,memoria_principal);
 					log_info(logger, "Posicion %i: (%i,%s,%i)", reg,paginalala->key, paginalala->value,paginalala->timestamp);
 					log_info(logger, "Se procede a enviar el dato a kernel");
+					//char* resultado = generar_registro_string(paginalala->timestamp, paginalala->key, paginalala->value);
+					//t_status_solicitud* status = crear_paquete_status(true, resultado);
+					//enviar_status_resultado(status, socket_kernel_fd);
 					free(paginalala->value);
 					free(paginalala);
 					free(consulta_select);
+
 					return 1;
 			}
 		}
@@ -352,15 +360,19 @@ void resolver_despues_de_journaling (t_paquete_select* consulta_select ,int sock
 									list_add(tablas, crearSegmento(tabla));
 									paginaNueva(key,registro->value,registro->timestamp,tabla,memoria_principal,tablas);
 								} else { paginaNueva(key,registro->value,registro->timestamp,tabla,memoria_principal,tablas); }
+							//enviar_status_resultado(status, socket_kernel_fd);
 							free(registro->value);
 							free(registro);
 							free(consulta_select);
+
 					}
 					else{
 						//para que esta este else??????
 						log_error(logger, "No existe el registro buscado");
 						log_info(logger, "Se procede a enviar el error a kernel");
+						//enviar_status_resultado(status, socket_kernel_fd);
 						free(consulta_select);
+
 						//Mostrar el status.mensaje o enviarlo a Kernel
 					}
 				}
@@ -368,9 +380,13 @@ void resolver_despues_de_journaling (t_paquete_select* consulta_select ,int sock
 					pagina_concreta* paginalala= traerPaginaDeMemoria(reg,memoria_principal);
 					log_info(logger, "Posicion %i: (%i,%s,%i)", reg,paginalala->key, paginalala->value,paginalala->timestamp);
 					log_info(logger, "Se procede a enviar el dato a kernel");
+					//char* resultado = generar_registro_string(paginalala->timestamp, paginalala->key, paginalala->value);
+					//t_status_solicitud* status = crear_paquete_status(true, resultado);
+					//enviar_status_resultado(status, socket_kernel_fd);
 					free(paginalala->value);
 					free(paginalala);
 					free(consulta_select);
+
 			}
 		}
 
