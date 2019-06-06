@@ -50,6 +50,8 @@ t_list* strong_consistency;
 t_list* eventual_consistency;
 t_list* strong_hash_consistency;
 
+int SLEEP_EJECUCION;
+
 
 
 

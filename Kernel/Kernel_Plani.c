@@ -51,8 +51,10 @@ int puedo_ejecutar(){
 void revisa_exec_queue(){
 	while(queue_size(exec_queue)>0){
 		t_script* script_a_ejecutar = queue_pop(exec_queue);
+
 		ejecutar_script(script_a_ejecutar);
-		//sleep(10); //Para saber como viene la planificación en la consola y tener tiempo para escribir
+		sleep(SLEEP_EJECUCION);
+
 		if (script_a_ejecutar->offset==NULL) {
 			queue_push(exit_queue, script_a_ejecutar);
 		} else {

@@ -11,6 +11,7 @@ int ID=0;
 t_list* memorias_sin_asignar;
 int QUANTUM;
 int socket_memoria;
+int SLEEP_EJECUCION = 0;
 
 
 int main(void)
@@ -26,8 +27,8 @@ int main(void)
 	PUERTO_MEMORIA = config_get_string_value(archivoconfig, "PUERTO_MEMORIA"); // asignamos puerto desde CONFIG
 	log_info(logger, "El puerto de la memoria es %s", PUERTO_MEMORIA);
 
-	char* quantum_char = config_get_string_value(archivoconfig, "QUANTUM");
-	QUANTUM = (int) atoi(quantum_char); //TODO: Mejorar por si ponene Quantum=12 => 3 :P
+	QUANTUM = config_get_int_value(archivoconfig, "QUANTUM");
+	SLEEP_EJECUCION = config_get_int_value(archivoconfig, "SLEEP_EJECUCION") / 1000;
 
 //	// CREO SOCKET DESCRIPTOR KERNEL //
 //
