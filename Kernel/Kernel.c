@@ -4,10 +4,14 @@
  *  Created on: 7 abr. 2019
  *      Author: utnso
  */
-#include "Kernel.h"
+//#include "Kernel.h"
+#include "Kernel_Plani.h"
 
 int ID=0;
 t_list* memorias_sin_asignar;
+int QUANTUM;
+int socket_memoria;
+
 
 int main(void)
 {
@@ -22,6 +26,9 @@ int main(void)
 	PUERTO_MEMORIA = config_get_string_value(archivoconfig, "PUERTO_MEMORIA"); // asignamos puerto desde CONFIG
 	log_info(logger, "El puerto de la memoria es %s", PUERTO_MEMORIA);
 
+	char* quantum_char = config_get_string_value(archivoconfig, "QUANTUM");
+	QUANTUM = (int) atoi(quantum_char); //TODO: Mejorar por si ponene Quantum=12 => 3 :P
+
 //	// CREO SOCKET DESCRIPTOR KERNEL //
 //
 //	socketKernel = socket(AF_INET,SOCK_STREAM,0);
@@ -35,7 +42,7 @@ int main(void)
 //	 memset(&(destino_addr.sin_zero), '\0', 8); // PONE EN CERO EL RESTO DE LA ESTRUCTURA(SIEMPRE, VER BEEJ)
 
 	// CONECTO!
-	int socket_memoria = crear_conexion(IP_MEMORIA,PUERTO_MEMORIA); // conecto el socketKernel(ESTE PROCESO) con la memoria
+	socket_memoria = crear_conexion(IP_MEMORIA,PUERTO_MEMORIA); // conecto el socketKernel(ESTE PROCESO) con la memoria
 	log_info(logger,"Creada la conexion para la memoria");
 	char *mensaje = "Hola, me conecto, soy el Kernel";
 	log_info(logger, "Trato de realizar un hasdshake");
@@ -60,7 +67,12 @@ int main(void)
 	strong_hash_consistency = list_create();
 	eventual_consistency = list_create();
 	list_add(memorias_sin_asignar, memoria_principal);
+	new_queue = queue_create();
+	ready_queue = queue_create();
+	exec_queue = queue_create();
+	exit_queue = queue_create();
 
+	iniciar_hilo_planificacion();
 
 
 	while(1){
@@ -136,6 +148,8 @@ void ejecutar_instruccion(t_instruccion_lql instruccion, int socket_memoria){
 			//exit(-1);
 	}
 };*/
+
+
 void resolver_describe_drop(t_instruccion_lql instruccion, int socket_memoria, t_operacion operacion){
 	//separar entre describe y drop
 	t_paquete_drop_describe* paquete_describe = crear_paquete_drop_describe(instruccion);
@@ -168,15 +182,31 @@ void resolver_insert (t_instruccion_lql instruccion, int socket_memoria){
 	eliminar_paquete_insert(paquete_insert);
 }
 
-void resolver_run(t_instruccion_lql instruccion, int socket_memoria){
-	char* path = instruccion.parametros.RUN.path_script;
-	FILE *archivo;
-	archivo = fopen(path,"r");
+void ejecutar_script(t_script* script_a_ejecutar){
+	char* path = script_a_ejecutar->path;
+	FILE* archivo = fopen(path,"r");
+	fseek(archivo, script_a_ejecutar->offset, SEEK_SET);
 
-	leer_archivo(archivo, socket_memoria);
+	//int socket_memoria = memoria_apta();
+
+	char ultimo_caracter_leido = leer_archivo(archivo, socket_memoria);
+
+	if(ultimo_caracter_leido != EOF){
+		script_a_ejecutar->offset = ftell(archivo) - 1;
+	} else {
+	script_a_ejecutar->offset = NULL;
+	}
 
 	fclose(archivo);
 }
+
+
+
+void resolver_run(t_instruccion_lql instruccion, int socket_memoria){
+	char* path = instruccion.parametros.RUN.path_script;
+	queue_push(new_queue,path);
+}
+
 
 void resolver_add (t_instruccion_lql instruccion, int socket_memoria){
 	uint16_t numero_memoria = instruccion.parametros.ADD.numero_memoria;
@@ -213,11 +243,12 @@ void asignar_consistencia(t_memoria* memoria, t_consistencia consistencia){
 	}
 }
 
-void leer_archivo(FILE* archivo, int socket_memoria){
+char leer_archivo(FILE* archivo, int socket_memoria){
 	char* linea = NULL;
+	int lineas_leidas = 0;
 	int i;
 	char letra;
-	while((letra = fgetc(archivo)) != EOF){
+	while((letra = fgetc(archivo)) != EOF && lineas_leidas < QUANTUM){
 		linea = (char*)realloc(NULL, sizeof(char));
 		i = 0;
 		do{
@@ -229,9 +260,12 @@ void leer_archivo(FILE* archivo, int socket_memoria){
 		linea = (char*)realloc(linea, (i+1));
 		linea[i] = 0;
 		parsear_y_ejecutar(linea, socket_memoria, 0);
+		printf("%s\n", linea);
 		free(linea);
+		lineas_leidas++;
 		linea = NULL;
 	}
+	return letra;
 }
 
 void iniciar_logger() { 							// CREACION DE LOG
@@ -243,7 +277,7 @@ void leer_config() {								// APERTURA DE CONFIG
 }
 
 int generarID(){
-	ID=ID++;
+	ID++;
 	return ID;
 }
 

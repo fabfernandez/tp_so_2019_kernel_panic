@@ -7,34 +7,28 @@
 
 #ifndef KERNEL_H_
 #define KERNEL_H_
+#include <pthread.h>
 #include <readline/readline.h>
 #include <global/parser.h>
 #include <global/utils.h>
 #include <global/protocolos.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include<commons/log.h>
-#include<commons/string.h>
-#include<commons/config.h>
-#include<commons/collections/queue.h>
+#include <commons/log.h>
+#include <commons/string.h>
+#include <commons/config.h>
+#include <commons/collections/queue.h>
 #include <stdint.h>
 #include <time.h>
 
 							// ******* TIPOS NECESARIOS ******* //
 t_log* logger;
 t_config* archivoconfig;
-t_queue* ready_queue;
-t_queue* exec_queue;
-t_queue* exit_queue;
 
 
 
 typedef char* t_valor;					// VALOR QUE DEVUELVE EL SELECT(TODAVIA NO SABEMOS QUE ALMACENA EN TABLAS?)
-typedef struct script{
-	int id;
-	char* path;
-	FILE* readfrom;
-	} t_script ;
+
 
 
 typedef struct memoria{
@@ -42,7 +36,13 @@ typedef struct memoria{
 		char* puerto;
 		uint16_t numero_memoria;
 		int socket_memoria;
-	} t_memoria ;
+} t_memoria ;
+
+typedef struct script{
+	int id;
+	char* path;
+	long int offset;
+} t_script ;
 
 t_list* memorias_sin_asignar;
 
@@ -62,6 +62,7 @@ void resolver_create(t_instruccion_lql instruccion, int socket_memoria);
 void resolver_insert(t_instruccion_lql instruccion, int socket_memoria);
 void resolver_select(t_instruccion_lql instruccion, int socket_memoria);
 void resolver_run(t_instruccion_lql instruccion, int socket_memoria);
+void resolver_add (t_instruccion_lql instruccion, int socket_memoria);
 
 int insert(char* tabla, uint16_t key, long timestamp); 	// INSERT PROTOTIPO (1)
 t_valor select_(char* tabla, uint16_t key); 			// SELECT PROTOTIPO (2)
@@ -82,6 +83,12 @@ void iniciar_logger(void);
 void leer_config(void);
 void terminar_programa(int conexion);
 int generarID();
+void asignar_consistencia(t_memoria* memoria, t_consistencia consistencia);
+char leer_archivo(FILE* archivo, int socket_memoria);
+void ejecutar_instruccion(t_instruccion_lql instruccion, int socket_memoria);
+void parsear_y_ejecutar(char* linea, int socket_memoria, int flag_de_consola);
+void ejecutar_script(t_script* script_a_ejecutar);
+
 
 
 //				***** REVISAR COMO CREAR LAS CONEXIONES *****					//
