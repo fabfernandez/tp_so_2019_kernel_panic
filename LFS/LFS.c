@@ -241,7 +241,7 @@ void crear_particiones(char* dir_tabla,int  num_particiones){
 	}
 }
 
-void crear_particion(char* dir_particion ,char* size, int** array_bloques){
+void crear_particion(char* dir_particion ,char* size,int* array_bloques){
 	char * array_bloques_string = array_int_to_array_char(array_bloques);
 
 	t_config* particion_tabla = config_create(dir_particion);
@@ -251,15 +251,17 @@ void crear_particion(char* dir_particion ,char* size, int** array_bloques){
 	config_save(particion_tabla);
 }
 
-char* array_int_to_array_char(int** array_int) {
-	char * array_char = "[";
+char* array_int_to_array_char(int* array_int) {
+	char * array_char = string_new();
+	int size_array = sizeof(array_int)/sizeof(array_int[0]);
+	string_append(&array_char, "[");
 
-	for(int i = 0; array_int[i]!= NULL; i++){
+	for(int i = 0; i<size_array; i++){
 		string_append(&array_char, string_itoa(array_int[i]));
 		string_append(&array_char, ",");
 	}
 
-	char* array_char_sin_ultima_coma = string_substring_until(array_char, string_size(array_char) -1);
+	char* array_char_sin_ultima_coma = string_substring_until(array_char, string_length(array_char) -1);
 	string_append(&array_char_sin_ultima_coma,"]");
 	return array_char_sin_ultima_coma;
 }

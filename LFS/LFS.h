@@ -74,7 +74,7 @@ bool existe_tabla_fisica(char* nombre_tabla);
 void crear_hilo_memoria(int socket_memoria);
 int resolver_operacion(int socket_memoria, t_operacion cod_op);
 char* string_block();
-char* array_int_to_array_char(int** array_int);
+char* array_int_to_array_char(int* array_int);
 
 //t_metadata describe(char* tabla);
 
