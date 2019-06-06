@@ -248,6 +248,172 @@ int resolver_select_para_consola(t_instruccion_lql instruccion_select,char* memo
 			return 1;
 	}
 }
+/**
+ * * @NAME: resolver_select_para_kernel
+ 	* @DESC: resuelve el select
+ 	*
+ 	*/
+int resolver_select_para_kernel (int socket_kernel_fd, int socket_conexion_lfs,char* memoria_principal, t_list* tablas){
+		t_paquete_select* consulta_select = deserializar_select(socket_kernel_fd);
+
+		log_info(logger, "Se realiza SELECT");
+		log_info(logger, "Consulta en la tabla: %s", consulta_select->nombre_tabla->palabra);
+		log_info(logger, "Consulta por key: %d", consulta_select->key);
+
+		char* tabla = consulta_select->nombre_tabla->palabra;
+		uint16_t key = consulta_select->key;
+		int reg = 0;
+		reg = buscarRegistroEnTabla(tabla, key,memoria_principal,tablas);
+
+		if(reg==-1){
+				log_info(logger, "El registro con key '%d' NO se encuentra en memoria principal", key);
+				int lruu = lru(memoria_principal,tablas);
+				if(posicionProximaLibre>=cantidad_paginas&&(lruu==-1)){ //
+										/*
+										 * NO HAY ESPACIO PROXIMO DISPONIBLE Y LRU DICE QUE ESTÁ TODO OCPUADO
+										 * -> hay que hacer journaling
+										 *
+										 */
+										log_error(logger, "No hay lugar en la memoria, debe realizarse JOURNAL", tabla);
+										journaling(memoria_principal, tablas);
+										consulta_select_a_usar = consulta_select;
+										return -1;
+				}  else {
+					log_info(logger, "Hay espacio en memoria, se procede a realizar la peticion a LFS", key);
+					enviar_paquete_select(socket_conexion_lfs, consulta_select);
+					t_status_solicitud* status= desearilizar_status_solicitud(socket_conexion_lfs);
+					if(status->es_valido){
+						t_registro* registro = obtener_registro(status->mensaje->palabra);
+						log_info(logger, "%s ; %d ; %s ; %i | (TABLA;KEY;VALUE;TS)", tabla, registro->key, registro->value,registro->timestamp);
+						segmento* segmentoBuscado = encontrarSegmento(tabla,tablas);
+							if(segmentoBuscado==NULL)
+								{
+									log_info(logger, "No existe el segmento: %s", tabla);
+									list_add(tablas, crearSegmento(tabla));
+									paginaNueva(key,registro->value,registro->timestamp,tabla,memoria_principal,tablas);
+								} else { paginaNueva(key,registro->value,registro->timestamp,tabla,memoria_principal,tablas); }
+							//enviar_status_resultado(status, socket_kernel_fd);
+							free(registro->value);
+							free(registro);
+							free(consulta_select);
+
+							return 1;
+					}
+					else{
+						//para que esta este else??????
+						log_error(logger, "No existe el registro buscado");
+						log_info(logger, "Se procede a enviar el error a kernel");
+						//enviar_status_resultado(status, socket_kernel_fd);
+						free(consulta_select);
+
+						return 1;
+						//Mostrar el status.mensaje o enviarlo a Kernel
+					}
+				}
+			}	else {
+					pagina_concreta* paginalala= traerPaginaDeMemoria(reg,memoria_principal);
+					log_info(logger, "Posicion %i: (%i,%s,%i)", reg,paginalala->key, paginalala->value,paginalala->timestamp);
+					log_info(logger, "Se procede a enviar el dato a kernel");
+					//char* resultado = generar_registro_string(paginalala->timestamp, paginalala->key, paginalala->value);
+					//t_status_solicitud* status = crear_paquete_status(true, resultado);
+					//enviar_status_resultado(status, socket_kernel_fd);
+					free(paginalala->value);
+					free(paginalala);
+					free(consulta_select);
+
+					return 1;
+			}
+		}
+void resolver_despues_de_journaling (t_paquete_select* consulta_select ,int socket_conexion_lfs,char* memoria_principal, t_list* tablas){
+		log_info(logger, "Se realiza SELECT");
+		log_info(logger, "Consulta en la tabla: %s", consulta_select->nombre_tabla->palabra);
+		log_info(logger, "Consulta por key: %d", consulta_select->key);
+
+		char* tabla = consulta_select->nombre_tabla->palabra;
+		uint16_t key = consulta_select->key;
+		int reg = 0;
+		reg = buscarRegistroEnTabla(tabla, key,memoria_principal,tablas);
+
+		if(reg==-1){
+				log_info(logger, "El registro con key '%d' NO se encuentra en memoria principal", key);
+				int lruu = lru(memoria_principal,tablas);
+				if(posicionProximaLibre>=cantidad_paginas&&(lruu==-1)){ //
+										/*
+										 * NO HAY ESPACIO PROXIMO DISPONIBLE Y LRU DICE QUE ESTÁ TODO OCPUADO
+										 * -> hay que hacer journaling
+										 *
+										 */
+										log_error(logger, "No hay lugar en la memoria, debe realizarse JOURNAL", tabla);
+										journaling(memoria_principal, tablas);
+										consulta_select_a_usar = consulta_select;
+				}  else {
+					log_info(logger, "Hay espacio en memoria, se procede a realizar la peticion a LFS", key);
+					enviar_paquete_select(socket_conexion_lfs, consulta_select);
+					t_status_solicitud* status= desearilizar_status_solicitud(socket_conexion_lfs);
+					if(status->es_valido){
+						t_registro* registro = obtener_registro(status->mensaje->palabra);
+						log_info(logger, "%s ; %d ; %s ; %i | (TABLA;KEY;VALUE;TS)", tabla, registro->key, registro->value,registro->timestamp);
+						segmento* segmentoBuscado = encontrarSegmento(tabla,tablas);
+							if(segmentoBuscado==NULL)
+								{
+									log_info(logger, "No existe el segmento: %s", tabla);
+									list_add(tablas, crearSegmento(tabla));
+									paginaNueva(key,registro->value,registro->timestamp,tabla,memoria_principal,tablas);
+								} else { paginaNueva(key,registro->value,registro->timestamp,tabla,memoria_principal,tablas); }
+							//enviar_status_resultado(status, socket_kernel_fd);
+							free(registro->value);
+							free(registro);
+							free(consulta_select);
+
+					}
+					else{
+						//para que esta este else??????
+						log_error(logger, "No existe el registro buscado");
+						log_info(logger, "Se procede a enviar el error a kernel");
+						//enviar_status_resultado(status, socket_kernel_fd);
+						free(consulta_select);
+
+						//Mostrar el status.mensaje o enviarlo a Kernel
+					}
+				}
+			}	else {
+					pagina_concreta* paginalala= traerPaginaDeMemoria(reg,memoria_principal);
+					log_info(logger, "Posicion %i: (%i,%s,%i)", reg,paginalala->key, paginalala->value,paginalala->timestamp);
+					log_info(logger, "Se procede a enviar el dato a kernel");
+					//char* resultado = generar_registro_string(paginalala->timestamp, paginalala->key, paginalala->value);
+					//t_status_solicitud* status = crear_paquete_status(true, resultado);
+					//enviar_status_resultado(status, socket_kernel_fd);
+					free(paginalala->value);
+					free(paginalala);
+					free(consulta_select);
+
+			}
+		}
+
+		/*if(reg==-1){
+			log_info(logger, "El registro con key '%d' NO se encuentra en memoria y procede a realizar la peticion a LFS", key);
+			enviar_paquete_select(socket_conexion_lfs, consulta_select);
+			t_status_solicitud* status= desearilizar_status_solicitud(socket_conexion_lfs);
+			if(status){
+				t_registro* registro = obtener_registro(status->mensaje->palabra);
+				//Enviar el dato a kernel (no parsearlo)
+				free(registro);
+			}
+			else{
+			//Mostrar el status.mensaje o enviarlo a Kernel
+			}
+
+		eliminar_paquete_select(consulta_select);
+		}
+		else {
+		log_info(logger, "El registro con key '%d' se encuentra en memoria en la posicion $i", key,reg);
+		pagina_concreta* paginalala= traerPaginaDeMemoria(reg,memoria_principal);
+		log_info(logger, "Se bajo de la memoria el registro: (%i,%s,%i)", paginalala->key, paginalala->value,paginalala->timestamp);
+		log_info(logger, "Se procede a enviar el dato a kernel");
+		free(paginalala->value);
+		free(paginalala);
+		}
+	}*/
 
 /**
  	* @NAME: buscarSegmento
@@ -417,17 +583,12 @@ int buscarRegistroEnTabla(char* tabla, uint16_t key, char* memoria_principal,t_l
 		log_error(logger,"El registro no se encuentra en memoria");
 		return -1;
 }
-
-
-
-
-
 /**
  	* @NAME: resolver_insert_para_kernel
  	* @DESC: resuelve el insert
  	*
  	*/
-	void resolver_insert_para_kernel(int socket_kernel_fd, int socket_conexion_lfs,char* memoria_principal, t_list* tablas){
+	int resolver_insert_para_kernel(int socket_kernel_fd, int socket_conexion_lfs,char* memoria_principal, t_list* tablas){
 	t_paquete_insert* consulta_insert= deserealizar_insert(socket_kernel_fd);
 	log_info(logger, "Se realiza INSERT");
 	log_info(logger, "Se busca insertar en la tabla: %s", consulta_insert->nombre_tabla->palabra);
@@ -439,12 +600,42 @@ int buscarRegistroEnTabla(char* tabla, uint16_t key, char* memoria_principal,t_l
 	uint16_t key = consulta_insert->key;
 	char* dato = consulta_insert->valor->palabra;
 	segmento* segmentoBuscado = encontrarSegmento(tabla,tablas);
+	int lruu= lru(memoria_principal,tablas);
+	int registroAInsertar = buscarRegistroEnTabla(tabla, key,memoria_principal,tablas);
+
+	if(posicionProximaLibre>=cantidad_paginas&&(lruu==-1)&&(registroAInsertar==-1)){ //
+		log_error(logger, "No hay lugar en la memoria, debe realizarse JOURNAL", tabla);
+		journaling(memoria_principal, tablas);
+		consulta_insert_a_usar = consulta_insert;
+		return -1;
+	} else {
+	if(registroAInsertar==-1){ // no está el registro, hay que agregarlo -> bit mod en 1
+		if(segmentoBuscado==NULL) // si el segmento no existe lo creo, y luego la pagina.
+			{
+			list_add(tablas, crearSegmento(tabla));
+			paginaNuevaInsert(key,dato,tsss,tabla,memoria_principal,tablas);
+			free(consulta_insert);
+			return 1;
+			} else { // existe el segmento, agrego la pagina al segmento
+					log_error(logger, "no encontre el registro en la tabla");
+					paginaNuevaInsert(key,dato,tsss,tabla,memoria_principal,tablas);
+					free(consulta_insert);
+					return 1;
+					}
+	} else // el registro con esa key ya existe
+			//modificarRegistro(key,dato,(unsigned)time(NULL),reg2,memoria_principal,tablas);
+			modificarRegistro(key,dato,tsss,registroAInsertar,memoria_principal,tablas);
+			cambiarBitModificado(tabla, key,tablas, memoria_principal);
+			free(consulta_insert);
+			return 1;
+	}
+	/*}
 	if(posicionProximaLibre+1>cantidad_paginas){
 		/*
 		 * PROCESO LRU
 		 * proceso de creacion/modificacion de registro
 		 */
-
+/*
 	} else {
 		if(segmentoBuscado==NULL)
 		{
@@ -467,7 +658,48 @@ int buscarRegistroEnTabla(char* tabla, uint16_t key, char* memoria_principal,t_l
 					cambiarBitModificado(tabla,key,tablas,memoria_principal);
 					}
 			}
+	}*/
 	}
+
+	void resolver_insert_despues_de_journaling(t_paquete_insert* consulta_insert, int socket_conexion_lfs,char* memoria_principal, t_list* tablas){
+		log_info(logger, "Se realiza INSERT");
+		log_info(logger, "Se busca insertar en la tabla: %s", consulta_insert->nombre_tabla->palabra);
+		log_info(logger, "en la key: %i", consulta_insert->key);
+		log_info(logger, "el dato: %s", consulta_insert->valor->palabra);
+		log_info(logger, "El ts es: %i", consulta_insert->timestamp);
+		long tsss =consulta_insert->timestamp;
+		char* tabla = consulta_insert->nombre_tabla->palabra;
+		uint16_t key = consulta_insert->key;
+		char* dato = consulta_insert->valor->palabra;
+		segmento* segmentoBuscado = encontrarSegmento(tabla,tablas);
+		int lruu= lru(memoria_principal,tablas);
+		int registroAInsertar = buscarRegistroEnTabla(tabla, key,memoria_principal,tablas);
+
+		if(posicionProximaLibre>=cantidad_paginas&&(lruu==-1)&&(registroAInsertar==-1)){ //
+			log_error(logger, "No hay lugar en la memoria, debe realizarse JOURNAL", tabla);
+			journaling(memoria_principal, tablas);
+			consulta_insert_a_usar = consulta_insert;
+
+		} else {
+		if(registroAInsertar==-1){ // no está el registro, hay que agregarlo -> bit mod en 1
+			if(segmentoBuscado==NULL) // si el segmento no existe lo creo, y luego la pagina.
+				{
+				list_add(tablas, crearSegmento(tabla));
+				paginaNuevaInsert(key,dato,tsss,tabla,memoria_principal,tablas);
+				free(consulta_insert);
+				} else { // existe el segmento, agrego la pagina al segmento
+						log_error(logger, "no encontre el registro en la tabla");
+						paginaNuevaInsert(key,dato,tsss,tabla,memoria_principal,tablas);
+						free(consulta_insert);
+
+						}
+		} else // el registro con esa key ya existe
+				//modificarRegistro(key,dato,(unsigned)time(NULL),reg2,memoria_principal,tablas);
+				modificarRegistro(key,dato,tsss,registroAInsertar,memoria_principal,tablas);
+				cambiarBitModificado(tabla, key,tablas, memoria_principal);
+				free(consulta_insert);
+
+		}
 	}
 
 	void cambiarBitModificado(char* tabla, uint16_t key,t_list* tablas, char* memoria_principal){
@@ -493,49 +725,7 @@ int buscarRegistroEnTabla(char* tabla, uint16_t key, char* memoria_principal,t_l
 		memcpy(&memoria_principal[posicion*tamanio_pagina+sizeof(uint16_t)],&tss,sizeof(long));			// mismo que arriba
 		strcpy(&memoria_principal[posicion*tamanio_pagina+sizeof(uint16_t)+sizeof(long)], dato);
 	}
-/**
- 	* @NAME: resolver_select_para_kernel
- 	* @DESC: resuelve el select
- 	*
- 	*/
-	void resolver_select_para_kernel (int socket_kernel_fd, int socket_conexion_lfs,char* memoria_principal, t_list* tablas){
-		t_paquete_select* consulta_select = deserializar_select(socket_kernel_fd);
 
-		log_info(logger, "Se realiza SELECT");
-		log_info(logger, "Consulta en la tabla: %s", consulta_select->nombre_tabla->palabra);
-		log_info(logger, "Consulta por key: %d", consulta_select->key);
-
-		char* tabla = consulta_select->nombre_tabla->palabra;
-		uint16_t key = consulta_select->key;
-		int reg = 0;
-		reg = buscarRegistroEnTabla(tabla, key,memoria_principal,tablas);
-
-		log_info(logger, "registro numero: %i", reg);
-
-		if(reg==-1){
-			log_info(logger, "El registro con key '%d' NO se encuentra en memoria y procede a realizar la peticion a LFS", key);
-			enviar_paquete_select(socket_conexion_lfs, consulta_select);
-			t_status_solicitud* status= desearilizar_status_solicitud(socket_conexion_lfs);
-			if(status){
-				t_registro* registro = obtener_registro(status->mensaje->palabra);
-				//Enviar el dato a kernel (no parsearlo)
-				free(registro);
-			}
-			else{
-			//Mostrar el status.mensaje o enviarlo a Kernel
-			}
-
-		eliminar_paquete_select(consulta_select);
-		}
-		else {
-		log_info(logger, "El registro con key '%d' se encuentra en memoria en la posicion $i", key,reg);
-		pagina_concreta* paginalala= traerPaginaDeMemoria(reg,memoria_principal);
-		log_info(logger, "Se bajo de la memoria el registro: (%i,%s,%i)", paginalala->key, paginalala->value,paginalala->timestamp);
-		log_info(logger, "Se procede a enviar el dato a kernel");
-		free(paginalala->value);
-		free(paginalala);
-		}
-	}
 
 /*void resolver_insert2(int socket_kernel_fd, int socket_conexion_lfs){
 	t_paquete_insert* consulta_insert = deserealizar_insert(socket_kernel_fd);
@@ -614,13 +804,14 @@ void resolver_describe_drop (int socket_kernel_fd, int socket_conexion_lfs, char
 					break;
 				case SELECT:
 					log_info(logger, "%i solicitó SELECT", socket_memoria);
-					resolver_select_para_kernel(socket_memoria, socket_conexion_lfs,memoria_principal,tablas);
+					//resolver_select_para_kernel(socket_memoria, socket_conexion_lfs,memoria_principal,tablas);
+					if(resolver_select_para_kernel(socket_memoria, socket_conexion_lfs,memoria_principal,tablas)==-1){resolver_despues_de_journaling(consulta_select_a_usar,socket_conexion_lfs,memoria_principal, tablas);}
 					//aca debería enviarse el mensaje a LFS con SELECT
 					break;
 				case INSERT:
 					log_info(logger, "%i solicitó INSERT", socket_memoria);
 
-					resolver_insert_para_kernel(socket_memoria, socket_conexion_lfs,memoria_principal, tablas);
+					if(resolver_insert_para_kernel(socket_memoria, socket_conexion_lfs,memoria_principal, tablas)==-1) {resolver_insert_despues_de_journaling(consulta_insert_a_usar, socket_conexion_lfs,memoria_principal,tablas);}
 					//aca debería enviarse el mensaje a LFS con INSERT
 					break;
 				case CREATE:
@@ -876,8 +1067,8 @@ void resolver_describe_drop (int socket_kernel_fd, int socket_conexion_lfs, char
 	void journaling(char* memoria_principal,t_list* tablas){
 		log_info(logger,"EmpiezoJournaling");
 		for(int i=0;i<tablas->elements_count;i++){
-			log_info(logger,"TABLA %i",i);
 			segmento* unSegmento=list_get(tablas,i);
+			log_info(logger,"TABLA %i : %s ",i,unSegmento->nombreTabla);
 
 			for(int j=0;j<unSegmento->paginas->elements_count;j++) {
 				pagina* unaPagina = list_get(unSegmento->paginas,j);
@@ -888,7 +1079,6 @@ void resolver_describe_drop (int socket_kernel_fd, int socket_conexion_lfs, char
 				memcpy(&(paquete_insert->key),&(datosPagina->key),sizeof(uint16_t));
 				memcpy(&(paquete_insert->timestamp),&(datosPagina->timestamp),sizeof(long));
 				char* nombre = datosPagina->value;
-				//log_info(logger,"datopagi %s",nombre);
 				char* tablan = unSegmento->nombreTabla;
 				paquete_insert->valor = malloc(sizeof(int)+string_size(nombre));
 				paquete_insert->nombre_tabla=malloc(sizeof(int)+string_size(tablan));
@@ -911,25 +1101,12 @@ void resolver_describe_drop (int socket_kernel_fd, int socket_conexion_lfs, char
 				free(paquete_insert->valor);
 				free(paquete_insert->nombre_tabla);
 				free(paquete_insert);
-/*
-				char* lineaa="insert "+ &unSegmento->nombreTabla + " " + keyy+ " " + &datosPagina->value + " " + timest;
-				t_instruccion_lql instruccion = parsear_linea(lineaa);
-				t_paquete_insert* paquete = crear_paquete_insert(instruccion);
-				enviar_paquete_insert(socket_conexion_lfs,paquete);
-				/* envio todo*/
-				//list_remove(unSegmento->paginas,0);
 				free(unaPagina);
 			}
-			for(int q=0;q<unSegmento->paginas->elements_count;q++){
-						list_remove(unSegmento->paginas,0);
-					}
-			free(unSegmento);
+			list_clean(unSegmento->paginas);
+			log_info(logger, "[Paginas en segmento %s : %i]", unSegmento->nombreTabla, unSegmento->paginas->elements_count);
 
-		} 	//list_clean(tablas);
-			for(int k=0;k<tablas->elements_count;k++){
-				list_remove(tablas,(tablas->elements_count)-1);
-			}
-			posicionProximaLibre=0;
+		} 	posicionProximaLibre=0;
 			//log_info(logger,"CANTIDAD DE TABLAS: %",tablas->elements_count);
 			log_info(logger,"FinJournaling");
 	}
