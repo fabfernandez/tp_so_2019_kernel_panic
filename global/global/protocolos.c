@@ -367,6 +367,8 @@ t_metadata* deserealizar_metadata(int socket_cliente){
 	recv(socket_cliente, &(metadata->consistencia), sizeof(t_consistencia), MSG_WAITALL);
 	recv(socket_cliente, &(metadata->n_particiones), sizeof(int), MSG_WAITALL);
 	recv(socket_cliente, &(metadata->tiempo_compactacion), sizeof(long), MSG_WAITALL);
+	metadata->nombre_tabla = malloc(sizeof(t_buffer));
+	recv(socket_cliente,  &(metadata->nombre_tabla->size), sizeof(int), MSG_WAITALL);
 	int size_nombre_tabla = metadata->nombre_tabla->size;
 	char * nombre_tabla = malloc(size_nombre_tabla);
 	metadata->nombre_tabla->palabra = malloc(metadata->nombre_tabla->size);
