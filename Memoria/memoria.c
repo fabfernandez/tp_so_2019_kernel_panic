@@ -126,23 +126,28 @@ void ejecutar_instruccion(t_instruccion_lql instruccion,char* memoria,t_list* ta
 			resolver_select2(instruccion,memoria,tablas);
 			break;
 		case INSERT:
+<<<<<<< Updated upstream
 			log_info(logger, "Kernel solicitó INSERT");
 			resolver_insert3(instruccion,memoria,tablas);
+=======
+			log_info(logger, "Se solicitó INSERT");
+			if(resolver_insert_para_consola(instruccion,memoria,tablas)==-1){resolver_insert_para_consola(instruccion,memoria,tablas);}
+>>>>>>> Stashed changes
 			break;
 		case CREATE:
-			log_info(logger, "Kernel solicitó CREATE");
+			log_info(logger, "Se solicitó CREATE");
 			//aca debería enviarse el mensaje a LFS con CREATE
 			break;
 		case DESCRIBE:
-			log_info(logger, "Kernel solicitó DESCRIBE");
+			log_info(logger, "Se solicitó DESCRIBE");
 			//aca debería enviarse el mensaje a LFS con DESCRIBE
 			break;
 		case DROP:
-			log_info(logger, "Kernel solicitó DROP");
+			log_info(logger, "Se solicitó DROP");
 			//aca debería enviarse el mensaje a LFS con DROP
 			break;
 		case RUN:
-			log_info(logger, "Kernel solicitó RUN");
+			log_info(logger, "Se solicitó RUN");
 			break;
 		default:
 			log_warning(logger, "Operacion desconocida.");
@@ -490,6 +495,22 @@ void resolver_describe_drop (int socket_kernel_fd, int socket_conexion_lfs, char
 	eliminar_paquete_drop_describe(consulta_describe_drop);
 }
 
+void resolver_describe_para_kernel(int socket_kernel_fd, int socket_conexion_lfs, char* operacion){
+	t_paquete_drop_describe* consulta_describe = deserealizar_drop_describe(socket_kernel_fd);
+	if(consulta_describe->nombre_tabla == NULL){
+		log_info(logger, "DESCRIBE global... Pedimos la cantidad de tablas al LFS");
+		enviar_paquete_drop_describe(socket_conexion_lfs, consulta_describe);
+		int cant_tablas=0;
+		recibir_numero_de_tablas (socket_conexion_lfs, cant_tablas);
+		enviar_numero_de_tablas(socket_kernel_fd, cant_tablas);
+		log_info(logger, "Cantidad de tablas en LFS: %i", cant_tablas);
+		for(int i=0; i<cant_tablas; i++){
+			t_metadata* metadata = deserealizar_metadata(socket_conexion_lfs);
+			enviar_paquete_metadata(socket_conexion_lfs, metadata);
+		}
+	}
+
+}
 
  void iniciar_logger() {
 	logger = log_create("/home/utnso/tp-2019-1c-Los-Dinosaurios-Del-Libro/Memoria/memoria.log", "Memoria", 1, LOG_LEVEL_INFO);
@@ -548,7 +569,7 @@ void resolver_describe_drop (int socket_kernel_fd, int socket_conexion_lfs, char
 					break;
 				case DESCRIBE:
 					log_info(logger, "%i solicitó DESCRIBE", socket_memoria);
-					resolver_describe_drop(socket_memoria, socket_conexion_lfs, "DESCRIBE");
+					resolver_describe_para_kernel(socket_memoria, socket_conexion_lfs, "DESCRIBE");
 					//aca debería enviarse el mensaje a LFS con DESCRIBE
 					break;
 				case DROP:

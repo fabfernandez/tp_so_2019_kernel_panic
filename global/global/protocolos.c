@@ -289,3 +289,11 @@ void agregarMemoriaALaTablaGossip(struct tablaMemoriaGossip* tabla, struct tabla
 	} else { agregarMemoriaALaTablaGossip(tabla->siguiente,elementoAAgregar); };
 }
 
+void recibir_numero_de_tablas(int socket, int cant_tablas){
+	recv(socket, cant_tablas, sizeof(int), MSG_WAITALL);
+}
+
+void enviar_numero_de_tablas(int socket, int cant_tablas){
+	send(socket, cant_tablas, sizeof(int), MSG_WAITALL);
+}
+

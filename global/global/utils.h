@@ -51,6 +51,11 @@ t_paquete* crear_super_paquete(void);
 void agregar_a_paquete(t_paquete* paquete, void* valor, int tamanio);
 void enviar_paquete(t_paquete* paquete, int socket_cliente);
 void enviar_paquete_select(int socket_envio, t_paquete_select* consulta_select);
+<<<<<<< Updated upstream
+=======
+void enviar_paquete_select_consola(int socket_envio, t_instruccion_lql consulta_select);
+void enviar_paquete_metadata(int socket_envio, t_metadata* metadata);
+>>>>>>> Stashed changes
 void liberar_conexion(int socket_cliente);
 void eliminar_paquete(t_paquete* paquete);
 int recibir_operacion(int socket_cliente);

@@ -179,5 +179,15 @@ t_paquete_create* deserializar_create (int socket_cliente);
 t_paquete_insert* deserealizar_insert(int socket_cliente);
 t_paquete_add* desearilizar_add(int socket_cliente);
 t_paquete_drop_describe* deserealizar_drop_describe(int socket_cliente);
+<<<<<<< Updated upstream
+=======
+t_status_solicitud* desearilizar_status_solicitud(int socket_cliente);
+t_metadata* deserealizar_metadata(int socket_cliente);
+
+t_registro* obtener_registro(char* registro_serealizado);
+char* generar_registro_string(long timestamp, uint16_t key, char* value);
+void recibir_numero_de_tablas (int socket, int cant_tablas);
+void enviar_numero_de_tablas(int socket, int cant_tablas);
+>>>>>>> Stashed changes
 
 #endif /* GLOBAL_PROTOCOLOS_H_ */
