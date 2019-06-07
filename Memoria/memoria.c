@@ -767,7 +767,12 @@ void resolver_describe_drop (int socket_kernel_fd, int socket_conexion_lfs, char
 
 void resolver_describe_para_kernel(int socket_kernel_fd, int socket_conexion_lfs, char* operacion){
 	t_paquete_drop_describe* consulta_describe = deserealizar_drop_describe(socket_kernel_fd);
-	if(consulta_describe->nombre_tabla == NULL){
+	consulta_describe->codigo_operacion=DESCRIBE;
+
+	if(string_is_empty(consulta_describe->nombre_tabla->palabra)){
+		//Si es un DESCRIBE global, le pido al LFS el numero de tablas. Luego mando el numero de tablas
+		//al kernel. Luego voy a deserializar la metadata tantas veces como sea necesario y mandar a Kernel.
+
 		log_info(logger, "DESCRIBE global... Pedimos la cantidad de tablas al LFS");
 		enviar_paquete_drop_describe(socket_conexion_lfs, consulta_describe);
 		int cant_tablas=0;
@@ -776,8 +781,15 @@ void resolver_describe_para_kernel(int socket_kernel_fd, int socket_conexion_lfs
 		log_info(logger, "Cantidad de tablas en LFS: %i", cant_tablas);
 		for(int i=0; i<cant_tablas; i++){
 			t_metadata* metadata = deserealizar_metadata(socket_conexion_lfs);
-			enviar_paquete_metadata(socket_conexion_lfs, metadata);
+			enviar_paquete_metadata(socket_kernel_fd, metadata);
 		}
+	}
+	else{
+		//Si es un DESCRIBE de una tabla especifica...
+		log_info(logger, "DESCRIBE de la tabla %s", consulta_describe->nombre_tabla->palabra);
+		enviar_paquete_drop_describe(socket_conexion_lfs, consulta_describe);
+		t_metadata* metadata = deserealizar_metadata(socket_conexion_lfs);
+		enviar_paquete_metadata(socket_kernel_fd, metadata);
 	}
 
 }
