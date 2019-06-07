@@ -116,7 +116,7 @@ void ejecutar_instruccion(t_instruccion_lql instruccion, int socket_memoria){
 			break;
 		case DESCRIBE:
 			log_info(logger, "Kernel solicitó DESCRIBE");
-			resolver_describe_drop(instruccion, socket_memoria, DESCRIBE);
+			resolver_describe(instruccion, socket_memoria);
 			break;
 		case DROP:
 			log_info(logger, "Kernel solicitó DROP");
@@ -161,6 +161,28 @@ void resolver_describe_drop(t_instruccion_lql instruccion, int socket_memoria, t
 	//deserealizar_metadata(socket_memoria) en un for
 	eliminar_paquete_drop_describe(paquete_describe);
 
+}
+
+void resolver_describe(t_instruccion_lql instruccion, int socket_memoria){
+	t_paquete_drop_describe* paquete_describe = crear_paquete_drop_describe(instruccion);
+	paquete_describe->codigo_operacion=DESCRIBE;
+	enviar_paquete_drop_describe(socket_memoria, paquete_describe);
+
+	log_info(logger, "Se realiza DESCRIBE");
+	if(string_is_empty(paquete_describe->nombre_tabla)){
+		log_info(logger, "Se trata de un describe global.");
+		//esperar numero de tblas si fue DESCRIBE
+		//ciclo for
+	}else{
+		t_metadata* t_metadata = deserealizar_metadata(socket_memoria);
+		//aca se está mostrando pero deberia guardarselo no?
+		log_info(logger, "Metadata tabla: %s", t_metadata->nombre_tabla->palabra);
+		log_info(logger, "Consistencia: %s", consistencia_to_string(t_metadata->consistencia));
+		log_info(logger, "Numero de particiones: %d", t_metadata->n_particiones);
+		log_info(logger, "Tiempo de compactacion: %d", t_metadata->tiempo_compactacion);
+	}
+
+	eliminar_paquete_drop_describe(paquete_describe);
 }
 
 void resolver_create(t_instruccion_lql instruccion, int socket_memoria){
