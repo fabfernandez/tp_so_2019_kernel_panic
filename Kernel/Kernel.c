@@ -167,6 +167,14 @@ void resolver_create(t_instruccion_lql instruccion, int socket_memoria){
 	t_paquete_create* paquete_create = crear_paquete_create(instruccion);
 
 	enviar_paquete_create(socket_memoria, paquete_create);
+	t_status_solicitud* status = desearilizar_status_solicitud(socket_memoria);
+	if(status->es_valido){
+		log_info("Resultado: %s", status->mensaje->palabra);
+	}else{
+		log_error("Error: %s", status->mensaje->palabra);
+	}
+
+	eliminar_paquete_status(status);
 	eliminar_paquete_create(paquete_create);
 }
 
@@ -174,6 +182,13 @@ void resolver_select(t_instruccion_lql instruccion, int socket_memoria){
 
 	t_paquete_select* paquete_select = crear_paquete_select(instruccion);
 	enviar_paquete_select(socket_memoria, paquete_select);
+	t_status_solicitud* status = desearilizar_status_solicitud(socket_memoria);
+	if(status->es_valido){
+		log_info("Resultado: %s", status->mensaje->palabra);
+	}else{
+		log_error("Error: %s", status->mensaje->palabra);
+	}
+	eliminar_paquete_status(status);
 	eliminar_paquete_select(paquete_select);
 }
 
