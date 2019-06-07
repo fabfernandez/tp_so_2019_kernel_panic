@@ -75,9 +75,6 @@ t_instruccion_lql parsear_linea(char* line){
 		ret.parametros.CREATE.compactacion_time=(long)atoi(split[4]);
 	} else if(string_equals_ignore_case(keyword, DESCRIBE_KEY)){
 		ret.operacion=DESCRIBE;
-		if  (split[2]!= NULL){
-			return lanzar_error("Formato incorrecto. DESCRIBE TABLE o DESCRIBE\n");
-		}
 		if(split[1] !=NULL){
 			string_to_upper(split[1]);
 			ret.parametros.DESCRIBE.tabla = split[1];

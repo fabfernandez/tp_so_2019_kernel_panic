@@ -304,9 +304,9 @@ int crear_directorio_tabla (char* dir_tabla){
 	return !(mkdir(dir_tabla, 0777) != 0 && errno != EEXIST);
 }
 
-void resolver_describe(int socket_memoria, char* operacion){
+void resolver_describe(int socket_memoria){
 	t_paquete_drop_describe* consulta_describe = deserealizar_drop_describe(socket_memoria);
-	log_info(logger, "Se realiza %s", operacion);
+	log_info(logger, "Se realiza DESCRIBE");
 	if(string_is_empty(consulta_describe->nombre_tabla)){
 		log_info(logger, "Se trata de un describe global.");
 
