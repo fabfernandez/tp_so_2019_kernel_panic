@@ -14,7 +14,6 @@ int main(void)
 	char *montaje;
 	iniciar_logger(); // creamos log
 	leer_config(); // abrimos config
-
 	ip_lfs = config_get_string_value(archivoconfig, "IP_LFS"); // asignamos IP de memoria a conectar desde CONFIG
 	log_info(logger, "La IP de la memoria es %s",ip_lfs );
 	puerto_lfs = config_get_string_value(archivoconfig, "PUERTO_LFS"); // asignamos puerto desde CONFIG
