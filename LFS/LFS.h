@@ -75,6 +75,11 @@ void crear_hilo_memoria(int socket_memoria);
 int resolver_operacion(int socket_memoria, t_operacion cod_op);
 char* string_block();
 char* array_int_to_array_char(int* array_int);
+int obtener_bloque_disponible();
+t_metadata* obtener_info_metadata_tabla(char* dir_tabla, char* nombre_tabla);
+void crear_particiones(char* dir_tabla,int  num_particiones);
+void crear_particion(char* dir_particion ,char* size,int* array_bloques);
+void crear_archivo_metadata_tabla(char* dir_tabla, int num_particiones,long compactacion,t_consistencia consistencia);
 
 //t_metadata describe(char* tabla);
 

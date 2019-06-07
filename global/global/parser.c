@@ -119,21 +119,6 @@ t_instruccion_lql parsear_linea(char* line){
 	return ret;
 }
 
-t_consistencia get_valor_consistencia(char* consistencia_ingresada){
-
-	t_consistencia result;
-	if(string_equals_ignore_case(consistencia_ingresada,STRONG_HASH_TEXT)){
-		result= STRONG_HASH;
-	}
-	if (string_equals_ignore_case(consistencia_ingresada,STRONG_TEXT)){
-		result = STRONG;
-	}
-	if (string_equals_ignore_case(consistencia_ingresada,EVENTUAL_TEXT)){
-		result= EVENTUAL;
-	}
-	return result;
-}
-
 int check_consistencia(char* consistencia_ingresada){
 	if ( !string_equals_ignore_case(STRONG_TEXT,consistencia_ingresada) && !string_equals_ignore_case(STRONG_HASH_TEXT,consistencia_ingresada) && !string_equals_ignore_case(EVENTUAL_TEXT,consistencia_ingresada)){
 		return false;

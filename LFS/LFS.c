@@ -161,19 +161,22 @@ void obtener_bitmap(){
 	bitarray = bitarray_create_with_mode(bmap, blocks/8, MSB_FIRST);
 }
 
-void obtener_info_metadata_tabla(char* dir_tabla){
+t_metadata* obtener_info_metadata_tabla(char* dir_tabla, char* nombre_tabla){
 	char* path_metadata_tabla = string_from_format("%s/Metadata", dir_tabla);
 
-	t_config* metadata_tabla  = config_create(path_metadata_tabla);
+	t_config* metadata_tabla_config  = config_create(path_metadata_tabla);
 
 	char* consistencia_string;
 	long compactacion ;
 
-	int num_particiones = config_get_int_value(metadata_tabla, "PARTITIONS");
+	int num_particiones = config_get_int_value(metadata_tabla_config, "PARTITIONS");
 
-	consistencia_string= config_get_string_value(metadata_tabla, "CONSISTENCY");
+	consistencia_string= config_get_string_value(metadata_tabla_config, "CONSISTENCY");
 
-	compactacion =  config_get_long_value(metadata_tabla, "COMPACTION_TIME");
+	compactacion =  config_get_long_value(metadata_tabla_config, "COMPACTION_TIME");
+
+	t_metadata* metadata_tabla = crear_paquete_metadata(nombre_tabla, get_valor_consistencia(consistencia_string), num_particiones, compactacion);
+	return metadata_tabla;
 
 }
 
@@ -214,7 +217,6 @@ t_status_solicitud* resolver_create (char* nombre_tabla, t_consistencia consiste
 		if (crear_directorio_tabla(dir_tabla)){
 			crear_archivo_metadata_tabla(dir_tabla, num_particiones, compactacion, consistencia);
 			crear_particiones(dir_tabla, num_particiones);
-			//obtener_info_metadata_tabla(dir_tabla);
 			status = crear_paquete_status(true, "OK");
 		}else{
 			char * mje_error = string_from_format("No pudo crearse la tabla %s", nombre_tabla);
@@ -303,11 +305,20 @@ int crear_directorio_tabla (char* dir_tabla){
 }
 
 void resolver_describe(int socket_memoria, char* operacion){
-	t_paquete_drop_describe* consulta_describe_drop = deserealizar_drop_describe(socket_memoria);
+	t_paquete_drop_describe* consulta_describe = deserealizar_drop_describe(socket_memoria);
 	log_info(logger, "Se realiza %s", operacion);
+	if(string_is_empty(consulta_describe->nombre_tabla)){
+		log_info(logger, "Se trata de un describe global.");
 
-	log_info(logger, "Tabla: %s", consulta_describe_drop->nombre_tabla->palabra);
-	eliminar_paquete_drop_describe(consulta_describe_drop);
+	}else{
+		char* nombre_tabla = consulta_describe->nombre_tabla->palabra;
+		log_info(logger, "Tabla: %s", nombre_tabla);
+		char* dir_tabla = string_from_format("%s/Tables/%s", path_montaje, nombre_tabla);
+		t_metadata* metadata_tabla = obtener_info_metadata_tabla(dir_tabla, nombre_tabla);
+		enviar_paquete_metadata(socket_memoria, metadata_tabla);
+	}
+
+	eliminar_paquete_drop_describe(consulta_describe);
 }
 
 void resolver_describe_drop (int socket_memoria, char* operacion){

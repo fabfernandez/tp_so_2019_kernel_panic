@@ -16,7 +16,6 @@
 
 t_instruccion_lql lanzar_error(char* mensaje);
 t_instruccion_lql parsear_linea(char* line);
-t_consistencia get_valor_consistencia(char* consistencia_ingresada);
 int check_consistencia(char* consistencia_ingresada);
 
 

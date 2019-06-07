@@ -748,7 +748,7 @@ void resolver_create (int socket_kernel_fd, int socket_conexion_lfs){
 	enviar_paquete_create(socket_conexion_lfs, consulta_create);
 	t_status_solicitud* status = desearilizar_status_solicitud(socket_conexion_lfs);
 	enviar_status_resultado(status, socket_kernel_fd);
-	eliminar_paquete_status(status);
+	//eliminar_paquete_status(status);
 	eliminar_paquete_create(consulta_create);
 }
 

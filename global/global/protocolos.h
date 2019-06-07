@@ -194,6 +194,7 @@ t_paquete_create* create_paquete_create(t_instruccion_lql instruccion);
 t_paquete_insert* crear_paquete_insert(t_instruccion_lql instruccion);
 t_paquete_drop_describe* crear_paquete_drop_describe(t_instruccion_lql instruccion);
 t_status_solicitud* crear_paquete_status(bool es_valido, char* mensaje );
+t_paquete_create* crear_paquete_create(t_instruccion_lql instruccion);
 
 char* serializar_paquete_select(t_paquete_select* paquete_select, int bytes);
 char* serializar_paquete_create(t_paquete_create* paquete_create, int bytes);
@@ -215,7 +216,10 @@ t_metadata* deserealizar_metadata(int socket_cliente);
 
 t_registro* obtener_registro(char* registro_serealizado);
 char* generar_registro_string(long timestamp, uint16_t key, char* value);
+
 void recibir_numero_de_tablas (int socket, int cant_tablas);
 void enviar_numero_de_tablas(int socket, int cant_tablas);
+
+t_consistencia get_valor_consistencia(char* consistencia_ingresada);
 
 #endif /* GLOBAL_PROTOCOLOS_H_ */
