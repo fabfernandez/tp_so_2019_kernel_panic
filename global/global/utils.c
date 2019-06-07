@@ -83,9 +83,9 @@ void enviar_paquete_create(int socket_envio, t_paquete_create* consulta_create){
 }
 
 void enviar_paquete_metadata(int socket_envio, t_metadata* metadata){
-	int bytes = get_tamanio_metadata(metadata);
+	int bytes = get_tamanio_paquete_metadata(metadata);
 
-	char* a_enviar = serializar_paquete_metadata(metadata, bytes);
+	char* a_enviar = serializar_metadata(metadata, bytes);
 
 	send(socket_envio, a_enviar, bytes, MSG_WAITALL);
 
