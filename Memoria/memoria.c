@@ -324,7 +324,7 @@ int resolver_select_para_kernel (int socket_kernel_fd, int socket_conexion_lfs,c
 					return 1;
 			}
 		}
-void resolver_despues_de_journaling (t_paquete_select* consulta_select ,int socket_conexion_lfs,char* memoria_principal, t_list* tablas){
+void resolver_despues_de_journaling (int socket_kernel_fd, t_paquete_select* consulta_select ,int socket_conexion_lfs,char* memoria_principal, t_list* tablas){
 		log_info(logger, "Se realiza SELECT");
 		log_info(logger, "Consulta en la tabla: %s", consulta_select->nombre_tabla->palabra);
 		log_info(logger, "Consulta por key: %d", consulta_select->key);
@@ -360,7 +360,7 @@ void resolver_despues_de_journaling (t_paquete_select* consulta_select ,int sock
 									list_add(tablas, crearSegmento(tabla));
 									paginaNueva(key,registro->value,registro->timestamp,tabla,memoria_principal,tablas);
 								} else { paginaNueva(key,registro->value,registro->timestamp,tabla,memoria_principal,tablas); }
-							//enviar_status_resultado(status, socket_kernel_fd);
+							enviar_status_resultado(status, socket_kernel_fd);
 							free(registro->value);
 							free(registro);
 							free(consulta_select);
@@ -370,7 +370,7 @@ void resolver_despues_de_journaling (t_paquete_select* consulta_select ,int sock
 						//para que esta este else??????
 						log_error(logger, "No existe el registro buscado");
 						log_info(logger, "Se procede a enviar el error a kernel");
-						//enviar_status_resultado(status, socket_kernel_fd);
+						enviar_status_resultado(status, socket_kernel_fd);
 						free(consulta_select);
 
 						//Mostrar el status.mensaje o enviarlo a Kernel
@@ -746,6 +746,9 @@ void resolver_create (int socket_kernel_fd, int socket_conexion_lfs){
 	log_info(logger, "Tiempo compactacion: %d", consulta_create->tiempo_compac);
 	log_info(logger, "Consistencia: %d", consulta_create->consistencia);
 	enviar_paquete_create(socket_conexion_lfs, consulta_create);
+	t_status_solicitud* status = desearilizar_status_solicitud(socket_conexion_lfs);
+	enviar_status_resultado(status, socket_kernel_fd);
+	eliminar_paquete_status(status);
 	eliminar_paquete_create(consulta_create);
 }
 
@@ -805,7 +808,7 @@ void resolver_describe_drop (int socket_kernel_fd, int socket_conexion_lfs, char
 				case SELECT:
 					log_info(logger, "%i solicitó SELECT", socket_memoria);
 					//resolver_select_para_kernel(socket_memoria, socket_conexion_lfs,memoria_principal,tablas);
-					if(resolver_select_para_kernel(socket_memoria, socket_conexion_lfs,memoria_principal,tablas)==-1){resolver_despues_de_journaling(consulta_select_a_usar,socket_conexion_lfs,memoria_principal, tablas);}
+					if(resolver_select_para_kernel(socket_memoria, socket_conexion_lfs,memoria_principal,tablas)==-1){resolver_despues_de_journaling(socket_memoria,consulta_select_a_usar,socket_conexion_lfs,memoria_principal, tablas);}
 					//aca debería enviarse el mensaje a LFS con SELECT
 					break;
 				case INSERT:

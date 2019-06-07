@@ -118,6 +118,6 @@ int journal(void);
 int resolver_select_para_kernel (int socket_kernel_fd, int socket_conexion_lfs,char* memoria_principal, t_list* tablas);
 t_paquete_select* consulta_select_a_usar;
 t_paquete_insert* consulta_insert_a_usar;
-void resolver_despues_de_journaling (t_paquete_select* consulta_select ,int socket_conexion_lfs,char* memoria_principal, t_list* tablas);
+void resolver_despues_de_journaling (int socket_kernel_fd, t_paquete_select* consulta_select ,int socket_conexion_lfs,char* memoria_principal, t_list* tablas);
 void resolver_insert_despues_de_journaling(t_paquete_insert* consulta_insert, int socket_conexion_lfs,char* memoria_principal, t_list* tablas);
 #endif /* MEMORIA_H_ */

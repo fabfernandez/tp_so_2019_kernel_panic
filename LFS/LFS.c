@@ -108,6 +108,7 @@ int resolver_operacion(int socket_memoria, t_operacion cod_op){
 			t_paquete_create* create = deserializar_create (socket_memoria);
 			status = resolver_create(create->nombre_tabla->palabra, create->consistencia, create->num_particiones, create->tiempo_compac);
 			enviar_status_resultado(status, socket_memoria);
+			//eliminar_paquete_status(status);
 			eliminar_paquete_create(create);
 			//aca debería enviarse el mensaje a LFS con CREATE
 			break;
