@@ -312,13 +312,17 @@ void resolver_describe(int socket_memoria, char* operacion){
 
 	}else{
 		char* nombre_tabla = consulta_describe->nombre_tabla->palabra;
-		log_info(logger, "Tabla: %s", nombre_tabla);
-		char* dir_tabla = string_from_format("%s/Tables/%s", path_montaje, nombre_tabla);
-		t_metadata* metadata_tabla = obtener_info_metadata_tabla(dir_tabla, nombre_tabla);
-		enviar_paquete_metadata(socket_memoria, metadata_tabla);
+		enviar_tabla_para_describe(socket_memoria, nombre_tabla);
 	}
 
 	eliminar_paquete_drop_describe(consulta_describe);
+}
+
+void enviar_tabla_para_describe(int socket_memoria, char* nombre_tabla){
+	log_info(logger, "Tabla: %s", nombre_tabla);
+	char* dir_tabla = string_from_format("%s/Tables/%s", path_montaje, nombre_tabla);
+	t_metadata* metadata_tabla = obtener_info_metadata_tabla(dir_tabla, nombre_tabla);
+	enviar_paquete_metadata(socket_memoria, metadata_tabla);
 }
 
 void resolver_describe_drop (int socket_memoria, char* operacion){
