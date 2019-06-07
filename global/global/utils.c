@@ -82,6 +82,15 @@ void enviar_paquete_create(int socket_envio, t_paquete_create* consulta_create){
 	free(a_enviar);
 }
 
+void enviar_paquete_metadata(int socket_envio, t_metadata* metadata){
+	int bytes = get_tamanio_metadata(metadata);
+
+	char* a_enviar = serializar_paquete_metadata(metadata, bytes);
+
+	send(socket_envio, a_enviar, bytes, MSG_WAITALL);
+
+	free(a_enviar);
+}
 
 void recibir_handshake(t_log* logger,int socket_fd){
 	int cod_op = recibir_operacion(socket_fd);

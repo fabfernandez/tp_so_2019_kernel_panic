@@ -186,6 +186,7 @@ int get_tamanio_paquete_insert(t_paquete_insert* paquete_insert);
 int get_tamanio_paquete_add(t_paquete_add* paquete_add);
 int get_tamanio_paquete_describe_drop(t_paquete_drop_describe* paquete_drop_describe);
 int get_tamanio_paquete_status(t_status_solicitud* paquete);
+int get_tamanio_paquete_metadata(t_metadata* paquete_metadata);
 
 t_paquete_add* crear_paquete_add(t_instruccion_lql instruccion);
 t_paquete_select* crear_paquete_select(t_instruccion_lql instruccion);
@@ -200,15 +201,21 @@ char* serializar_paquete_insert(t_paquete_insert* paquete_insert, int bytes);
 char* serializar_paquete_add(t_paquete_add* paquete_add, int bytes);
 char* serialiazar_paquete_drop_describe(t_paquete_drop_describe* paquete, int bytes);
 char* serializar_status_solicitud(t_status_solicitud* paquete, int bytes);
+char* serializar_metadata(t_metadata* metadata, int bytes);
 
 t_paquete_select* deserializar_select (int socket_cliente);
 t_paquete_create* deserializar_create (int socket_cliente);
 t_paquete_insert* deserealizar_insert(int socket_cliente);
 t_paquete_add* desearilizar_add(int socket_cliente);
 t_paquete_drop_describe* deserealizar_drop_describe(int socket_cliente);
+t_registro* obtener_registro(char* registro_serealizado);
+char* generar_registro_string(long timestamp, uint16_t key, char* value);
 t_status_solicitud* desearilizar_status_solicitud(int socket_cliente);
+t_metadata* deserealizar_metadata(int socket_cliente);
 
 t_registro* obtener_registro(char* registro_serealizado);
 char* generar_registro_string(long timestamp, uint16_t key, char* value);
+void recibir_numero_de_tablas (int socket, int cant_tablas);
+void enviar_numero_de_tablas(int socket, int cant_tablas);
 
 #endif /* GLOBAL_PROTOCOLOS_H_ */
