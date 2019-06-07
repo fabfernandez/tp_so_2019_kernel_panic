@@ -12,6 +12,7 @@ t_list* memorias_sin_asignar;
 int QUANTUM;
 int socket_memoria;
 int SLEEP_EJECUCION = 0;
+int error = 0;
 
 
 int main(void)
@@ -170,8 +171,10 @@ void resolver_create(t_instruccion_lql instruccion, int socket_memoria){
 	t_status_solicitud* status = desearilizar_status_solicitud(socket_memoria);
 	if(status->es_valido){
 		log_info(logger, "Resultado: %s", status->mensaje->palabra);
+		error = 0;
 	}else{
 		log_error(logger, "Error: %s", status->mensaje->palabra);
+		error = 1;
 	}
 
 	eliminar_paquete_status(status);
@@ -185,8 +188,10 @@ void resolver_select(t_instruccion_lql instruccion, int socket_memoria){
 	t_status_solicitud* status = desearilizar_status_solicitud(socket_memoria);
 	if(status->es_valido){
 		log_info(logger, "Resultado: %s", status->mensaje->palabra);
+		error = 0;
 	}else{
 		log_error(logger, "Error: %s", status->mensaje->palabra);
+		error = 1;
 	}
 	eliminar_paquete_status(status);
 	eliminar_paquete_select(paquete_select);
@@ -207,10 +212,10 @@ void ejecutar_script(t_script* script_a_ejecutar){
 
 	char ultimo_caracter_leido = leer_archivo(archivo, socket_memoria);
 
-	if(ultimo_caracter_leido != EOF){
+	if(ultimo_caracter_leido != EOF && error == 0){
 		script_a_ejecutar->offset = ftell(archivo) - 1;
 	} else {
-	script_a_ejecutar->offset = NULL;
+		script_a_ejecutar->offset = NULL;
 	}
 
 	fclose(archivo);
@@ -240,6 +245,7 @@ void resolver_add (t_instruccion_lql instruccion, int socket_memoria){
 	t_memoria* memoria = list_find(memorias_sin_asignar, (void*) es_la_memoria);
 	if(memoria != NULL){
 		asignar_consistencia(memoria, consistencia);
+		log_info(logger, "Se ha añadido la Memoria: %d a la Consistencia: %c\n", numero_memoria, consistencia);
 	}
 }
 
@@ -264,7 +270,7 @@ char leer_archivo(FILE* archivo, int socket_memoria){
 	int lineas_leidas = 0;
 	int i;
 	char letra;
-	while((letra = fgetc(archivo)) != EOF && lineas_leidas < QUANTUM){
+	while((letra = fgetc(archivo)) != EOF && lineas_leidas < QUANTUM && error != 1){
 		linea = (char*)realloc(NULL, sizeof(char));
 		i = 0;
 		do{
@@ -276,7 +282,6 @@ char leer_archivo(FILE* archivo, int socket_memoria){
 		linea = (char*)realloc(linea, (i+1));
 		linea[i] = 0;
 		parsear_y_ejecutar(linea, socket_memoria, 0);
-		printf("%s\n", linea);
 		free(linea);
 		lineas_leidas++;
 		linea = NULL;
