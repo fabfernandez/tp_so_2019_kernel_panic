@@ -216,6 +216,8 @@ t_metadata* deserealizar_metadata(int socket_cliente);
 
 t_registro* obtener_registro(char* registro_serealizado);
 char* generar_registro_string(long timestamp, uint16_t key, char* value);
+void recibir_numero_de_tablas (int socket, int cant_tablas);
+void enviar_numero_de_tablas(int socket, int cant_tablas);
 
 void recibir_numero_de_tablas (int socket, int cant_tablas);
 void enviar_numero_de_tablas(int socket, int cant_tablas);
