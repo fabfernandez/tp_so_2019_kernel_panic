@@ -20,5 +20,7 @@ make all
 cd ../../LFS/Debug/
 make clean
 make all
-
-export LD_LIBRARY_PATH=xport LD_LIBRARY_PATH=/home/utnso/tp-2019-1c-Los-Dinosaurios-Del-Libro/global/Debug
+cd ../../creacion_LFS/Debug/
+make clean
+make all
+export LD_LIBRARY_PATH=/home/utnso/tp-2019-1c-Los-Dinosaurios-Del-Libro/global/Debug
