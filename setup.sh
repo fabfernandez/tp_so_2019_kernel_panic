@@ -2,9 +2,9 @@
 
 echo "Se instala Commons"
 cd ..
-#git clone https://github.com/sisoputnfrba/so-commons-library
-#cd so-commons-library
-#make install
+git clone https://github.com/sisoputnfrba/so-commons-library
+cd so-commons-library
+make install
 #cd ..
 echo "Compilacion de proyecto"
 cd tp-2019-1c-Los-Dinosaurios-Del-Libro
