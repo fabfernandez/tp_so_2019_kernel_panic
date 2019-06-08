@@ -5,7 +5,7 @@ cd ..
 git clone https://github.com/sisoputnfrba/so-commons-library
 cd so-commons-library
 make install
-#cd ..
+cd ..
 echo "Compilacion de proyecto"
 cd tp-2019-1c-Los-Dinosaurios-Del-Libro
 cd global/Debug/
