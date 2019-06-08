@@ -380,13 +380,14 @@ t_metadata* deserealizar_metadata(int socket_cliente){
 t_consistencia get_valor_consistencia(char* consistencia_ingresada){
 
 	t_consistencia result;
-	if(string_equals_ignore_case(consistencia_ingresada,STRONG_HASH_TEXT)){
+	//if(string_equals_ignore_case(consistencia_ingresada,STRONG_HASH_TEXT)){
+	if(strcmp(consistencia_ingresada, STRONG_HASH_TEXT) == 0){
 		result= STRONG_HASH;
 	}
-	if (string_equals_ignore_case(consistencia_ingresada,STRONG_TEXT)){
+	if(strcmp(consistencia_ingresada, STRONG_TEXT) == 0){
 		result = STRONG;
 	}
-	if (string_equals_ignore_case(consistencia_ingresada,EVENTUAL_TEXT)){
+	if(strcmp(consistencia_ingresada, EVENTUAL_TEXT) == 0){
 		result= EVENTUAL;
 	}
 	return result;
