@@ -169,7 +169,7 @@ void resolver_describe(t_instruccion_lql instruccion, int socket_memoria){
 	enviar_paquete_drop_describe(socket_memoria, paquete_describe);
 
 	log_info(logger, "Se realiza DESCRIBE");
-	if(string_is_empty(paquete_describe->nombre_tabla)){
+	if(string_is_empty(paquete_describe->nombre_tabla->palabra)){
 		log_info(logger, "Se trata de un describe global.");
 		//esperar numero de tblas si fue DESCRIBE
 		//ciclo for
