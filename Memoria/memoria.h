@@ -31,8 +31,12 @@
 //
 void *iniciar_select(void* dato);
 void iniciarHiloKernel(datosSelect* dato);
+void *journaling_automatico(void* dato);
+void iniciarHiloJournaling(char* memo, t_list* tablas);
 int socket_memoria;
 pthread_t consola;
+long retardo_journaling;
+long retardo_gossiping;
 t_list* tablas;
 char* serializar_pagina(pagina_concreta* pagina);
 pagina_concreta* deserializar_pagina(char* paginac);

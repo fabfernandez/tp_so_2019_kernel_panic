@@ -59,6 +59,7 @@ int main(void)
 			return -1;
 			}
 	iniciarHiloConsola(memoria_principal, tablas);
+	iniciarHiloJournaling(memoria_principal, tablas);
 	select_esperar_conexiones_o_peticiones(memoria_principal,tablas);
 	return EXIT_SUCCESS;
 }
@@ -86,6 +87,18 @@ void iniciarHiloKernel(datosSelect* dato){
 	}
 
 }
+void iniciarHiloJournaling(char* memo, t_list* tablas){
+	pthread_t hiloJournaling;
+	datosSelect* datos=malloc(sizeof(datosSelect));
+	datos->memoria=memo;
+	datos->tabla=tablas;
+	if (pthread_create(&hiloJournaling, 0, journaling_automatico, datos) !=0){
+				log_error(logger, "Error al crear el hilo");
+			}
+			if (pthread_detach(hiloJournaling) != 0){
+				log_error(logger, "Error al crear el hilo");
+			}
+}
 void iniciarHiloConsola(char* memo, t_list* tablas){
 	pthread_t hiloSelect;
 	datosSelect* datos=malloc(sizeof(datosSelect));
@@ -97,6 +110,13 @@ void iniciarHiloConsola(char* memo, t_list* tablas){
 		if (pthread_detach(hiloSelect) != 0){
 			log_error(logger, "Error al crear el hilo");
 		}
+}
+void *journaling_automatico(void* dato){
+	datosSelect* datos = (datosSelect*) dato;
+	while(1){
+		sleep(retardo_journaling);
+		journaling(datos->memoria,datos->tabla);
+	}
 }
 void *iniciar_consola(void* dato){
 	datosSelect* datos = (datosSelect*) dato;
@@ -887,6 +907,10 @@ void resolver_describe_para_kernel(int socket_kernel_fd, int socket_conexion_lfs
 	log_info(logger, "El nombre de la memoria es %s",nombre_memoria);
 	tamanio_memoria = config_get_int_value(archivoconfig, "TAM_MEM");
 	log_info(logger, "El tamaño de la memoria es: %i",tamanio_memoria);
+	retardo_journaling = config_get_int_value(archivoconfig, "RETARDO_JOURNAL");
+	log_info(logger, "El retardo del journaling automatico es: %i",retardo_journaling);
+	retardo_gossiping = config_get_int_value(archivoconfig, "RETARDO_GOSSIPING");
+	log_info(logger, "El retardo de gossiping automatico es: %i",retardo_gossiping);
 	}
 
 /**
