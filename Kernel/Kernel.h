@@ -59,12 +59,12 @@ int SLEEP_EJECUCION;
 
 
 							// ******* API KERNEL ******* //
-void resolver_describe_drop(t_instruccion_lql instruccion, int socket_memoria, t_operacion operacion);
-void resolver_create(t_instruccion_lql instruccion, int socket_memoria);
-void resolver_insert(t_instruccion_lql instruccion, int socket_memoria);
-void resolver_select(t_instruccion_lql instruccion, int socket_memoria);
-void resolver_run(t_instruccion_lql instruccion, int socket_memoria);
-void resolver_add (t_instruccion_lql instruccion, int socket_memoria);
+void resolver_describe_drop(t_instruccion_lql instruccion, t_operacion operacion);
+void resolver_create(t_instruccion_lql instruccion);
+void resolver_insert(t_instruccion_lql instruccion);
+void resolver_select(t_instruccion_lql instruccion);
+void resolver_run(t_instruccion_lql instruccion);
+void resolver_add (t_instruccion_lql instruccion);
 
 int insert(char* tabla, uint16_t key, long timestamp); 	// INSERT PROTOTIPO (1)
 t_valor select_(char* tabla, uint16_t key); 			// SELECT PROTOTIPO (2)
@@ -86,10 +86,11 @@ void leer_config(void);
 void terminar_programa(int conexion);
 int generarID();
 void asignar_consistencia(t_memoria* memoria, t_consistencia consistencia);
-char leer_archivo(FILE* archivo, int socket_memoria);
-void ejecutar_instruccion(t_instruccion_lql instruccion, int socket_memoria);
-void parsear_y_ejecutar(char* linea, int socket_memoria, int flag_de_consola);
+char leer_archivo(FILE* archivo);
+void ejecutar_instruccion(t_instruccion_lql instruccion);
+void parsear_y_ejecutar(char* linea, int flag_de_consola);
 void ejecutar_script(t_script* script_a_ejecutar);
+int conseguir_memoria(char* nombre_tabla);
 
 
 

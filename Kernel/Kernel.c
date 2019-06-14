@@ -80,7 +80,7 @@ int main(void)
 	while(1){
 		char* linea = readline("Consola kernel>");
 
-		parsear_y_ejecutar(linea, socket_memoria, 1);
+		parsear_y_ejecutar(linea, 1);
 
 		free(linea);
 	}
@@ -88,10 +88,10 @@ int main(void)
 	terminar_programa(socket_memoria); // termina conexion, destroy log y destroy config.
 }
 
-void parsear_y_ejecutar(char* linea, int socket_memoria, int flag_de_consola){
+void parsear_y_ejecutar(char* linea, int flag_de_consola){
 	t_instruccion_lql instruccion = parsear_linea(linea);
 	if (instruccion.valido) {
-		ejecutar_instruccion(instruccion, socket_memoria);
+		ejecutar_instruccion(instruccion);
 	}else{
 		if (flag_de_consola){
 			log_error(logger, "Reingrese correctamente la instruccion");
@@ -99,32 +99,32 @@ void parsear_y_ejecutar(char* linea, int socket_memoria, int flag_de_consola){
 	}
 }
 
-void ejecutar_instruccion(t_instruccion_lql instruccion, int socket_memoria){
+void ejecutar_instruccion(t_instruccion_lql instruccion){
 	t_operacion operacion = instruccion.operacion;
 	switch(operacion) {
 		case SELECT:
 			log_info(logger, "Se solicita SELECT a memoria");
-			resolver_select(instruccion, socket_memoria);
+			resolver_select(instruccion);
 			break;
 		case INSERT:
 			log_info(logger, "Kernel solicitó INSERT");
-			resolver_insert(instruccion, socket_memoria);
+			resolver_insert(instruccion);
 			break;
 		case CREATE:
 			log_info(logger, "Kernel solicitó CREATE");
-			resolver_create(instruccion, socket_memoria);
+			resolver_create(instruccion);
 			break;
 		case DESCRIBE:
 			log_info(logger, "Kernel solicitó DESCRIBE");
-			resolver_describe(instruccion, socket_memoria);
+			resolver_describe(instruccion);
 			break;
 		case DROP:
 			log_info(logger, "Kernel solicitó DROP");
-			resolver_describe_drop(instruccion, socket_memoria, DROP);
+			resolver_describe_drop(instruccion, DROP);
 			break;
 		case RUN:
 			log_info(logger, "Kernel solicitó RUN");
-			resolver_run(instruccion, socket_memoria);
+			resolver_run(instruccion);
 			break;
 		case JOURNAL:
 			log_info(logger, "Kernel solicitó JOURNAL");
@@ -136,7 +136,7 @@ void ejecutar_instruccion(t_instruccion_lql instruccion, int socket_memoria){
 			break;
 		case ADD:
 			log_info(logger, "Kernel solicitó ADD");
-			resolver_add(instruccion, socket_memoria);
+			resolver_add(instruccion);
 			break;
 		default:
 			log_warning(logger, "Operacion desconocida.");
@@ -152,21 +152,28 @@ void ejecutar_instruccion(t_instruccion_lql instruccion, int socket_memoria){
 };*/
 
 
-void resolver_describe_drop(t_instruccion_lql instruccion, int socket_memoria, t_operacion operacion){
+void resolver_describe_drop(t_instruccion_lql instruccion, t_operacion operacion){
 	//separar entre describe y drop
 	t_paquete_drop_describe* paquete_describe = crear_paquete_drop_describe(instruccion);
 	paquete_describe->codigo_operacion=operacion;
-	enviar_paquete_drop_describe(socket_memoria, paquete_describe);
+
+	char* nombre_tabla = paquete_describe->nombre_tabla;
+	int socket_memoria_a_usar = conseguir_memoria(nombre_tabla);
+
+	enviar_paquete_drop_describe(socket_memoria_a_usar, paquete_describe);
 	//esperar numero de tblas si fue DESCRIBE
 	//deserealizar_metadata(socket_memoria) en un for
 	eliminar_paquete_drop_describe(paquete_describe);
 
 }
 
-void resolver_describe(t_instruccion_lql instruccion, int socket_memoria){
+void resolver_describe(t_instruccion_lql instruccion){
 	t_paquete_drop_describe* paquete_describe = crear_paquete_drop_describe(instruccion);
 	paquete_describe->codigo_operacion=DESCRIBE;
-	enviar_paquete_drop_describe(socket_memoria, paquete_describe);
+
+	char* nombre_tabla = paquete_describe->nombre_tabla->palabra;
+	int socket_memoria_a_usar = conseguir_memoria(nombre_tabla);
+	enviar_paquete_drop_describe(socket_memoria_a_usar, paquete_describe);
 
 	log_info(logger, "Se realiza DESCRIBE");
 	if(string_is_empty(paquete_describe->nombre_tabla->palabra)){
@@ -174,7 +181,7 @@ void resolver_describe(t_instruccion_lql instruccion, int socket_memoria){
 		//esperar numero de tblas si fue DESCRIBE
 		//ciclo for
 	}else{
-		t_metadata* t_metadata = deserealizar_metadata(socket_memoria);
+		t_metadata* t_metadata = deserealizar_metadata(socket_memoria_a_usar);
 		//aca se está mostrando pero deberia guardarselo no?
 		log_info(logger, "Metadata tabla: %s", t_metadata->nombre_tabla->palabra);
 		log_info(logger, "Consistencia: %s", consistencia_to_string(t_metadata->consistencia));
@@ -185,12 +192,14 @@ void resolver_describe(t_instruccion_lql instruccion, int socket_memoria){
 	eliminar_paquete_drop_describe(paquete_describe);
 }
 
-void resolver_create(t_instruccion_lql instruccion, int socket_memoria){
-
+void resolver_create(t_instruccion_lql instruccion){
 	t_paquete_create* paquete_create = crear_paquete_create(instruccion);
 
-	enviar_paquete_create(socket_memoria, paquete_create);
-	t_status_solicitud* status = desearilizar_status_solicitud(socket_memoria);
+	char* nombre_tabla = paquete_create->nombre_tabla->palabra;
+	int socket_memoria_a_usar = conseguir_memoria(nombre_tabla);
+
+	enviar_paquete_create(socket_memoria_a_usar, paquete_create);
+	t_status_solicitud* status = desearilizar_status_solicitud(socket_memoria_a_usar);
 	if(status->es_valido){
 		log_info(logger, "Resultado: %s", status->mensaje->palabra);
 		error = 0;
@@ -203,11 +212,16 @@ void resolver_create(t_instruccion_lql instruccion, int socket_memoria){
 	eliminar_paquete_create(paquete_create);
 }
 
-void resolver_select(t_instruccion_lql instruccion, int socket_memoria){
+void resolver_select(t_instruccion_lql instruccion){
 
 	t_paquete_select* paquete_select = crear_paquete_select(instruccion);
-	enviar_paquete_select(socket_memoria, paquete_select);
-	t_status_solicitud* status = desearilizar_status_solicitud(socket_memoria);
+
+	char* nombre_tabla = paquete_select->nombre_tabla->palabra;
+	printf("%d\n", socket_memoria);
+	int socket_memoria_a_usar = conseguir_memoria(nombre_tabla);
+	printf("%d\n", socket_memoria_a_usar);
+	enviar_paquete_select(socket_memoria_a_usar, paquete_select);
+	t_status_solicitud* status = desearilizar_status_solicitud(socket_memoria_a_usar);
 	if(status->es_valido){
 		log_info(logger, "Resultado: %s", status->mensaje->palabra);
 		error = 0;
@@ -219,9 +233,13 @@ void resolver_select(t_instruccion_lql instruccion, int socket_memoria){
 	eliminar_paquete_select(paquete_select);
 }
 
-void resolver_insert (t_instruccion_lql instruccion, int socket_memoria){
+void resolver_insert (t_instruccion_lql instruccion){
 	t_paquete_insert* paquete_insert = crear_paquete_insert(instruccion);
-	enviar_paquete_insert(socket_memoria, paquete_insert);
+
+	char* nombre_tabla = paquete_insert->nombre_tabla->palabra;
+	int socket_memoria_a_usar = conseguir_memoria(nombre_tabla);
+
+	enviar_paquete_insert(socket_memoria_a_usar, paquete_insert);
 	eliminar_paquete_insert(paquete_insert);
 }
 
@@ -230,9 +248,7 @@ void ejecutar_script(t_script* script_a_ejecutar){
 	FILE* archivo = fopen(path,"r");
 	fseek(archivo, script_a_ejecutar->offset, SEEK_SET);
 
-	//int socket_memoria = memoria_apta();
-
-	char ultimo_caracter_leido = leer_archivo(archivo, socket_memoria);
+	char ultimo_caracter_leido = leer_archivo(archivo);
 
 	if(ultimo_caracter_leido != EOF && error == 0){
 		script_a_ejecutar->offset = ftell(archivo) - 1;
@@ -245,13 +261,13 @@ void ejecutar_script(t_script* script_a_ejecutar){
 
 
 
-void resolver_run(t_instruccion_lql instruccion, int socket_memoria){
+void resolver_run(t_instruccion_lql instruccion){
 	char* path = instruccion.parametros.RUN.path_script;
 	queue_push(new_queue,path);
 }
 
 
-void resolver_add (t_instruccion_lql instruccion, int socket_memoria){
+void resolver_add (t_instruccion_lql instruccion){
 	uint16_t numero_memoria = instruccion.parametros.ADD.numero_memoria;
 	t_consistencia consistencia = instruccion.parametros.ADD.consistencia;
 
@@ -287,7 +303,15 @@ void asignar_consistencia(t_memoria* memoria, t_consistencia consistencia){
 	}
 }
 
-char leer_archivo(FILE* archivo, int socket_memoria){
+int conseguir_memoria(char *nombre_tabla){
+
+	// DESCRIBE
+
+	return socket_memoria;
+
+}
+
+char leer_archivo(FILE* archivo){
 	char* linea = NULL;
 	int lineas_leidas = 0;
 	int i;
@@ -303,7 +327,7 @@ char leer_archivo(FILE* archivo, int socket_memoria){
 
 		linea = (char*)realloc(linea, (i+1));
 		linea[i] = 0;
-		parsear_y_ejecutar(linea, socket_memoria, 0);
+		parsear_y_ejecutar(linea, 0);
 		free(linea);
 		lineas_leidas++;
 		linea = NULL;
