@@ -158,7 +158,6 @@ int recibir_operacion(int socket_cliente)
 }
 
 
-
 int enviar_mensaje(char* mensaje, int socket_cliente, int cod_operacion)
 {
 	t_paquete* paquete = malloc(sizeof(t_paquete));
