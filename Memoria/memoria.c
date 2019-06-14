@@ -214,7 +214,14 @@ void *journaling_automatico(void* dato){
 void *iniciar_consola(void* dato){
 	datosSelect* datos = (datosSelect*) dato;
 	while(1){
-			char* linea = readline("Consola Memoria>");
+			char* consol = "CONSOLA ";
+			char* consol2 = " >>";
+			char* consol3 = malloc(strlen(consol)+strlen(consol2)+strlen(nombre_memoria)+1);
+			memcpy(consol3,consol,strlen(consol));
+			memcpy(consol3+strlen(consol),nombre_memoria,strlen(nombre_memoria));
+			memcpy(consol3+strlen(consol)+strlen(nombre_memoria),consol2,strlen(consol2)+1);
+			char* linea = readline(consol3);
+			free(consol3);
 
 			parsear_y_ejecutar(linea, 1,datos->memoria,datos->tabla);
 
