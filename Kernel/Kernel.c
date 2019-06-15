@@ -22,8 +22,10 @@ int main(void)
 
 	iniciar_logger(); // creamos log
 	leer_config(); // abrimos config
-
+	tablaGossiping = list_create();
 	IP_MEMORIA = config_get_string_value(archivoconfig, "IP_MEMORIA"); // asignamos IP de memoria a conectar desde CONFIG
+	retardo_gossiping = config_get_int_value(archivoconfig, "RETARDO_GOSSIPING");
+
 	log_info(logger, "La IP de la memoria es %s", IP_MEMORIA);
 	PUERTO_MEMORIA = config_get_string_value(archivoconfig, "PUERTO_MEMORIA"); // asignamos puerto desde CONFIG
 	log_info(logger, "El puerto de la memoria es %s", PUERTO_MEMORIA);
@@ -75,7 +77,7 @@ int main(void)
 	exit_queue = queue_create();
 
 	iniciar_hilo_planificacion();
-
+	iniciarHiloGossiping(tablaGossiping);
 
 	while(1){
 		char* linea = readline("Consola kernel>");
@@ -87,6 +89,26 @@ int main(void)
 	close(socket_memoria);
 	terminar_programa(socket_memoria); // termina conexion, destroy log y destroy config.
 }
+
+void iniciarHiloGossiping(t_list* tablaGossiping){ // @suppress("Type cannot be resolved")
+	pthread_t hiloGossiping;
+	if (pthread_create(&hiloGossiping, 0, iniciar_peticion_tablas, tablaGossiping) !=0){
+			log_error(logger, "Error al crear el hilo");
+		}
+	if (pthread_detach(hiloGossiping) != 0){
+			log_error(logger, "Error al crear el hilo");
+		}
+}
+
+void* iniciar_peticion_tablas(void* tablaGossiping){
+	t_list* tablag = (t_list *) tablaGossiping;
+		while(1){
+			sleep(retardo_gossiping);
+			log_info(logger, "Inicio PEDIDO DE TABLAS A MEMORIA");
+			// IMPLEMENTACION , ENVIAR UNA OPERACION A MEMORIA DE TABLA_GOSSIPING O COMO CARAJOS SEA Q CREE RECIEN EN EL PARSER
+			log_info(logger, "FIN PEDIDO DE TABLAS");
+		}
+	}
 
 void parsear_y_ejecutar(char* linea, int flag_de_consola){
 	t_instruccion_lql instruccion = parsear_linea(linea);

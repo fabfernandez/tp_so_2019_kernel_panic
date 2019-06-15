@@ -24,7 +24,8 @@
 							// ******* TIPOS NECESARIOS ******* //
 t_log* logger;
 t_config* archivoconfig;
-
+t_list* tablaGossiping;
+int retardo_gossiping;
 
 
 typedef char* t_valor;					// VALOR QUE DEVUELVE EL SELECT(TODAVIA NO SABEMOS QUE ALMACENA EN TABLAS?)
@@ -89,6 +90,8 @@ void asignar_consistencia(t_memoria* memoria, t_consistencia consistencia);
 char leer_archivo(FILE* archivo);
 void ejecutar_instruccion(t_instruccion_lql instruccion);
 void parsear_y_ejecutar(char* linea, int flag_de_consola);
+void* iniciar_peticion_tablas(void* tablaGossiping);
+void iniciarHiloGossiping(t_list* tablaGossiping);
 void ejecutar_script(t_script* script_a_ejecutar);
 int conseguir_memoria(char* nombre_tabla);
 
