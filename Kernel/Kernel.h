@@ -26,6 +26,7 @@ t_log* logger;
 t_config* archivoconfig;
 t_list* tablaGossiping;
 int retardo_gossiping;
+int CANT_EXEC;
 
 
 typedef char* t_valor;					// VALOR QUE DEVUELVE EL SELECT(TODAVIA NO SABEMOS QUE ALMACENA EN TABLAS?)

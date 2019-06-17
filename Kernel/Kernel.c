@@ -12,6 +12,7 @@ t_list* memorias_sin_asignar;
 int QUANTUM;
 int socket_memoria;
 int SLEEP_EJECUCION = 0;
+int CANT_EXEC = 0;
 int error = 0;
 
 
@@ -22,7 +23,6 @@ int main(void)
 
 	iniciar_logger(); // creamos log
 	leer_config(); // abrimos config
-	tablaGossiping = list_create();
 	IP_MEMORIA = config_get_string_value(archivoconfig, "IP_MEMORIA"); // asignamos IP de memoria a conectar desde CONFIG
 	retardo_gossiping = config_get_int_value(archivoconfig, "RETARDO_GOSSIPING");
 
@@ -32,6 +32,7 @@ int main(void)
 
 	QUANTUM = config_get_int_value(archivoconfig, "QUANTUM");
 	SLEEP_EJECUCION = config_get_int_value(archivoconfig, "SLEEP_EJECUCION") / 1000;
+	CANT_EXEC = config_get_int_value(archivoconfig, "NIVEL_MULTIPROCESAMIENTO");
 
 //	// CREO SOCKET DESCRIPTOR KERNEL //
 //
@@ -66,6 +67,7 @@ int main(void)
 	memoria_principal->numero_memoria= 1;
 	memoria_principal->socket_memoria=socket_memoria;
 
+	tablaGossiping = list_create();
 	memorias_sin_asignar = list_create();
 	strong_consistency = list_create();
 	strong_hash_consistency = list_create();
@@ -239,10 +241,10 @@ void resolver_select(t_instruccion_lql instruccion){
 	t_paquete_select* paquete_select = crear_paquete_select(instruccion);
 
 	char* nombre_tabla = paquete_select->nombre_tabla->palabra;
-	printf("%d\n", socket_memoria);
 	int socket_memoria_a_usar = conseguir_memoria(nombre_tabla);
-	printf("%d\n", socket_memoria_a_usar);
+
 	enviar_paquete_select(socket_memoria_a_usar, paquete_select);
+
 	t_status_solicitud* status = desearilizar_status_solicitud(socket_memoria_a_usar);
 	if(status->es_valido){
 		log_info(logger, "Resultado: %s", status->mensaje->palabra);
