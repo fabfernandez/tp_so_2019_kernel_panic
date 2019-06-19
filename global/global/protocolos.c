@@ -242,7 +242,17 @@ char* serializar_metadata(t_metadata* metadata, int bytes){
 
 	return serializado;
 }
-
+char* serializar_tabla_gossiping(t_list* tablag){
+	char* tablaSerializada=malloc((sizeof(int)*2)*tablag->elements_count);
+	int desplazamiento=0;
+	for(int i=0;i<tablag->elements_count;i++){
+		t_gossip* unelem = list_get(tablag,i);
+		memcpy(tablaSerializada,&(unelem->ip_memoria),sizeof(int));
+		desplazamiento+=sizeof(int);
+		memcpy(tablaSerializada+desplazamiento,&(unelem->puerto_memoria),sizeof(int));
+	}
+	return tablaSerializada;
+}
 char* generar_registro_string(long timestamp, uint16_t key, char* value){
 
 	char* time_to_string=string_itoa(timestamp);
@@ -400,24 +410,8 @@ t_consistencia get_valor_consistencia(char* consistencia_ingresada){
 	return *elementoCreado;
 }*/
 
-struct tablaMemoriaGossip crearElementoParaTablaDeGossip(struct memoriaGossip memoria){ // hay que pasar por parametro un struct con los datos de la nueva memoria
-	struct memoriaGossip* memogossip = malloc(sizeof(struct memoriaGossip));
-	struct tablaMemoriaGossip* elementoCreado = malloc(sizeof(struct tablaMemoriaGossip));
-	// memogossip.descriptorMemoria = tabla.descriptorMemoria(seteo descriptor de la nueva memoria)
-	// memogossip.IP = tabla.IP(seteo ip de la nueva memoria)
-	// memogossip.PUERTO = tabla.PUERTO(seteo puerto de la nueva memoria)
-	// memogossip.estado= tabla.estado(seteo estado)
-	// memogossip.siguiente=null;
-	elementoCreado->memoria = *memogossip;
-	elementoCreado->siguiente= NULL;
-	return *elementoCreado;
-}
 
-void agregarMemoriaALaTablaGossip(struct tablaMemoriaGossip* tabla, struct tablaMemoriaGossip* elementoAAgregar){
-	if(tabla->siguiente == NULL){
-		tabla->siguiente = elementoAAgregar;
-	} else { agregarMemoriaALaTablaGossip(tabla->siguiente,elementoAAgregar); };
-}
+
 
 int recibir_numero_de_tablas(int socket){
 	int cant_tablas = 0;

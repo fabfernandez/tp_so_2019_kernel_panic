@@ -15,11 +15,28 @@ void iniciar_hilo_planificacion(){
 	}
 }
 
+
+void iniciar_hilo_ejecucion(){
+	pthread_t hilo_ejecucion;
+
+	if(pthread_create(&hilo_ejecucion, 0, revisa_exec_queue, NULL) !=0){
+		log_error(logger, "Error al crear el hilo");
+	}
+	if(pthread_detach(hilo_ejecucion) != 0){
+		log_error(logger, "Error al crear el hilo");
+	}
+}
+
+
 void* planificador(){
+
+	for(int cant = 0; cant < CANT_EXEC; cant++){
+		iniciar_hilo_ejecucion();
+	}
+
 	while(1){
 		revisa_new_queue();
 		revisa_ready_queue();
-		revisa_exec_queue();
 	}
 }
 
@@ -45,20 +62,22 @@ void revisa_ready_queue(){
 
 
 int puedo_ejecutar(){
-	return queue_size(exec_queue)<1; //el 1 va a cambiar por la cantidad maxima de procesamiento por archivo de config
+	return queue_size(exec_queue)<CANT_EXEC;
 }
 
 void revisa_exec_queue(){
-	while(queue_size(exec_queue)>0){
-		t_script* script_a_ejecutar = queue_pop(exec_queue);
+	while(1){
+		if(queue_size(exec_queue)>0){
+			t_script* script_a_ejecutar = queue_pop(exec_queue);
 
-		ejecutar_script(script_a_ejecutar);
-		sleep(SLEEP_EJECUCION);
+			ejecutar_script(script_a_ejecutar);
+			sleep(SLEEP_EJECUCION);
 
-		if (script_a_ejecutar->offset==NULL) {
-			queue_push(exit_queue, script_a_ejecutar);
-		} else {
-			queue_push(ready_queue, script_a_ejecutar);
+			if (script_a_ejecutar->offset==NULL) {
+				queue_push(exit_queue, script_a_ejecutar);
+			} else {
+				queue_push(ready_queue, script_a_ejecutar);
+			}
 		}
 	}
 }

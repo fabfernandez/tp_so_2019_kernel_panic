@@ -1,3 +1,5 @@
 /Debug/*.o
+/Debug/*.d
 ./settings
 *.log
+/Debug/creacion_LFS

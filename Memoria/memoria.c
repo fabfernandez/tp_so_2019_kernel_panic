@@ -5,15 +5,17 @@
  *      Author: utnso
  */
 #include "memoria.h"
-int main(void)
+int main(int argc, char **argv)
 
 {
-
+	path = argv[1];
 	 FD_ZERO(&master);    // borra los conjuntos maestro y temporal
 	 FD_ZERO(&read_fds);
 	/*
 	 * INICIO LOGGER, CONFIG, LEVANTO DATOS E INICIO SERVER
 	 */
+
+
 	iniciar_logger();
 	leer_config();
 
@@ -33,17 +35,13 @@ int main(void)
 	seeds = levantarSeeds();
 	puertosSeeds = levantarPuertosSeeds();
 	seedsCargadas();
-
-	/*
-	 * INICIO LA TABLA DE GOSSIPING AGREGANDO LA MEMORIA ACTUAL <- falta
-	 */
-	//iniciarTablaDeGossiping();																					//
-	//pthread_create(&thread_gossiping, NULL, &iniciarGossip, &tablaGossiping, &primeraVuelta);						// CREO THREAD DE GOSSIPING
+	iniciarTablaDeGossiping(tablaGossiping);
 
 	/*
 	 * ME CONECTO CON LFS E INTENTO UN HANDSHAKE -----------------------INTENTA CONECTARSE, SI NO PUEDE CORTA LA EJECUCION
 	 */
 	socket_conexion_lfs = crear_conexion(ip__lfs,puerto__lfs); //
+	log_info(logger,"que paso %i",socketMemoriaSeed);
 	if(socket_conexion_lfs != -1)
 		{
 		log_info(logger,"Creada la conexion para LFS %i", socket_conexion_lfs);
@@ -59,7 +57,11 @@ int main(void)
 			return -1;
 			}
 	iniciarHiloConsola(memoria_principal, tablas);
+	iniciarHiloJournaling(memoria_principal, tablas);
+	iniciarHiloGossiping(tablaGossiping);
+	log_info(logger,"Tabla gossiping lem: %i",tablaGossiping->elements_count);
 	select_esperar_conexiones_o_peticiones(memoria_principal,tablas);
+
 	return EXIT_SUCCESS;
 }
 
@@ -86,6 +88,110 @@ void iniciarHiloKernel(datosSelect* dato){
 	}
 
 }
+void *iniciar_gossiping(void* tablaGossiping){
+	t_list* tablag = (t_list *) tablaGossiping;
+	while(1){
+		sleep(retardo_gossiping);
+		log_info(logger, "Inicio GOSSIPING automatico");
+		gossiping_consola();
+		log_info(logger, "FIN GOSSIPING automatico");
+	}
+}
+
+void resolver_gossiping(int socket){
+	recibir_tabla_de_gossiping(socket);
+	enviar_mi_tabla_de_gossiping(socket);
+}
+void recibir_tabla_de_gossiping(int socket){
+	int numero_memorias;
+	recv(socket,&numero_memorias,sizeof(int),MSG_WAITALL);
+	log_info(logger, "Memorias de tabla: %i",numero_memorias);
+		for(int i=0;i<numero_memorias;i++){
+			t_gossip* memoria=malloc(sizeof(t_gossip));
+			int tamanio_ip;
+			recv(socket,&tamanio_ip,sizeof(int),MSG_WAITALL);
+			memoria->ip_memoria=malloc(tamanio_ip);
+			//log_info(logger, "Tamanio ip %i",tamanio_ip);
+			recv(socket,memoria->ip_memoria,tamanio_ip,MSG_WAITALL);
+			//log_info(logger, "IP: %s",memoria->ip_memoria);
+			int tamanio_nombre;
+			recv(socket,&tamanio_nombre,sizeof(int),MSG_WAITALL);
+			//log_info(logger, "Tamanio nombre %i",tamanio_nombre);
+			memoria->nombre_memoria=malloc(tamanio_nombre);
+			recv(socket,memoria->nombre_memoria,tamanio_nombre,MSG_WAITALL);
+			int tamanio_puerto;
+			recv(socket,&tamanio_puerto,sizeof(int),MSG_WAITALL);
+			memoria->puerto_memoria=malloc(tamanio_puerto);
+			//log_info(logger, "Tamanio puerto %i",tamanio_puerto);
+			recv(socket,memoria->puerto_memoria,tamanio_puerto,MSG_WAITALL);
+			log_info(logger, "IP: %s , PUERTO: %s , NOMBRE: %s",memoria->ip_memoria,memoria->puerto_memoria,memoria->nombre_memoria);
+			if(encontrarMemoria(memoria->nombre_memoria, tablaGossiping)!=NULL){ free(memoria); } else { list_add(tablaGossiping,memoria); }
+
+		}
+}
+void enviar_mi_tabla_de_gossiping(int socket){
+	send(socket,&tablaGossiping->elements_count,sizeof(int),MSG_WAITALL);
+	for(int i=0;i<tablaGossiping->elements_count;i++){
+
+		t_gossip* memoria = list_get(tablaGossiping,i);
+		int memo = crear_conexion(memoria->ip_memoria,memoria->puerto_memoria);
+		if(memo!=-1){
+		close(memo);
+		int tamanio_ip=strlen(memoria->ip_memoria)+1;
+		send(socket,&tamanio_ip,sizeof(int),MSG_WAITALL);
+		send(socket,memoria->ip_memoria,tamanio_ip,MSG_WAITALL);
+
+		int tamanio_nombre=strlen(memoria->nombre_memoria)+1;
+		send(socket,&tamanio_nombre,sizeof(int),MSG_WAITALL);
+		send(socket,memoria->nombre_memoria,tamanio_nombre,MSG_WAITALL);
+
+		int tamanio_puerto=strlen(memoria->puerto_memoria)+1;
+		send(socket,&tamanio_puerto,sizeof(int),MSG_WAITALL);
+		send(socket,memoria->puerto_memoria,tamanio_puerto,MSG_WAITALL);
+		} else {
+			int tamanio_ip=strlen(memoria->ip_memoria)+1;
+			send(socket,&tamanio_ip,sizeof(int),MSG_WAITALL);
+			send(socket,memoria->ip_memoria,tamanio_ip,MSG_WAITALL);
+
+			int tamanio_nombre=strlen(memoria->nombre_memoria)+1;
+			send(socket,&tamanio_nombre,sizeof(int),MSG_WAITALL);
+			send(socket,memoria->nombre_memoria,tamanio_nombre,MSG_WAITALL);
+
+			int tamanio_puerto=strlen(memoria->puerto_memoria)+1;
+			send(socket,&tamanio_puerto,sizeof(int),MSG_WAITALL);
+			send(socket,memoria->puerto_memoria,tamanio_puerto,MSG_WAITALL);
+			list_remove(tablaGossiping,i);
+			free(memoria->ip_memoria);
+			free(memoria->nombre_memoria);
+			free(memoria->puerto_memoria);
+			free(memoria);
+			i-=1;
+		}
+
+	}
+}
+
+void iniciarHiloGossiping(t_list* tablaGossiping){ // @suppress("Type cannot be resolved")
+	pthread_t hiloGossiping;
+	if (pthread_create(&hiloGossiping, 0, iniciar_gossiping, tablaGossiping) !=0){
+			log_error(logger, "Error al crear el hilo");
+		}
+	if (pthread_detach(hiloGossiping) != 0){
+			log_error(logger, "Error al crear el hilo");
+		}
+}
+void iniciarHiloJournaling(char* memo, t_list* tablas){
+	pthread_t hiloJournaling;
+	datosSelect* datos=malloc(sizeof(datosSelect));
+	datos->memoria=memo;
+	datos->tabla=tablas;
+	if (pthread_create(&hiloJournaling, 0, journaling_automatico, datos) !=0){
+				log_error(logger, "Error al crear el hilo");
+			}
+			if (pthread_detach(hiloJournaling) != 0){
+				log_error(logger, "Error al crear el hilo");
+			}
+}
 void iniciarHiloConsola(char* memo, t_list* tablas){
 	pthread_t hiloSelect;
 	datosSelect* datos=malloc(sizeof(datosSelect));
@@ -98,10 +204,24 @@ void iniciarHiloConsola(char* memo, t_list* tablas){
 			log_error(logger, "Error al crear el hilo");
 		}
 }
+void *journaling_automatico(void* dato){
+	datosSelect* datos = (datosSelect*) dato;
+	while(1){
+		sleep(retardo_journaling);
+		journaling(datos->memoria,datos->tabla);
+	}
+}
 void *iniciar_consola(void* dato){
 	datosSelect* datos = (datosSelect*) dato;
 	while(1){
-			char* linea = readline("Consola Memoria>");
+			char* consol = "CONSOLA ";
+			char* consol2 = " >>";
+			char* consol3 = malloc(strlen(consol)+strlen(consol2)+strlen(nombre_memoria)+1);
+			memcpy(consol3,consol,strlen(consol));
+			memcpy(consol3+strlen(consol),nombre_memoria,strlen(nombre_memoria));
+			memcpy(consol3+strlen(consol)+strlen(nombre_memoria),consol2,strlen(consol2)+1);
+			char* linea = readline(consol3);
+			free(consol3);
 
 			parsear_y_ejecutar(linea, 1,datos->memoria,datos->tabla);
 
@@ -144,10 +264,48 @@ void ejecutar_API_desde_consola(t_instruccion_lql instruccion,char* memoria,t_li
 		case RUN:
 			log_info(logger, "Se solicitó RUN");
 			break;
+		case GOSSPING:
+			log_info(logger, "Se solicitó GOSSIPING");
+			gossiping_consola();
+			break;
 		default:
 			log_warning(logger, "Operacion desconocida.");
 			break;
 		}
+}
+void gossiping_consola(){
+	for(int j=0;seeds[j]!=NULL;j++){ // CHEQUEO SEEDS
+		int ssocketMemoriaSeed = crear_conexion(seeds[j],puertosSeeds[j]);
+		if(ssocketMemoriaSeed!=-1) { // intento con la seed, siempre debo intentar con la seed
+		enviar_gossiping(ssocketMemoriaSeed);
+		close(ssocketMemoriaSeed);
+		} else { log_info(logger,"Seed no responde");}
+	}
+	for(int i=0;i<tablaGossiping->elements_count;i++){
+		t_gossip* memoria = list_get(tablaGossiping,i);
+		//log_info(logger,"N1: %s , N2: %s",memoria->nombre_memoria,nombre_memoria);
+		if(string_equals_ignore_case(memoria->nombre_memoria,nombre_memoria)){ //log_info(logger,"MISMA MEMORIA NO HAGO NADA!");
+		} else {
+			//log_info(logger,"ENTRE POR ACA, CUALQUIERA");
+			int socketMemoria = crear_conexion(memoria->ip_memoria,memoria->puerto_memoria);
+			if(socketMemoria!=-1) {
+				enviar_gossiping(socketMemoria);
+				close(socketMemoria);
+			} else { list_remove(tablaGossiping,i);
+			free(memoria->ip_memoria);
+			free(memoria->nombre_memoria);
+			free(memoria->puerto_memoria);
+			free(memoria);
+			}
+		}
+	}
+
+}
+void enviar_gossiping(int socketMemoria){
+	t_operacion cod_op=GOSSPING;
+	send(socketMemoria, &cod_op, sizeof(t_operacion), MSG_WAITALL);
+	enviar_mi_tabla_de_gossiping(socketMemoria);
+	recibir_tabla_de_gossiping(socketMemoria);
 }
 int resolver_insert_para_consola(t_instruccion_lql insert,char* memoria_principal, t_list* tablas){
 	log_info(logger, "Se realiza INSERT");
@@ -802,7 +960,7 @@ void resolver_describe_para_kernel(int socket_kernel_fd, int socket_conexion_lfs
  	*
  	*/
  	void leer_config() {
- 	archivoconfig = config_create("/home/utnso/tp-2019-1c-Los-Dinosaurios-Del-Libro/Memoria/memoria.config");
+ 	archivoconfig = config_create(path);
  	}
 /**
 	* @NAME: terminar_programa
@@ -861,8 +1019,9 @@ void resolver_describe_para_kernel(int socket_kernel_fd, int socket_conexion_lfs
 					break;
 				case GOSSPING:
 					log_info(logger, "La memoria %i solicitó GOSSIPING", socket_memoria);
-						// chequearTablaYAgregarSiNoEsta(int de_quien);  // si me solicito gossiping ME ENVIO SU TABLA TB, asi que la chequeo toda y agrego las memorias que no tenga en mi tabla.
-																		// le envio mi tabla de gossiping para que haga lo mismo.
+					resolver_gossiping(socket_memoria);
+
+
 					break;
 				case -1:
 					log_error(logger, "el cliente se desconecto. Terminando conexion con %i", socket_memoria);
@@ -886,6 +1045,10 @@ void resolver_describe_para_kernel(int socket_kernel_fd, int socket_conexion_lfs
 	log_info(logger, "El nombre de la memoria es %s",nombre_memoria);
 	tamanio_memoria = config_get_int_value(archivoconfig, "TAM_MEM");
 	log_info(logger, "El tamaño de la memoria es: %i",tamanio_memoria);
+	retardo_journaling = config_get_int_value(archivoconfig, "RETARDO_JOURNAL");
+	log_info(logger, "El retardo del journaling automatico es: %i",retardo_journaling);
+	retardo_gossiping = config_get_int_value(archivoconfig, "RETARDO_GOSSIPING");
+	log_info(logger, "El retardo de gossiping automatico es: %i",retardo_gossiping);
 	}
 
 /**
@@ -964,6 +1127,15 @@ void resolver_describe_para_kernel(int socket_kernel_fd, int socket_conexion_lfs
 	*
 	*/
 	void iniciarTablaDeGossiping(){
+		tablaGossiping=list_create();
+		t_gossip* primerElemento = malloc(sizeof(t_gossip));
+		primerElemento->ip_memoria = malloc(strlen(ip_memoria)+1);
+		memcpy(primerElemento->ip_memoria,ip_memoria,strlen(ip_memoria)+1);
+		primerElemento->puerto_memoria = malloc(strlen(puerto_memoria)+1);
+		memcpy(primerElemento->puerto_memoria,puerto_memoria,strlen(puerto_memoria)+1);
+		primerElemento->nombre_memoria = malloc(strlen(nombre_memoria)+1);
+		memcpy(primerElemento->nombre_memoria ,nombre_memoria,strlen(nombre_memoria)+1);
+		list_add(tablaGossiping,primerElemento);
 	}
 /**
 	* @NAME: levantarPuertosSeeds
@@ -986,36 +1158,6 @@ void resolver_describe_para_kernel(int socket_kernel_fd, int socket_conexion_lfs
 	* @DESC: inicia proceso de gossiping
 	*
 	*/
-	void iniciarGossip(struct tablaMemoriaGossip* tabla, int contador){ 	// VOY A HAER OSSIPING CON LAS MEMORIAS(PREGUNTARLES QUE MEMORIAS CONECTADAS CONOCE)
-	int pasada = contador;
-	if(pasada==0){ 														// PRIMER PASADA TIENE UN SLEEP DE 4 UNIDADES DE TIEMPO, SE VA A REPETIR EL GOSSIPING HASTA QUE TERMINE EL PROCESO ED LA MEMORIA
-		while(1){
-			sleep(4);													// ESPERO 4 UNIDADES
-			if(tabla->siguiente!=NULL) 									// HAY MEMORIAS POR RECORRER EN LA TABLA APARTE DE LA QUE YA ESTOY LEYENDO?
-				{ 														// SI HAY UNA MEMORIA PENDIENTE, LEO
-				//realizarGossipingConUnaMemoria(MEMORIA); 				// no deberia hacer gossiping con ella misma(primer elemento de la tabla es la memoria creadora de la tabla)
-				struct tablaMemoriaGossip* proximo = tabla->siguiente;
-				iniciarGossip(proximo,1); 								// LLAMO A GOSSIP PARA QUE HAGA GOSSIPING CON LA MEMORIA QUE VIENE, PERO CON 1, ES DECIR, SIN DORMIR EL PROCESO PUES ES PARTE DE ESTE CICLO ACTUAL DE GOSSIPING.
-				}
-			else{ 														// SI NO HAY UNA MEMORIA PENDIENTE, HAGO ULTIMO GOSSIPING DEL CICLO
-				//realizarGossipingConUnaMemoria(tabla->memoria.descriptorMemoria);
-				}
-		}
-	}
-	else
-
-	{
-		if(tabla->siguiente!=NULL) // ENTRE POR ACÁ POR QUE ESTOY LEYENDO MINIMAMENTE UNA SEGUNDA MEMORIA EN UN MISMO CICLO DE GOSSIP(SIN DORMIR)
-						{ 									// SI HAY UNA MEMORIA PENDIENTE, LEO SIGUIENTE Y HAGO GOSSIP CON LA ACTUAL
-						//realizarGossipingConUnaMemoria(tabla->memoria);
-						struct tablaMemoriaGossip* proximo = tabla->siguiente;
-						iniciarGossip(proximo,1);
-						}
-					else{ 									// SI NO HAY UNA MEMORIA PENDIENTE, HAGO ULTIMO GOSSIPING DEL CICLO
-						//realizarGossipingConUnaMemoria(tabla->memoria);
-						}
-		}
-	}
 /**
 	* @NAME: seedsCargadas
 	* @DESC: logea las seeds cargadas
@@ -1221,3 +1363,15 @@ void resolver_describe_para_kernel(int socket_kernel_fd, int socket_conexion_lfs
 
             		return list_find(tablas, (void*) _es_el_Segmento);
     }
+	/**
+		* @NAME: encontrarTabla
+		* @DESC: Retorna ela tabla buscada en la lista si este tiene el mismo nombre que el que buscamos.
+		*
+		*/
+		t_gossip* encontrarMemoria(char* nombredMemoria, t_list* memorias) {
+	            		int _es_la_Memoria(t_gossip* memoria) {
+	            			return string_equals_ignore_case(memoria->nombre_memoria, nombredMemoria);
+	            		}
+
+	            		return list_find(memorias, (void*) _es_la_Memoria);
+	    }

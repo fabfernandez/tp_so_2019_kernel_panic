@@ -23,8 +23,11 @@
 
 							// ******* TIPOS NECESARIOS ******* //
 t_log* logger;
+t_log* log_metrics;
 t_config* archivoconfig;
-
+t_list* tablaGossiping;
+int retardo_gossiping;
+int CANT_EXEC;
 
 
 typedef char* t_valor;					// VALOR QUE DEVUELVE EL SELECT(TODAVIA NO SABEMOS QUE ALMACENA EN TABLAS?)
@@ -50,6 +53,9 @@ t_list* strong_consistency;
 t_list* eventual_consistency;
 t_list* strong_hash_consistency;
 
+
+t_list* metricas;
+
 int SLEEP_EJECUCION;
 
 
@@ -59,13 +65,12 @@ int SLEEP_EJECUCION;
 
 
 							// ******* API KERNEL ******* //
-void resolver_describe_drop(t_instruccion_lql instruccion, int socket_memoria, t_operacion operacion);
-void resolver_describe(t_instruccion_lql instruccion, int socket_memoria);
-void resolver_create(t_instruccion_lql instruccion, int socket_memoria);
-void resolver_insert(t_instruccion_lql instruccion, int socket_memoria);
-void resolver_select(t_instruccion_lql instruccion, int socket_memoria);
-void resolver_run(t_instruccion_lql instruccion, int socket_memoria);
-void resolver_add (t_instruccion_lql instruccion, int socket_memoria);
+void resolver_describe_drop(t_instruccion_lql instruccion, t_operacion operacion);
+void resolver_create(t_instruccion_lql instruccion);
+void resolver_insert(t_instruccion_lql instruccion);
+void resolver_select(t_instruccion_lql instruccion);
+void resolver_run(t_instruccion_lql instruccion);
+void resolver_add (t_instruccion_lql instruccion);
 
 int insert(char* tabla, uint16_t key, long timestamp); 	// INSERT PROTOTIPO (1)
 t_valor select_(char* tabla, uint16_t key); 			// SELECT PROTOTIPO (2)
@@ -83,14 +88,18 @@ int add(int memoria, t_consistencia consistencia);		// ADD PROTOTIPO	(8)
 							// ******* DEFINICION DE FUNCIONES A UTILIZAR ******* //
 void chequearSocket(int socketin);
 void iniciar_logger(void);
+t_log* crear_log(char* path);
 void leer_config(void);
 void terminar_programa(int conexion);
 int generarID();
 void asignar_consistencia(t_memoria* memoria, t_consistencia consistencia);
-char leer_archivo(FILE* archivo, int socket_memoria);
-void ejecutar_instruccion(t_instruccion_lql instruccion, int socket_memoria);
-void parsear_y_ejecutar(char* linea, int socket_memoria, int flag_de_consola);
+char leer_archivo(FILE* archivo);
+void ejecutar_instruccion(t_instruccion_lql instruccion);
+void parsear_y_ejecutar(char* linea, int flag_de_consola);
+void* iniciar_peticion_tablas(void* tablaGossiping);
+void iniciarHiloGossiping(t_list* tablaGossiping);
 void ejecutar_script(t_script* script_a_ejecutar);
+int conseguir_memoria(char* nombre_tabla);
 
 
 

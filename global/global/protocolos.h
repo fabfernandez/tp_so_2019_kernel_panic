@@ -34,7 +34,6 @@ typedef enum consistencias{
 	STRONG, STRONG_HASH, EVENTUAL
 }t_consistencia;
 
-
 typedef struct{
 	t_buffer* nombre_tabla;
 	t_consistencia consistencia;
@@ -57,23 +56,11 @@ typedef enum estado {
 	CONECTADA, DESCONECTADA
 }t_estado;
 
-struct memoriaGossip {
-	char* nombre; // -> nombre memoria archivo config
-	char* IP;
-	char* PUERTO;
-	t_estado estado; // no es encesario
-};
+
 t_list asdasd;
-struct tablaMemoriaGossip { // tabla implementar t_list add gossiping
-	struct memoriaGossip memoria;
-	struct tablaMemoriaGossip* siguiente;
-};
-struct tablaMemoriaGossip crearTablaGossip();
-struct tablaMemoriaGossip crearElementoParaTablaDeGossip(struct memoriaGossip memoria); // hay que pasar por parametro un struct con los datos de la nueva memoria
-void agregarMemoriaALaTablaGossip(struct tablaMemoriaGossip* tabla, struct tablaMemoriaGossip* elementoAAgregar);
 
 typedef enum operaciones {
-	INSERT,SELECT,CREATE,DESCRIBE,DROP, JOURNAL,ADD,METRICS,RUN, HANDSHAKE,GOSSPING
+	INSERT,SELECT,CREATE,DESCRIBE,DROP, JOURNAL,ADD,METRICS,RUN, HANDSHAKE,GOSSPING,SOLICITUD_TABLA_GOSSIPING
 }t_operacion;
 
 
@@ -86,6 +73,13 @@ typedef struct
 	long timestamp;
 
 } t_paquete_insert;
+
+typedef struct
+{
+	char* ip_memoria;
+	char* puerto_memoria;
+	char* nombre_memoria;
+}t_gossip;
 
 typedef struct
 {
@@ -112,6 +106,8 @@ typedef struct
 	uint16_t key;
 
 } t_paquete_select;
+
+
 
 typedef struct
 {

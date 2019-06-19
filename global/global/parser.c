@@ -14,6 +14,8 @@
 #define ADD_KEY "ADD"
 #define RUN_KEY "RUN"
 #define JOURNAL_KEY "JOURNAL"
+#define GOSSIPING_KEY "GOSSIPING"
+#define TABLA_KEY "SOLICITUD_TABLA_GOSSIPING"
 
 t_instruccion_lql parsear_linea(char* line){
 
@@ -99,6 +101,16 @@ t_instruccion_lql parsear_linea(char* line){
 		if (split[1] != NULL){
 			return lanzar_error("Formato incorrecto. JOURNAL\n");
 		}
+	} else if(string_equals_ignore_case(keyword, GOSSIPING_KEY)){
+			ret.operacion=GOSSPING;
+			if (split[1] != NULL){
+				return lanzar_error("Formato incorrecto. GOSSIPING\n");
+			}
+	} else if(string_equals_ignore_case(keyword, TABLA_KEY)){
+				ret.operacion=SOLICITUD_TABLA_GOSSIPING;
+				if (split[1] != NULL){
+					return lanzar_error("Formato incorrecto. GOSSIPING\n");
+				}
 	} else if(string_equals_ignore_case(keyword, ADD_KEY)){
 		ret.operacion=ADD;
 		if (!string_equals_ignore_case(split[1],"MEMORY") || split[2]== NULL || !string_equals_ignore_case(split[3],"TO") || split[4]==NULL){
