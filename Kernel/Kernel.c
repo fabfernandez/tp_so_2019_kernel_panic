@@ -171,8 +171,15 @@ void resolver_describe(t_instruccion_lql instruccion, int socket_memoria){
 	log_info(logger, "Se realiza DESCRIBE");
 	if(string_is_empty(paquete_describe->nombre_tabla->palabra)){
 		log_info(logger, "Se trata de un describe global.");
-		//esperar numero de tblas si fue DESCRIBE
-		//ciclo for
+		int cant_tablas= recibir_numero_de_tablas (socket_memoria);
+		log_info(logger, "Cantidad de tablas en LFS: %i", cant_tablas);
+		for(int i=0; i<cant_tablas; i++){
+			t_metadata* metadata = deserealizar_metadata(socket_memoria);
+			log_info(logger, "Metadata tabla: %s", metadata->nombre_tabla->palabra);
+			log_info(logger, "Consistencia: %s", consistencia_to_string(metadata->consistencia));
+			log_info(logger, "Numero de particiones: %d", metadata->n_particiones);
+			log_info(logger, "Tiempo de compactacion: %d", metadata->tiempo_compactacion);
+		}
 	}else{
 		t_metadata* t_metadata = deserealizar_metadata(socket_memoria);
 		//aca se está mostrando pero deberia guardarselo no?

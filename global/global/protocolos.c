@@ -419,11 +419,13 @@ void agregarMemoriaALaTablaGossip(struct tablaMemoriaGossip* tabla, struct tabla
 	} else { agregarMemoriaALaTablaGossip(tabla->siguiente,elementoAAgregar); };
 }
 
-void recibir_numero_de_tablas(int socket, int cant_tablas){
-	recv(socket, cant_tablas, sizeof(int), MSG_WAITALL);
+int recibir_numero_de_tablas(int socket){
+	int cant_tablas = 0;
+	recv(socket, &cant_tablas, sizeof(int), MSG_WAITALL);
+	return cant_tablas;
 }
 
 void enviar_numero_de_tablas(int socket, int cant_tablas){
-	send(socket, cant_tablas, sizeof(int), MSG_WAITALL);
+	send(socket, &cant_tablas, sizeof(int), MSG_WAITALL);
 }
 

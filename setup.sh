@@ -1,13 +1,13 @@
 #!/bin/bash
 
-echo "Se instala Commons"
-cd ..
-git clone https://github.com/sisoputnfrba/so-commons-library
-cd so-commons-library
-make install
-cd ..
+#echo "Se instala Commons"
+#cd ..
+#git clone https://github.com/sisoputnfrba/so-commons-library
+#cd so-commons-library
+#sudo make install
+#cd ..
 echo "Compilacion de proyecto"
-cd tp-2019-1c-Los-Dinosaurios-Del-Libro
+#cd tp-2019-1c-Los-Dinosaurios-Del-Libro
 cd global/Debug/
 make clean
 make all

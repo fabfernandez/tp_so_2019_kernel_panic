@@ -60,6 +60,7 @@ int SLEEP_EJECUCION;
 
 							// ******* API KERNEL ******* //
 void resolver_describe_drop(t_instruccion_lql instruccion, int socket_memoria, t_operacion operacion);
+void resolver_describe(t_instruccion_lql instruccion, int socket_memoria);
 void resolver_create(t_instruccion_lql instruccion, int socket_memoria);
 void resolver_insert(t_instruccion_lql instruccion, int socket_memoria);
 void resolver_select(t_instruccion_lql instruccion, int socket_memoria);

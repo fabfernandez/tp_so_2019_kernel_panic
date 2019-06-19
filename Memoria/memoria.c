@@ -774,15 +774,14 @@ void resolver_describe_para_kernel(int socket_kernel_fd, int socket_conexion_lfs
 		//al kernel. Luego voy a deserializar la metadata tantas veces como sea necesario y mandar a Kernel.
 
 		log_info(logger, "DESCRIBE global... Pedimos la cantidad de tablas al LFS");
-		//enviar_paquete_drop_describe(socket_conexion_lfs, consulta_describe);
-		//int cant_tablas=0;
-		//recibir_numero_de_tablas (socket_conexion_lfs, cant_tablas);
-		//enviar_numero_de_tablas(socket_kernel_fd, cant_tablas);
-		//log_info(logger, "Cantidad de tablas en LFS: %i", cant_tablas);
-		//for(int i=0; i<cant_tablas; i++){
-			//t_metadata* metadata = deserealizar_metadata(socket_conexion_lfs);
-			//enviar_paquete_metadata(socket_kernel_fd, metadata);
-		//}
+		enviar_paquete_drop_describe(socket_conexion_lfs, consulta_describe);
+		int cant_tablas= recibir_numero_de_tablas (socket_conexion_lfs);
+		log_info(logger, "Cantidad de tablas en LFS: %d", cant_tablas);
+		enviar_numero_de_tablas(socket_kernel_fd, cant_tablas);
+		for(int i=0; i<cant_tablas; i++){
+			t_metadata* metadata = deserealizar_metadata(socket_conexion_lfs);
+			enviar_paquete_metadata(socket_kernel_fd, metadata);
+		}
 	}
 	else{
 		//Si es un DESCRIBE de una tabla especifica...
