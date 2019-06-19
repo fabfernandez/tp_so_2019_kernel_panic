@@ -1,5 +1,5 @@
 /Debug/*.o
 /Debug/*.d
-./settings
+/.settings
 *.log
 /Debug/global
