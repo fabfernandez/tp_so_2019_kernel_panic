@@ -23,6 +23,7 @@
 
 							// ******* TIPOS NECESARIOS ******* //
 t_log* logger;
+t_log* log_metrics;
 t_config* archivoconfig;
 t_list* tablaGossiping;
 int retardo_gossiping;
@@ -51,6 +52,9 @@ t_list* memorias_sin_asignar;
 t_list* strong_consistency;
 t_list* eventual_consistency;
 t_list* strong_hash_consistency;
+
+
+t_list* metricas;
 
 int SLEEP_EJECUCION;
 
@@ -84,6 +88,7 @@ int add(int memoria, t_consistencia consistencia);		// ADD PROTOTIPO	(8)
 							// ******* DEFINICION DE FUNCIONES A UTILIZAR ******* //
 void chequearSocket(int socketin);
 void iniciar_logger(void);
+t_log* crear_log(char* path);
 void leer_config(void);
 void terminar_programa(int conexion);
 int generarID();

@@ -5,7 +5,7 @@
  *      Author: utnso
  */
 //#include "Kernel.h"
-#include "Kernel_Plani.h"
+#include "Kernel_Metrics.h"
 
 int ID=0;
 t_list* memorias_sin_asignar;
@@ -78,7 +78,10 @@ int main(void)
 	exec_queue = queue_create();
 	exit_queue = queue_create();
 
+	metricas = list_create();
+
 	iniciar_hilo_planificacion();
+	iniciar_hilo_metrics();
 	iniciarHiloGossiping(tablaGossiping);
 
 	while(1){
@@ -243,6 +246,10 @@ void resolver_select(t_instruccion_lql instruccion){
 	char* nombre_tabla = paquete_select->nombre_tabla->palabra;
 	int socket_memoria_a_usar = conseguir_memoria(nombre_tabla);
 
+	struct timespec spec;
+	clock_gettime(CLOCK_REALTIME, &spec);
+	int timestamp_origen = spec.tv_nsec;
+
 	enviar_paquete_select(socket_memoria_a_usar, paquete_select);
 
 	t_status_solicitud* status = desearilizar_status_solicitud(socket_memoria_a_usar);
@@ -253,6 +260,12 @@ void resolver_select(t_instruccion_lql instruccion){
 		log_error(logger, "Error: %s", status->mensaje->palabra);
 		error = 1;
 	}
+	clock_gettime(CLOCK_REALTIME, &spec);
+	int timestamp_destino = spec.tv_nsec;
+	int diferencia_timestamp = timestamp_destino - timestamp_origen;
+
+	registrar_metricas(1, diferencia_timestamp); //Ahora es 1 porque es la única memoria que conocemos, pero cambia a nombre_memoria
+
 	eliminar_paquete_status(status);
 	eliminar_paquete_select(paquete_select);
 }
@@ -360,7 +373,11 @@ char leer_archivo(FILE* archivo){
 }
 
 void iniciar_logger() { 							// CREACION DE LOG
-	logger = log_create("/home/utnso/tp-2019-1c-Los-Dinosaurios-Del-Libro/Kernel/kernel.log", "kernel", 1, LOG_LEVEL_INFO);
+	logger = crear_log("/home/utnso/tp-2019-1c-Los-Dinosaurios-Del-Libro/Kernel/kernel.log");
+}
+
+t_log* crear_log(char* path){
+	return log_create(path, "kernel", 1, LOG_LEVEL_INFO);
 }
 
 void leer_config() {								// APERTURA DE CONFIG
