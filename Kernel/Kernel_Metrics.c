@@ -25,9 +25,9 @@ void loguear_y_borrar(){
 
 	while(1){
 		sleep(30);
-
 		loguear();
 		borrar();
+
 	}
 }
 
@@ -36,11 +36,13 @@ void loguear(){
 
 	for(int i = 0; i < list_size(metricas); i++){
 		metrica_uno = list_get(metricas, i);
+		float memory_load = ((metrica_uno->cant_reads + metrica_uno->cant_writes) / CANT_METRICS);
+
 		log_info(log_metrics, "En la memoria %d el tiempo promedio de un SELECT fue de %d en los ultimos 30 segundos", metrica_uno->nombre_memoria, metrica_uno->read_latency);
 		log_info(log_metrics, "En la memoria %d el tiempo promedio de un INSERT fue de %d en los ultimos 30 segundos", metrica_uno->nombre_memoria, metrica_uno->write_latency);
 		log_info(log_metrics, "En la memoria %d la cantidad de SELECT fue de %d en los ultimos 30 segundos", metrica_uno->nombre_memoria, metrica_uno->cant_reads);
 		log_info(log_metrics, "En la memoria %d la cantidad de INSERT fue de %d en los ultimos 30 segundos", metrica_uno->nombre_memoria, metrica_uno->cant_writes);
-		log_info(log_metrics, "En la memoria %d el MEMORY LOAD fue de %d", metrica_uno->nombre_memoria, metrica_uno->memory_load);
+		log_info(log_metrics, "En la memoria %d el MEMORY LOAD fue de %f", metrica_uno->nombre_memoria, memory_load);
 	}
 }
 
@@ -48,6 +50,8 @@ void borrar(){
 	for(int i= 0; i < list_size(metricas); i++){
 		free(list_remove(metricas, i));
 	}
+
+	CANT_METRICS = 0;
 }
 
 t_metrics* obtener_nodo_metricas(int nombre_memoria){
@@ -76,6 +80,8 @@ void registrar_metricas(int nombre_memoria, int diferencia_timestamp){
 	metrica->cant_operaciones_totales++;
 	metrica->cant_reads++;
 	metrica->read_latency += diferencia_timestamp;
+	CANT_METRICS ++;
+
 }
 
 void registrar_metricas_insert(int nombre_memoria, int diferencia_timestamp){
@@ -84,12 +90,7 @@ void registrar_metricas_insert(int nombre_memoria, int diferencia_timestamp){
 	metrica->cant_operaciones_totales++;
 	metrica->cant_writes++;
 	metrica->write_latency += diferencia_timestamp;
+	CANT_METRICS ++;
 }
 
-void registrar_metricas_operacion(int nombre_memoria){
-	t_metrics* metrica = obtener_nodo_metricas(nombre_memoria);
-
-	metrica->cant_operaciones_totales++;
-
-}
 

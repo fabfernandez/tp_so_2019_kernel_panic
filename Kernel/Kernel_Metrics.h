@@ -4,11 +4,12 @@
  *  Created on: 18 jun. 2019
  *      Author: utnso
  */
-
 #ifndef KERNEL_METRICS_H_
 #define KERNEL_METRICS_H_
 
+#include <math.h>
 #include "Kernel_Plani.h"
+
 
 typedef struct t_metrics {
 	int nombre_memoria;

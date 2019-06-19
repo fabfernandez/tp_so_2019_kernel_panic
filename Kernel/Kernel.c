@@ -14,6 +14,7 @@ int socket_memoria;
 int SLEEP_EJECUCION = 0;
 int CANT_EXEC = 0;
 int error = 0;
+int CANT_METRICS = 0;
 
 
 int main(void)
@@ -174,7 +175,7 @@ void ejecutar_instruccion(t_instruccion_lql instruccion){
 
 /*void chequearSocket(int socketin){
 	if(socketin == -1){ printf("Error creacion de socket"); }
-	else { printf("Socket creado exitosamente: %i", socketin);
+	else { print("Socket creado exitosamente: %i", socketin);
 			//exit(-1);
 	}
 };*/
@@ -192,7 +193,6 @@ void resolver_describe_drop(t_instruccion_lql instruccion, t_operacion operacion
 	//esperar numero de tblas si fue DESCRIBE
 	//deserealizar_metadata(socket_memoria) en un for
 
-	registrar_metricas_operacion(1);
 	eliminar_paquete_drop_describe(paquete_describe);
 
 }
@@ -225,7 +225,6 @@ void resolver_describe(t_instruccion_lql instruccion){
 		log_info(logger, "Numero de particiones: %d", t_metadata->n_particiones);
 		log_info(logger, "Tiempo de compactacion: %d", t_metadata->tiempo_compactacion);
 	}
-	registrar_metricas_operacion(1);
 	eliminar_paquete_drop_describe(paquete_describe);
 }
 
@@ -244,8 +243,6 @@ void resolver_create(t_instruccion_lql instruccion){
 		log_error(logger, "Error: %s", status->mensaje->palabra);
 		error = 1;
 	}
-
-	registrar_metricas_operacion(1);
 
 	eliminar_paquete_status(status);
 	eliminar_paquete_create(paquete_create);
