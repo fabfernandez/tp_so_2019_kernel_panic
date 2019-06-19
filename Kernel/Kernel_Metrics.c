@@ -50,25 +50,39 @@ void borrar(){
 	}
 }
 
+t_metrics* obtener_nodo_metricas(int nombre_memoria){
+	int existe_nodo(t_metrics* nodo_metrica){
+		return nodo_metrica->nombre_memoria == nombre_memoria;
+	}
+
+	t_metrics* nodo_metrica = list_find(metricas, (void*) existe_nodo);
+	if(nodo_metrica == NULL){
+		nodo_metrica = malloc(sizeof(t_metrics));
+		nodo_metrica->cant_operaciones_totales = 0;
+		nodo_metrica->read_latency = 0;
+		nodo_metrica->write_latency = 0;
+		nodo_metrica->cant_reads = 0;
+		nodo_metrica->cant_writes = 0;
+		nodo_metrica->memory_load = 0;
+		nodo_metrica->nombre_memoria = nombre_memoria;
+		list_add(metricas, nodo_metrica);
+	};
+	return nodo_metrica;
+}
 
 void registrar_metricas(int nombre_memoria, int diferencia_timestamp){
-	int existe_nodo(t_metrics* metrica){
-			return metrica->nombre_memoria == nombre_memoria;
-		}
+	t_metrics* metrica = obtener_nodo_metricas(nombre_memoria);
 
-	t_metrics* metrica = list_find(metricas, (void*) existe_nodo);
-	if(metrica == NULL){
-		metrica = malloc(sizeof(t_metrics));
-		metrica->cant_operaciones_totales = 0;
-		metrica->read_latency = 0;
-		metrica->write_latency = 0;
-		metrica->cant_reads = 0;
-		metrica->cant_writes = 0;
-		metrica->memory_load = 0;
-		metrica->nombre_memoria = nombre_memoria;
-		list_add(metricas, metrica);
-	};
 	metrica->cant_operaciones_totales++;
 	metrica->cant_reads++;
 	metrica->read_latency += diferencia_timestamp;
 }
+
+void registrar_metricas_insert(int nombre_memoria, int diferencia_timestamp){
+	t_metrics* metrica = obtener_nodo_metricas(nombre_memoria);
+
+	metrica->cant_operaciones_totales++;
+	metrica->cant_writes++;
+	metrica->write_latency += diferencia_timestamp;
+}
+

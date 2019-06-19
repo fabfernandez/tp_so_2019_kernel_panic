@@ -28,7 +28,8 @@ void iniciar_hilo_metrics();
 void loguear_y_borrar();
 void loguear();
 void borrar();
+t_metrics* obtener_nodo_metricas(int nombre_memoria);
 void registrar_metricas(int nombre_memoria, int diferencia_timestamp);
-
+void registrar_metricas_insert(int nombre_memoria, int diferencia_timestamp);
 
 #endif /* KERNEL_METRICS_H_ */

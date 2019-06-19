@@ -248,7 +248,7 @@ void resolver_select(t_instruccion_lql instruccion){
 
 	struct timespec spec;
 	clock_gettime(CLOCK_REALTIME, &spec);
-	int timestamp_origen = spec.tv_nsec;
+	int timestamp_origen = spec.tv_sec;
 
 	enviar_paquete_select(socket_memoria_a_usar, paquete_select);
 
@@ -261,7 +261,7 @@ void resolver_select(t_instruccion_lql instruccion){
 		error = 1;
 	}
 	clock_gettime(CLOCK_REALTIME, &spec);
-	int timestamp_destino = spec.tv_nsec;
+	int timestamp_destino = spec.tv_sec;
 	int diferencia_timestamp = timestamp_destino - timestamp_origen;
 
 	registrar_metricas(1, diferencia_timestamp); //Ahora es 1 porque es la única memoria que conocemos, pero cambia a nombre_memoria
@@ -276,9 +276,22 @@ void resolver_insert (t_instruccion_lql instruccion){
 	char* nombre_tabla = paquete_insert->nombre_tabla->palabra;
 	int socket_memoria_a_usar = conseguir_memoria(nombre_tabla);
 
+	struct timespec spec;
+		clock_gettime(CLOCK_REALTIME, &spec);
+		int timestamp_origen = spec.tv_sec;
+
 	enviar_paquete_insert(socket_memoria_a_usar, paquete_insert);
+
+	clock_gettime(CLOCK_REALTIME, &spec);
+		int timestamp_destino = spec.tv_sec;
+		int diferencia_timestamp = timestamp_destino - timestamp_origen;
+
+		registrar_metricas_insert(1, diferencia_timestamp);
+
 	eliminar_paquete_insert(paquete_insert);
 }
+
+
 
 void ejecutar_script(t_script* script_a_ejecutar){
 	char* path = script_a_ejecutar->path;
