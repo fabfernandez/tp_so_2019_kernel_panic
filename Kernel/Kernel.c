@@ -156,6 +156,7 @@ void ejecutar_instruccion(t_instruccion_lql instruccion){
 		case JOURNAL:
 			log_info(logger, "Kernel solicitó JOURNAL");
 			//aca resuelve el journal//
+			//no olvidar registrar_metricas_operacion(1);
 			break;
 		case METRICS:
 			log_info(logger, "Kernel solicitó METRICS");
@@ -190,6 +191,8 @@ void resolver_describe_drop(t_instruccion_lql instruccion, t_operacion operacion
 	enviar_paquete_drop_describe(socket_memoria_a_usar, paquete_describe);
 	//esperar numero de tblas si fue DESCRIBE
 	//deserealizar_metadata(socket_memoria) en un for
+
+	registrar_metricas_operacion(1);
 	eliminar_paquete_drop_describe(paquete_describe);
 
 }
@@ -215,7 +218,7 @@ void resolver_describe(t_instruccion_lql instruccion){
 		log_info(logger, "Numero de particiones: %d", t_metadata->n_particiones);
 		log_info(logger, "Tiempo de compactacion: %d", t_metadata->tiempo_compactacion);
 	}
-
+	registrar_metricas_operacion(1);
 	eliminar_paquete_drop_describe(paquete_describe);
 }
 
@@ -234,6 +237,8 @@ void resolver_create(t_instruccion_lql instruccion){
 		log_error(logger, "Error: %s", status->mensaje->palabra);
 		error = 1;
 	}
+
+	registrar_metricas_operacion(1);
 
 	eliminar_paquete_status(status);
 	eliminar_paquete_create(paquete_create);

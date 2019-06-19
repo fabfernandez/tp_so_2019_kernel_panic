@@ -86,3 +86,10 @@ void registrar_metricas_insert(int nombre_memoria, int diferencia_timestamp){
 	metrica->write_latency += diferencia_timestamp;
 }
 
+void registrar_metricas_operacion(int nombre_memoria){
+	t_metrics* metrica = obtener_nodo_metricas(nombre_memoria);
+
+	metrica->cant_operaciones_totales++;
+
+}
+
