@@ -100,7 +100,7 @@ void* iniciar_peticion_tablas(void* tablaGossiping);
 void iniciarHiloGossiping(t_list* tablaGossiping);
 void ejecutar_script(t_script* script_a_ejecutar);
 int conseguir_memoria(char* nombre_tabla);
-
+void recibir_tabla_de_gossiping(int socket);
 
 
 //				***** REVISAR COMO CREAR LAS CONEXIONES *****					//

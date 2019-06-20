@@ -1017,12 +1017,15 @@ void resolver_describe_para_kernel(int socket_kernel_fd, int socket_conexion_lfs
 					resolver_describe_drop(socket_memoria, socket_conexion_lfs, "DROP");
 					//aca debería enviarse el mensaje a LFS con DROP
 					break;
+				case SOLICITUD_TABLA_GOSSIPING:
+					enviar_mi_tabla_de_gossiping(socket_memoria);
+					log_info(logger,"Tablas enviadas a KERNEL");
+					break;
 				case GOSSPING:
 					log_info(logger, "La memoria %i solicitó GOSSIPING", socket_memoria);
 					resolver_gossiping(socket_memoria);
-
-
 					break;
+
 				case -1:
 					log_error(logger, "el cliente se desconecto. Terminando conexion con %i", socket_memoria);
 					break;

@@ -111,10 +111,41 @@ void* iniciar_peticion_tablas(void* tablaGossiping){
 		while(1){
 			sleep(retardo_gossiping);
 			log_info(logger, "Inicio PEDIDO DE TABLAS A MEMORIA");
-			// IMPLEMENTACION , ENVIAR UNA OPERACION A MEMORIA DE TABLA_GOSSIPING O COMO CARAJOS SEA Q CREE RECIEN EN EL PARSER
+			t_operacion operacion = SOLICITUD_TABLA_GOSSIPING;
+			send(socket_memoria,&operacion,sizeof(t_operacion),MSG_WAITALL);
+			recibir_tabla_de_gossiping(socket_memoria);
 			log_info(logger, "FIN PEDIDO DE TABLAS");
 		}
 	}
+
+void recibir_tabla_de_gossiping(int socket){
+	int numero_memorias;
+	recv(socket,&numero_memorias,sizeof(int),MSG_WAITALL);
+	log_info(logger, "Memorias de tabla: %i",numero_memorias);
+		for(int i=0;i<numero_memorias;i++){
+			list_destroy(tablaGossiping);
+			tablaGossiping=list_create();
+			t_gossip* memoria=malloc(sizeof(t_gossip));
+			int tamanio_ip;
+			recv(socket,&tamanio_ip,sizeof(int),MSG_WAITALL);
+			memoria->ip_memoria=malloc(tamanio_ip);
+			//log_info(logger, "Tamanio ip %i",tamanio_ip);
+			recv(socket,memoria->ip_memoria,tamanio_ip,MSG_WAITALL);
+			//log_info(logger, "IP: %s",memoria->ip_memoria);
+			int tamanio_nombre;
+			recv(socket,&tamanio_nombre,sizeof(int),MSG_WAITALL);
+			//log_info(logger, "Tamanio nombre %i",tamanio_nombre);
+			memoria->nombre_memoria=malloc(tamanio_nombre);
+			recv(socket,memoria->nombre_memoria,tamanio_nombre,MSG_WAITALL);
+			int tamanio_puerto;
+			recv(socket,&tamanio_puerto,sizeof(int),MSG_WAITALL);
+			memoria->puerto_memoria=malloc(tamanio_puerto);
+			//log_info(logger, "Tamanio puerto %i",tamanio_puerto);
+			recv(socket,memoria->puerto_memoria,tamanio_puerto,MSG_WAITALL);
+			log_info(logger, "IP: %s , PUERTO: %s , NOMBRE: %s",memoria->ip_memoria,memoria->puerto_memoria,memoria->nombre_memoria);
+			list_add(tablaGossiping,memoria);
+		}
+}
 
 void parsear_y_ejecutar(char* linea, int flag_de_consola){
 	t_instruccion_lql instruccion = parsear_linea(linea);
