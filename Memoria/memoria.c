@@ -15,6 +15,16 @@ int main(int argc, char **argv)
 	 * INICIO LOGGER, CONFIG, LEVANTO DATOS E INICIO SERVER
 	 */
 
+	/*
+	 * creo semaforo_gossiping mutex para memoria y para gossiping
+	 */
+	mutex1 = (char*)malloc(strlen("p_mutex")+1);
+	snprintf(mutex1,strlen("p_mutex")+1, "p_mutex");
+	semaforo_gossiping= sem_open(mutex1, O_CREAT, S_IRWXU, 1);
+
+	mutex2 = (char*)malloc(strlen("p_mutex")+1);
+	snprintf(mutex2,strlen("p_mutex")+1, "p_mutex");
+	semaforo_memoria = sem_open(mutex2, O_CREAT, S_IRWXU, 1);
 
 	iniciar_logger();
 	leer_config();
@@ -125,11 +135,14 @@ void recibir_tabla_de_gossiping(int socket){
 			//log_info(logger, "Tamanio puerto %i",tamanio_puerto);
 			recv(socket,memoria->puerto_memoria,tamanio_puerto,MSG_WAITALL);
 			log_info(logger, "IP: %s , PUERTO: %s , NOMBRE: %s",memoria->ip_memoria,memoria->puerto_memoria,memoria->nombre_memoria);
+			sem_wait(semaforo_gossiping);
 			if(encontrarMemoria(memoria->nombre_memoria, tablaGossiping)!=NULL){ free(memoria); } else { list_add(tablaGossiping,memoria); }
+			sem_post(semaforo_gossiping);
 
 		}
 }
 void enviar_mi_tabla_de_gossiping(int socket){
+	sem_wait(semaforo_gossiping);
 	send(socket,&tablaGossiping->elements_count,sizeof(int),MSG_WAITALL);
 	for(int i=0;i<tablaGossiping->elements_count;i++){
 
@@ -169,6 +182,7 @@ void enviar_mi_tabla_de_gossiping(int socket){
 		}
 
 	}
+	sem_post(semaforo_gossiping);
 }
 
 void iniciarHiloGossiping(t_list* tablaGossiping){ // @suppress("Type cannot be resolved")
@@ -281,6 +295,7 @@ void gossiping_consola(){
 		close(ssocketMemoriaSeed);
 		} else { log_info(logger,"Seed no responde");}
 	}
+	sem_wait(semaforo_gossiping);
 	for(int i=0;i<tablaGossiping->elements_count;i++){
 		t_gossip* memoria = list_get(tablaGossiping,i);
 		//log_info(logger,"N1: %s , N2: %s",memoria->nombre_memoria,nombre_memoria);
@@ -299,6 +314,7 @@ void gossiping_consola(){
 			}
 		}
 	}
+	sem_post(semaforo_gossiping);
 
 }
 void enviar_gossiping(int socketMemoria){
@@ -1130,6 +1146,7 @@ void resolver_describe_para_kernel(int socket_kernel_fd, int socket_conexion_lfs
 	*
 	*/
 	void iniciarTablaDeGossiping(){
+		sem_wait(semaforo_gossiping);
 		tablaGossiping=list_create();
 		t_gossip* primerElemento = malloc(sizeof(t_gossip));
 		primerElemento->ip_memoria = malloc(strlen(ip_memoria)+1);
@@ -1139,6 +1156,7 @@ void resolver_describe_para_kernel(int socket_kernel_fd, int socket_conexion_lfs
 		primerElemento->nombre_memoria = malloc(strlen(nombre_memoria)+1);
 		memcpy(primerElemento->nombre_memoria ,nombre_memoria,strlen(nombre_memoria)+1);
 		list_add(tablaGossiping,primerElemento);
+		sem_post(semaforo_gossiping);
 	}
 /**
 	* @NAME: levantarPuertosSeeds
