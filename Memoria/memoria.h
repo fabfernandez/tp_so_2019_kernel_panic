@@ -19,8 +19,6 @@
 #include <time.h>
 #include <global/utils.h>
 #include <global/protocolos.h>
-#include <fcntl.h>
-#include<semaphore.h>
 
 
 							// ******* TIPOS NECESARIOS ******* //
@@ -74,10 +72,6 @@ char* ip_memoria;
 char* puerto_memoria;
 char* nombre_memoria;
 size_t tamanio_memoria;
-sem_t *semaforo_gossiping;
-sem_t *semaforo_memoria;
-char* mutex1;
-char* mutex2;
 int socketMemoriaSeed;
 void iniciarHiloGossiping(t_list* tablaGossiping);
 char* ip__lfs;
