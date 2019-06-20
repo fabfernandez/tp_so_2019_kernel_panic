@@ -41,7 +41,7 @@ int main(int argc, char **argv)
 	 * ME CONECTO CON LFS E INTENTO UN HANDSHAKE -----------------------INTENTA CONECTARSE, SI NO PUEDE CORTA LA EJECUCION
 	 */
 	socket_conexion_lfs = crear_conexion(ip__lfs,puerto__lfs); //
-	log_info(logger,"que paso %i",socketMemoriaSeed);
+	//log_info(logger,"que paso %i",socketMemoriaSeed);
 	if(socket_conexion_lfs != -1)
 		{
 		log_info(logger,"Creada la conexion para LFS %i", socket_conexion_lfs);
@@ -1041,7 +1041,7 @@ void resolver_describe_para_kernel(int socket_kernel_fd, int socket_conexion_lfs
 	log_info(logger, "La IP de la memoria es %s",ip_memoria );
 	puerto_memoria = config_get_string_value(archivoconfig, "PUERTO_MEMORIA"); // asignamos puerto desde CONFIG
 	log_info(logger, "El puerto de la memoria es %s",puerto_memoria);
-	nombre_memoria = config_get_string_value(archivoconfig, "NOMBRE_MEMORIA"); // asignamos NOMBRE desde CONFIG
+	nombre_memoria = config_get_string_value(archivoconfig, "MEMORY_NUMBER"); // asignamos NOMBRE desde CONFIG
 	log_info(logger, "El nombre de la memoria es %s",nombre_memoria);
 	tamanio_memoria = config_get_int_value(archivoconfig, "TAM_MEM");
 	log_info(logger, "El tamaño de la memoria es: %i",tamanio_memoria);
