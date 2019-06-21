@@ -51,6 +51,7 @@ t_log* logger;
 t_config* archivoconfig;
 char* path_montaje;
 int  max_size_value, block_size, blocks;
+long tiempo_dump;
 
 
 void levantar_lfs(char* montaje);
@@ -81,6 +82,11 @@ t_metadata* obtener_info_metadata_tabla(char* dir_tabla, char* nombre_tabla);
 void crear_particiones(char* dir_tabla,int  num_particiones);
 void crear_particion(char* dir_particion ,char* size,int* array_bloques);
 void crear_archivo_metadata_tabla(char* dir_tabla, int num_particiones,long compactacion,t_consistencia consistencia);
+void crear_hilo_dump();
+void dump_por_tabla(t_cache_tabla* tabla);
+void bajo_registros_a_blocks_y_creo_temp(char* nombre_tabla, char* registros);
+void eliminar_registro(t_registro* registro);
+void eliminar_tabla(t_cache_tabla* tabla_cache);
 
 //t_metadata describe(char* tabla);
 

@@ -20,10 +20,12 @@ int main(void)
 	log_info(logger, "El puerto de la memoria es %s",puerto_lfs);
 	montaje = config_get_string_value(archivoconfig, "PUNTO_MONTAJE");
 	max_size_value = config_get_int_value(archivoconfig, "MAX_SIZE_VALUE");
+	tiempo_dump = config_get_long_value(archivoconfig,"TIEMPO_DUMP");
 
 	levantar_lfs(montaje);
 	crear_hilo_consola();
-	//crear_hilo_dump();
+	crear_hilo_dump();
+
 	int server_LFS = iniciar_servidor(ip_lfs, puerto_lfs);
 
 	while (1){
@@ -36,6 +38,72 @@ int main(void)
 	//terminar_programa(socket_memoria_entrante, conexionALFS); // termina conexion, destroy log y destroy config. ???
 	return EXIT_SUCCESS;
 }
+
+
+//  ::::::::::: DUMP :::::::::::::::
+
+void eliminar_registro(t_registro* registro){
+	free(registro->value);
+	free(registro);
+}
+
+void eliminar_tabla(t_cache_tabla* tabla_cache){
+	free(tabla_cache->nombre);
+	list_destroy(tabla_cache->registros);
+	free(tabla_cache);
+}
+
+void dump_por_tabla(t_cache_tabla* tabla){
+	char * array_registros = string_new();
+
+	while(!list_is_empty(tabla->registros)){
+		t_registro* registro = list_remove(tabla->registros, 0);
+		string_append(&array_registros, string_from_format("%d;", registro->timestamp));
+		string_append(&array_registros, string_from_format("%d;", registro->key));
+		string_append(&array_registros, registro->value);
+		string_append(&array_registros,"\n");
+		eliminar_registro(registro);
+	}
+
+	bajo_registros_a_blocks_y_creo_temp(tabla->nombre, array_registros);
+	// libero array registros ? strign new usa strdup que hace un malloc
+}
+
+void *dump(){
+	while(1){
+		sleep(tiempo_dump);
+		log_info(logger, "Se realiza dump");
+		//Falta copiar memtable con mutex para dejarla libre antes de tod el proceso
+
+		while(!list_is_empty(memtable)){
+			t_cache_tabla* tabla = list_remove(memtable, 0);
+			dump_por_tabla(tabla);
+			eliminar_tabla(tabla);
+		}
+	}
+}
+
+void crear_hilo_dump(){
+	pthread_t hilo_dump;
+	if (pthread_create(&hilo_dump, 0, dump, NULL) !=0){
+		log_error(logger, "Error al crear el hilo para proceso de dump");
+	}
+	if (pthread_detach(hilo_dump) != 0){
+		log_error(logger, "Error al frenar hilo de dump");
+	}
+}
+
+void bajo_registros_a_blocks_y_creo_temp(char* nombre_tabla, char* registros){
+
+	int size_registros = string_length(registros);
+
+	while(size_registros < block_size){
+		// TODO
+	}
+
+}
+
+//  ::::::::::: FIN DUMP ::::::::::::
 
 void *atender_pedido_memoria (void* memoria_fd){
 	int socket_memoria = *((int *) memoria_fd);
