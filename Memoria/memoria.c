@@ -995,6 +995,10 @@ void resolver_describe_consola(t_instruccion_lql instruccion){
 		log_info(logger, "Cantidad de tablas en LFS: %d", cant_tablas);
 		for(int i=0; i<cant_tablas; i++){
 			t_metadata* metadata = deserealizar_metadata(socket_conexion_lfs);
+			log_info(logger, "NOMBRE: %s",metadata->nombre_tabla->palabra);
+			log_info(logger, "CONSISTENCIA: %i",metadata->consistencia);
+			log_info(logger, "PARTICIONES: %i",metadata->n_particiones);
+			log_info(logger, "T. COMPACTACION: %i",metadata->tiempo_compactacion);
 			free(metadata->nombre_tabla->palabra);
 			free(metadata->nombre_tabla);
 			free(metadata);
@@ -1005,7 +1009,10 @@ void resolver_describe_consola(t_instruccion_lql instruccion){
 		log_info(logger, "DESCRIBE de la tabla %s", consulta->nombre_tabla->palabra);
 		enviar_paquete_drop_describe(socket_conexion_lfs, consulta);
 		t_metadata* metadata = deserealizar_metadata(socket_conexion_lfs);
-		log_info(logger, "NOMBRE: %s \n CONSISTENCIA: %i \n PARTICIONES: %i \n T. COMPACTACION: %i  ",metadata->nombre_tabla->palabra, metadata->consistencia,metadata->n_particiones,metadata->tiempo_compactacion);
+		log_info(logger, "NOMBRE: %s",metadata->nombre_tabla->palabra);
+		log_info(logger, "CONSISTENCIA: %i",metadata->consistencia);
+		log_info(logger, "PARTICIONES: %i",metadata->n_particiones);
+		log_info(logger, "T. COMPACTACION: %i",metadata->tiempo_compactacion);
 		free(metadata->nombre_tabla->palabra);
 		free(metadata->nombre_tabla);
 		free(metadata);
