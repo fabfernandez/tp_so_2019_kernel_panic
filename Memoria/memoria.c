@@ -648,7 +648,7 @@ pagina* crearPaginaInsert(){
 		log_info(logger,"posicionProxima:%i, cantidad:%i(lru encontro espacio)-> %i", posicionProximaLibre,cantidad_paginas,posicionDondePonerElDatoEnMemoria);
 		} else {
 			posicionDondePonerElDatoEnMemoria=posicionProximaLibre;
-			log_info(logger,"posicionProxima:%i, cantidad:%i(hay espacio de una)", posicionProximaLibre,cantidad_paginas);
+			log_info(logger,"posicionProxima:%i, cantidad:%i(hay espacio de una)", posicionProximaLibre,cantidad_paginas-posicionProximaLibre);
 			posicionProximaLibre+=1;
 	}
 	paginaa->posicionEnMemoria=posicionDondePonerElDatoEnMemoria;
@@ -776,7 +776,7 @@ int buscarRegistroEnTabla(char* tabla, uint16_t key, char* memoria_principal,t_l
 	int registroAInsertar = buscarRegistroEnTabla(tabla, key,memoria_principal,tablas);
 
 	if(posicionProximaLibre>=cantidad_paginas&&(lruu==-1)&&(registroAInsertar==-1)){ //
-		log_error(logger, "No hay lugar en la memoria, debe realizarse JOURNAL", tabla);
+		log_error(logger, "No hay lugar en la memoria, debe realizarse JOURNAL");
 		journaling(memoria_principal, tablas);
 		consulta_insert_a_usar = consulta_insert;
 		return -1;
@@ -1332,6 +1332,8 @@ void resolver_describe_consola(t_instruccion_lql instruccion){
 				memcpy(&(paquete_insert->timestamp),&(datosPagina->timestamp),sizeof(long));
 				char* nombre = datosPagina->value;
 				char* tablan = unSegmento->nombreTabla;
+				free(datosPagina->value);
+				free(datosPagina);
 				paquete_insert->valor = malloc(sizeof(int)+string_size(nombre));
 				paquete_insert->nombre_tabla=malloc(sizeof(int)+string_size(tablan));
 				paquete_insert->valor->palabra= malloc(string_size(nombre));
