@@ -29,6 +29,7 @@
 	 //server_memoria  // descriptor de socket a la escucha
 	 int memoriaNuevaAceptada;        // descriptor de socket de nueva conexión aceptada
 //
+pthread_mutex_t mutexMemoria;
 void *iniciar_select(void* dato);
 void iniciarHiloKernel(datosSelect* dato);
 void *journaling_automatico(void* dato);
@@ -59,7 +60,7 @@ void traerPaginaDeMemoria2(unsigned int posicion,char* memoria_principal,pagina_
 char* memoria_principal;
 int nbytes;
 int primeraVuelta = 0;
-pthread_t thread_gossiping;
+pthread_t thread_memoria;
 t_list* tablaGossiping;
 t_log* logger;
 t_config* archivoconfig;
@@ -116,6 +117,7 @@ void paginaNueva(uint16_t key, char* value, long ts, char* tabla, char* memoria,
 void paginaNuevaInsert(uint16_t key, char* value, long ts, char* tabla, char* memoria,t_list* tablas);
 void agregarPaginaASegmento(char* tabla, pagina* pagina, t_list* tablas);
 int drop(char* tabla);
+void resolver_describe_consola(t_instruccion_lql instruccion);
 
 int create(char* tabla, t_consistencia consistencia, int maximo_particiones, long tiempo_compactacion);
 
@@ -130,4 +132,5 @@ t_paquete_insert* consulta_insert_a_usar;
 void resolver_despues_de_journaling (int socket_kernel_fd, t_paquete_select* consulta_select ,int socket_conexion_lfs,char* memoria_principal, t_list* tablas);
 void resolver_insert_despues_de_journaling(t_paquete_insert* consulta_insert, int socket_conexion_lfs,char* memoria_principal, t_list* tablas);
 void resolver_describe_para_kernel(int socket_kernel_fd, int socket_conexion_lfs, char* operacion);
+void resolver_drop_consola(t_instruccion_lql instruccion);
 #endif /* MEMORIA_H_ */
