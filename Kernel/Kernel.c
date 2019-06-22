@@ -8,7 +8,7 @@
 #include "Kernel_Metrics.h"
 
 int ID=0;
-t_list* memorias_sin_asignar;
+t_list* memorias_disponibles;
 int QUANTUM;
 int socket_memoria;
 int SLEEP_EJECUCION = 0;
@@ -66,14 +66,13 @@ int main(void)
 	memcpy(memoria_principal->puerto, PUERTO_MEMORIA, string_size(PUERTO_MEMORIA));
 
 	memoria_principal->numero_memoria= 1;
-	memoria_principal->socket_memoria=socket_memoria;
 
-	tablaGossiping = list_create();
-	memorias_sin_asignar = list_create();
+	memorias_disponibles = list_create();
 	strong_consistency = list_create();
 	strong_hash_consistency = list_create();
 	eventual_consistency = list_create();
-	list_add(memorias_sin_asignar, memoria_principal);
+	tablas_con_consistencias = list_create();
+	list_add(memorias_disponibles, memoria_principal);
 	new_queue = queue_create();
 	ready_queue = queue_create();
 	exec_queue = queue_create();
@@ -83,7 +82,7 @@ int main(void)
 
 	iniciar_hilo_planificacion();
 	iniciar_hilo_metrics();
-	iniciarHiloGossiping(tablaGossiping);
+	iniciarHiloGossiping(memorias_disponibles);
 
 	while(1){
 		char* linea = readline("Consola kernel>");
@@ -96,9 +95,9 @@ int main(void)
 	terminar_programa(socket_memoria); // termina conexion, destroy log y destroy config.
 }
 
-void iniciarHiloGossiping(t_list* tablaGossiping){ // @suppress("Type cannot be resolved")
+void iniciarHiloGossiping(t_list* memorias_disponibles){ // @suppress("Type cannot be resolved")
 	pthread_t hiloGossiping;
-	if (pthread_create(&hiloGossiping, 0, iniciar_peticion_tablas, tablaGossiping) !=0){
+	if (pthread_create(&hiloGossiping, 0, iniciar_peticion_tablas, memorias_disponibles) !=0){
 			log_error(logger, "Error al crear el hilo");
 		}
 	if (pthread_detach(hiloGossiping) != 0){
@@ -106,8 +105,8 @@ void iniciarHiloGossiping(t_list* tablaGossiping){ // @suppress("Type cannot be 
 		}
 }
 
-void* iniciar_peticion_tablas(void* tablaGossiping){
-	t_list* tablag = (t_list *) tablaGossiping;
+void* iniciar_peticion_tablas(void* memorias_disponibles){
+	t_list* tablag = (t_list *) memorias_disponibles;
 		while(1){
 			sleep(retardo_gossiping);
 			log_info(logger, "Inicio PEDIDO DE TABLAS A MEMORIA");
@@ -122,29 +121,36 @@ void recibir_tabla_de_gossiping(int socket){
 	int numero_memorias;
 	recv(socket,&numero_memorias,sizeof(int),MSG_WAITALL);
 	log_info(logger, "Memorias de tabla: %i",numero_memorias);
-		for(int i=0;i<numero_memorias;i++){
-			list_destroy(tablaGossiping);
-			tablaGossiping=list_create();
-			t_gossip* memoria=malloc(sizeof(t_gossip));
-			int tamanio_ip;
-			recv(socket,&tamanio_ip,sizeof(int),MSG_WAITALL);
-			memoria->ip_memoria=malloc(tamanio_ip);
-			//log_info(logger, "Tamanio ip %i",tamanio_ip);
-			recv(socket,memoria->ip_memoria,tamanio_ip,MSG_WAITALL);
-			//log_info(logger, "IP: %s",memoria->ip_memoria);
-			int tamanio_nombre;
-			recv(socket,&tamanio_nombre,sizeof(int),MSG_WAITALL);
-			//log_info(logger, "Tamanio nombre %i",tamanio_nombre);
-			memoria->nombre_memoria=malloc(tamanio_nombre);
-			recv(socket,memoria->nombre_memoria,tamanio_nombre,MSG_WAITALL);
-			int tamanio_puerto;
-			recv(socket,&tamanio_puerto,sizeof(int),MSG_WAITALL);
-			memoria->puerto_memoria=malloc(tamanio_puerto);
-			//log_info(logger, "Tamanio puerto %i",tamanio_puerto);
-			recv(socket,memoria->puerto_memoria,tamanio_puerto,MSG_WAITALL);
-			log_info(logger, "IP: %s , PUERTO: %s , NOMBRE: %s",memoria->ip_memoria,memoria->puerto_memoria,memoria->nombre_memoria);
-			list_add(tablaGossiping,memoria);
-		}
+
+	for(int i=0;i<numero_memorias;i++){
+		list_destroy(memorias_disponibles);
+		memorias_disponibles=list_create();
+		t_memoria* memoria=malloc(sizeof(t_memoria));
+
+		int tamanio_ip;
+		recv(socket,&tamanio_ip,sizeof(int),MSG_WAITALL);
+		memoria->ip=malloc(tamanio_ip);
+		//log_info(logger, "Tamanio ip %i",tamanio_ip);
+		recv(socket,memoria->ip,tamanio_ip,MSG_WAITALL);
+		//log_info(logger, "IP: %s",memoria->ip_memoria);
+
+		int tamanio_nombre;
+		recv(socket,&tamanio_nombre,sizeof(int),MSG_WAITALL);
+		//log_info(logger, "Tamanio nombre %i",tamanio_nombre);
+
+		char* numero_memoria=malloc(tamanio_nombre);
+		recv(socket,numero_memoria,tamanio_nombre,MSG_WAITALL);
+		memoria->numero_memoria = convertir_string_a_int(numero_memoria);
+
+		int tamanio_puerto;
+		recv(socket,&tamanio_puerto,sizeof(int),MSG_WAITALL);
+		memoria->puerto=malloc(tamanio_puerto);
+		//log_info(logger, "Tamanio puerto %i",tamanio_puerto);
+		recv(socket,memoria->puerto,tamanio_puerto,MSG_WAITALL);
+		log_info(logger, "IP: %s , PUERTO: %s , NOMBRE: %d",memoria->ip,memoria->puerto,memoria->numero_memoria);
+
+		list_add(memorias_disponibles,memoria);
+	}
 }
 
 void parsear_y_ejecutar(char* linea, int flag_de_consola){
@@ -232,9 +238,9 @@ void resolver_describe(t_instruccion_lql instruccion){
 	t_paquete_drop_describe* paquete_describe = crear_paquete_drop_describe(instruccion);
 	paquete_describe->codigo_operacion=DESCRIBE;
 
-	char* nombre_tabla = paquete_describe->nombre_tabla->palabra;
-	int socket_memoria_a_usar = conseguir_memoria(nombre_tabla);
-	enviar_paquete_drop_describe(socket_memoria_a_usar, paquete_describe);
+//	char* nombre_tabla = paquete_describe->nombre_tabla->palabra;
+//	int socket_memoria_a_usar = conseguir_memoria(nombre_tabla);
+	enviar_paquete_drop_describe(socket_memoria, paquete_describe);
 
 	log_info(logger, "Se realiza DESCRIBE");
 	if(string_is_empty(paquete_describe->nombre_tabla->palabra)){
@@ -244,26 +250,46 @@ void resolver_describe(t_instruccion_lql instruccion){
 		for(int i=0; i<cant_tablas; i++){
 			t_metadata* metadata = deserealizar_metadata(socket_memoria);
 			log_info(logger, "Metadata tabla: %s", metadata->nombre_tabla->palabra);
-			log_info(logger, "Consistencia: %s", consistencia_to_string(metadata->consistencia));
+			log_info(logger, "Consistencia: %s", tipo_consistencia(metadata->consistencia));
 			log_info(logger, "Numero de particiones: %d", metadata->n_particiones);
 			log_info(logger, "Tiempo de compactacion: %d", metadata->tiempo_compactacion);
+
+			guardar_consistencia_tabla(metadata->nombre_tabla->palabra, metadata->consistencia);
 		}
 	}else{
-		t_metadata* t_metadata = deserealizar_metadata(socket_memoria_a_usar);
+		t_metadata* t_metadata = deserealizar_metadata(socket_memoria);
 		//aca se está mostrando pero deberia guardarselo no?
 		log_info(logger, "Metadata tabla: %s", t_metadata->nombre_tabla->palabra);
-		log_info(logger, "Consistencia: %s", consistencia_to_string(t_metadata->consistencia));
+		log_info(logger, "Consistencia: %s", tipo_consistencia(t_metadata->consistencia));
 		log_info(logger, "Numero de particiones: %d", t_metadata->n_particiones);
 		log_info(logger, "Tiempo de compactacion: %d", t_metadata->tiempo_compactacion);
 	}
 	eliminar_paquete_drop_describe(paquete_describe);
 }
 
+void guardar_consistencia_tabla(char* nombre_tabla, t_consistencia consistencia){
+	t_consistencia_tabla* consistencia_tabla = malloc(sizeof(t_consistencia_tabla));
+	consistencia_tabla->nombre_tabla = nombre_tabla;
+	consistencia_tabla->consistencia = consistencia;
+
+	t_consistencia_tabla* tabla = conseguir_tabla(nombre_tabla);
+	if(tabla == NULL){
+		list_add(tablas_con_consistencias, consistencia_tabla);
+	}
+}
+
+t_consistencia_tabla* conseguir_tabla(char* nombre_tabla){
+	int existe_tabla(t_consistencia_tabla* consistencia_tabla){
+		return string_equals_ignore_case(consistencia_tabla->nombre_tabla, nombre_tabla);
+	}
+
+	return list_find(tablas_con_consistencias, (void*) existe_tabla);
+}
+
 void resolver_create(t_instruccion_lql instruccion){
 	t_paquete_create* paquete_create = crear_paquete_create(instruccion);
 
-	char* nombre_tabla = paquete_create->nombre_tabla->palabra;
-	int socket_memoria_a_usar = conseguir_memoria(nombre_tabla);
+	int socket_memoria_a_usar = socket_memoria;
 
 	enviar_paquete_create(socket_memoria_a_usar, paquete_create);
 	t_status_solicitud* status = desearilizar_status_solicitud(socket_memoria_a_usar);
@@ -274,6 +300,8 @@ void resolver_create(t_instruccion_lql instruccion){
 		log_error(logger, "Error: %s", status->mensaje->palabra);
 		error = 1;
 	}
+
+	guardar_consistencia_tabla(instruccion.parametros.CREATE.tabla, instruccion.parametros.CREATE.consistencia);
 
 	eliminar_paquete_status(status);
 	eliminar_paquete_create(paquete_create);
@@ -306,6 +334,7 @@ void resolver_select(t_instruccion_lql instruccion){
 
 	registrar_metricas(1, diferencia_timestamp); //Ahora es 1 porque es la única memoria que conocemos, pero cambia a nombre_memoria
 
+	liberar_conexion(socket_memoria_a_usar);
 	eliminar_paquete_status(status);
 	eliminar_paquete_select(paquete_select);
 }
@@ -317,17 +346,18 @@ void resolver_insert (t_instruccion_lql instruccion){
 	int socket_memoria_a_usar = conseguir_memoria(nombre_tabla);
 
 	struct timespec spec;
-		clock_gettime(CLOCK_REALTIME, &spec);
-		int timestamp_origen = spec.tv_sec;
+	clock_gettime(CLOCK_REALTIME, &spec);
+	int timestamp_origen = spec.tv_sec;
+
 
 	enviar_paquete_insert(socket_memoria_a_usar, paquete_insert);
 
 	clock_gettime(CLOCK_REALTIME, &spec);
-		int timestamp_destino = spec.tv_sec;
-		int diferencia_timestamp = timestamp_destino - timestamp_origen;
+	int timestamp_destino = spec.tv_sec;
+	int diferencia_timestamp = timestamp_destino - timestamp_origen;
 
-		registrar_metricas_insert(1, diferencia_timestamp);
-
+	registrar_metricas_insert(1, diferencia_timestamp);
+	liberar_conexion(socket_memoria_a_usar);
 	eliminar_paquete_insert(paquete_insert);
 }
 
@@ -363,17 +393,20 @@ void resolver_add (t_instruccion_lql instruccion){
 
 	if(consistencia == STRONG && list_size(strong_consistency)==1) {
 		t_memoria* memoria_antigua = list_remove(strong_consistency, 0);
-		list_add(memorias_sin_asignar, memoria_antigua);
+		list_add(memorias_disponibles, memoria_antigua);
 	}
 
 	int es_la_memoria(t_memoria* memoria){
 		return memoria->numero_memoria == numero_memoria;
 	}
 
-	t_memoria* memoria = list_find(memorias_sin_asignar, (void*) es_la_memoria);
+	t_memoria* memoria = list_find(memorias_disponibles, (void*) es_la_memoria);
+	char* consistencia_deseada = tipo_consistencia(consistencia);
 	if(memoria != NULL){
 		asignar_consistencia(memoria, consistencia);
-		log_info(logger, "Se ha añadido la Memoria: %d a la Consistencia: %c\n", numero_memoria, consistencia);
+		log_info(logger, "Se ha añadido la Memoria: %d a la Consistencia: %s", numero_memoria, consistencia_deseada);
+	}else{
+		log_error(logger, "No se ha podido añadir la Memoria: %d a la Consistencia: %s", numero_memoria, consistencia_deseada);
 	}
 }
 
@@ -393,12 +426,47 @@ void asignar_consistencia(t_memoria* memoria, t_consistencia consistencia){
 	}
 }
 
+char* tipo_consistencia(t_consistencia consistencia){
+	switch(consistencia){
+		case STRONG:
+			return "STRONG";
+		case STRONG_HASH:
+			return "STRONG HASH";
+		case EVENTUAL:
+		default:
+			return "EVENTUAL";
+	}
+}
+
 int conseguir_memoria(char *nombre_tabla){
+	t_memoria* memoria;
+	t_consistencia_tabla* tabla_en_uso;
 
-	// DESCRIBE
+	tabla_en_uso = conseguir_tabla(nombre_tabla);
+	memoria = obtener_memoria_segun_consistencia(tabla_en_uso->consistencia);
+	int socket_memoria_a_utilizar = crear_conexion(memoria->ip, memoria->puerto);
 
-	return socket_memoria;
+	return socket_memoria_a_utilizar;
+}
 
+t_memoria* obtener_memoria_segun_consistencia(t_consistencia consistencia){
+	int maximo_indice;
+	int indice_random;
+	switch(consistencia){
+		case STRONG:
+			return list_get(strong_consistency, 0);
+		case STRONG_HASH:
+			return list_get(strong_hash_consistency, 0);
+		case EVENTUAL:
+		default:
+			maximo_indice = list_size(eventual_consistency);
+			indice_random = get_random(maximo_indice);
+			return list_get(eventual_consistency, indice_random);
+	}
+}
+
+int get_random(int maximo){
+	return rand() % maximo + 1;
 }
 
 char leer_archivo(FILE* archivo){
@@ -442,6 +510,10 @@ int generarID(){
 	return ID;
 }
 
+uint16_t convertir_string_a_int(char* string){
+	uint16_t convertido = (uint16_t)atoi(string);
+	return convertido;
+}
 
 void terminar_programa(int conexion)
 {
