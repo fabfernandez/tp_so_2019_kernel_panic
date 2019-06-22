@@ -66,7 +66,6 @@ void dump_por_tabla(t_cache_tabla* tabla){
 	}
 
 	bajo_registros_a_blocks_y_creo_temp(tabla->nombre, array_registros);
-	// libero array registros ? strign new usa strdup que hace un malloc
 }
 
 void *dump(){
@@ -101,6 +100,8 @@ void bajo_registros_a_blocks_y_creo_temp(char* nombre_tabla, char* registros){
 		// TODO
 	}
 
+
+	//free(registros);
 }
 
 //  ::::::::::: FIN DUMP ::::::::::::
@@ -303,22 +304,33 @@ void crear_particiones(char* dir_tabla,int  num_particiones){
 	int ind;
 	for(ind =0;ind < num_particiones; ind++){
 		char* dir_particion = string_from_format("%s/%i.bin", dir_tabla, ind);
-		FILE* file = fopen(dir_particion, "wb+");
-		fclose(file);
-
 		int bloque[] = {obtener_bloque_disponible()};
-		crear_particion(dir_particion,"0", bloque);
+
+		crear_archivo(dir_particion, 0, bloque);
+		free(dir_particion);
 	}
 }
 
-void crear_particion(char* dir_particion ,char* size,int* array_bloques){
-	char * array_bloques_string = array_int_to_array_char(array_bloques);
+void crear_archivo(char* dir_archivo, int size, int* array_bloques){
+	FILE* file = fopen(dir_archivo, "wb+");
+	fclose(file);
 
-	t_config* particion_tabla = config_create(dir_particion);
-	dictionary_put(particion_tabla->properties,"SIZE", "0" );
+	guardar_datos_particion_o_temp(dir_archivo, size, array_bloques);
+}
+
+void guardar_datos_particion_o_temp(char* dir_archivo ,int size,int* array_bloques){
+	char * array_bloques_string = array_int_to_array_char(array_bloques);
+	char * char_size = string_itoa(size);
+
+	t_config* particion_tabla = config_create(dir_archivo);
+	dictionary_put(particion_tabla->properties,"SIZE", char_size);
 	dictionary_put(particion_tabla->properties, "BLOCKS", array_bloques_string);
 
 	config_save(particion_tabla);
+
+	free(array_bloques_string);
+	free(char_size);
+	config_destroy(particion_tabla);
 }
 
 char* array_int_to_array_char(int* array_int) {
