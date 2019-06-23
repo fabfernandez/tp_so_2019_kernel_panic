@@ -35,10 +35,9 @@ typedef char* t_valor;					// VALOR QUE DEVUELVE EL SELECT(TODAVIA NO SABEMOS QU
 
 
 typedef struct memoria{
-		char* ip;
-		char* puerto;
-		uint16_t numero_memoria;
-		int socket_memoria;
+	uint16_t numero_memoria;
+	char* ip;
+	char* puerto;
 } t_memoria ;
 
 typedef struct script{
@@ -47,12 +46,17 @@ typedef struct script{
 	long int offset;
 } t_script ;
 
-t_list* memorias_sin_asignar;
+typedef struct consistencia_tabla{
+	char* nombre_tabla;
+	t_consistencia consistencia;
+}t_consistencia_tabla;
+
+t_list* memorias_disponibles;
 
 t_list* strong_consistency;
 t_list* eventual_consistency;
 t_list* strong_hash_consistency;
-
+t_list* tablas_con_consistencias;
 
 t_list* metricas;
 
@@ -93,6 +97,7 @@ void leer_config(void);
 void terminar_programa(int conexion);
 int generarID();
 void asignar_consistencia(t_memoria* memoria, t_consistencia consistencia);
+char* tipo_consistencia(t_consistencia consistencia);
 char leer_archivo(FILE* archivo);
 void ejecutar_instruccion(t_instruccion_lql instruccion);
 void parsear_y_ejecutar(char* linea, int flag_de_consola);
@@ -101,6 +106,12 @@ void iniciarHiloGossiping(t_list* tablaGossiping);
 void ejecutar_script(t_script* script_a_ejecutar);
 int conseguir_memoria(char* nombre_tabla);
 void recibir_tabla_de_gossiping(int socket);
+void guardar_consistencia_tabla(char* nombre_tabla, t_consistencia consistencia);
+t_consistencia_tabla* conseguir_tabla(char* nombre_tabla);
+t_memoria* obtener_memoria_segun_consistencia(t_consistencia consistencia);
+int get_random(int maximo);
+uint16_t convertir_string_a_int(char* string);
+void resolver_describe(t_instruccion_lql instruccion);
 
 
 //				***** REVISAR COMO CREAR LAS CONEXIONES *****					//
