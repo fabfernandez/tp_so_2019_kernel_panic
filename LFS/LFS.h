@@ -7,27 +7,25 @@
 #ifndef LFS_H_
 #define LFS_H_
 
-#include <pthread.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/stat.h>
+#include <commons/bitarray.h>
+#include <commons/config.h>
 #include <commons/log.h>
 #include <commons/string.h>
-#include <commons/config.h>
-#include <readline/readline.h>
-#include <commons/bitarray.h>
-#include <stdint.h>
-#include <time.h>
-#include <global/utils.h>
-#include <global/protocolos.h>
-#include <stdbool.h>
-#include <stdint.h>
-#include <time.h>
-#include <sys/mman.h>
-#include <fcntl.h>
-#include <errno.h>
 #include <dirent.h>
-
+#include <errno.h>
+#include <fcntl.h>
+#include <global/protocolos.h>
+#include <global/utils.h>
+#include <math.h>
+#include <pthread.h>
+#include <readline/readline.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
+#include <time.h>
 
 
 #include "LFS_Consola.h"
