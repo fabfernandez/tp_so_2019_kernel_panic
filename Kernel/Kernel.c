@@ -198,7 +198,7 @@ void ejecutar_instruccion(t_instruccion_lql instruccion){
 			break;
 		case METRICS:
 			log_info(logger, "Kernel solicitó METRICS");
-			//aca resuelve metrics//
+			resolver_metrics();
 			break;
 		case ADD:
 			log_info(logger, "Kernel solicitó ADD");
@@ -314,29 +314,33 @@ void resolver_select(t_instruccion_lql instruccion){
 	char* nombre_tabla = paquete_select->nombre_tabla->palabra;
 	int socket_memoria_a_usar = conseguir_memoria(nombre_tabla);
 
-	struct timespec spec;
-	clock_gettime(CLOCK_REALTIME, &spec);
-	int timestamp_origen = spec.tv_sec;
-
-	enviar_paquete_select(socket_memoria_a_usar, paquete_select);
-
-	t_status_solicitud* status = desearilizar_status_solicitud(socket_memoria_a_usar);
-	if(status->es_valido){
-		log_info(logger, "Resultado: %s", status->mensaje->palabra);
-		error = 0;
+	if(socket_memoria_a_usar == -1){
+		log_error(logger, "No se pudo realizar el SELECT ya que no se ha encontrado la tabla.");
 	}else{
-		log_error(logger, "Error: %s", status->mensaje->palabra);
-		error = 1;
+		struct timespec spec;
+		clock_gettime(CLOCK_REALTIME, &spec);
+		int timestamp_origen = spec.tv_sec;
+
+		enviar_paquete_select(socket_memoria_a_usar, paquete_select);
+
+		t_status_solicitud* status = desearilizar_status_solicitud(socket_memoria_a_usar);
+		if(status->es_valido){
+			log_info(logger, "Resultado: %s", status->mensaje->palabra);
+			error = 0;
+		}else{
+			log_error(logger, "Error: %s", status->mensaje->palabra);
+			error = 1;
+		}
+		clock_gettime(CLOCK_REALTIME, &spec);
+		int timestamp_destino = spec.tv_sec;
+		int diferencia_timestamp = timestamp_destino - timestamp_origen;
+
+		registrar_metricas(1, diferencia_timestamp); //Ahora es 1 porque es la única memoria que conocemos, pero cambia a nombre_memoria
+
+		liberar_conexion(socket_memoria_a_usar);
+		eliminar_paquete_status(status);
+		eliminar_paquete_select(paquete_select);
 	}
-	clock_gettime(CLOCK_REALTIME, &spec);
-	int timestamp_destino = spec.tv_sec;
-	int diferencia_timestamp = timestamp_destino - timestamp_origen;
-
-	registrar_metricas(1, diferencia_timestamp); //Ahora es 1 porque es la única memoria que conocemos, pero cambia a nombre_memoria
-
-	liberar_conexion(socket_memoria_a_usar);
-	eliminar_paquete_status(status);
-	eliminar_paquete_select(paquete_select);
 }
 
 void resolver_insert (t_instruccion_lql instruccion){
@@ -345,20 +349,23 @@ void resolver_insert (t_instruccion_lql instruccion){
 	char* nombre_tabla = paquete_insert->nombre_tabla->palabra;
 	int socket_memoria_a_usar = conseguir_memoria(nombre_tabla);
 
-	struct timespec spec;
-	clock_gettime(CLOCK_REALTIME, &spec);
-	int timestamp_origen = spec.tv_sec;
+	if(socket_memoria_a_usar == -1){
+		log_error(logger, "No se pudo realizar el INSERT ya que no se ha encontrado la tabla.");
+	}else{
+		struct timespec spec;
+		clock_gettime(CLOCK_REALTIME, &spec);
+		int timestamp_origen = spec.tv_sec;
 
+		enviar_paquete_insert(socket_memoria_a_usar, paquete_insert);
 
-	enviar_paquete_insert(socket_memoria_a_usar, paquete_insert);
+		clock_gettime(CLOCK_REALTIME, &spec);
+		int timestamp_destino = spec.tv_sec;
+		int diferencia_timestamp = timestamp_destino - timestamp_origen;
 
-	clock_gettime(CLOCK_REALTIME, &spec);
-	int timestamp_destino = spec.tv_sec;
-	int diferencia_timestamp = timestamp_destino - timestamp_origen;
-
-	registrar_metricas_insert(1, diferencia_timestamp);
-	liberar_conexion(socket_memoria_a_usar);
-	eliminar_paquete_insert(paquete_insert);
+		registrar_metricas_insert(1, diferencia_timestamp);
+		liberar_conexion(socket_memoria_a_usar);
+		eliminar_paquete_insert(paquete_insert);
+	}
 }
 
 
@@ -410,6 +417,26 @@ void resolver_add (t_instruccion_lql instruccion){
 	}
 }
 
+void resolver_metrics(){
+	t_metrics* metrica_uno;
+
+	if(list_size(metricas) == 0){
+		log_info(logger, "Aun no hay Métricas para informar");
+	}else{
+		for(int i = 0; i < list_size(metricas); i++){
+			metrica_uno = list_get(metricas, i);
+			float memory_load = ((metrica_uno->cant_reads + metrica_uno->cant_writes) / CANT_METRICS);
+
+			log_info(log_metrics, "En la memoria %d el tiempo promedio de un SELECT fue de %d desde el ultimo informe", metrica_uno->nombre_memoria, metrica_uno->read_latency);
+			log_info(log_metrics, "En la memoria %d el tiempo promedio de un INSERT fue de %d desde el ultimo informe", metrica_uno->nombre_memoria, metrica_uno->write_latency);
+			log_info(log_metrics, "En la memoria %d la cantidad de SELECT fue de %d desde el ultimo informe", metrica_uno->nombre_memoria, metrica_uno->cant_reads);
+			log_info(log_metrics, "En la memoria %d la cantidad de INSERT fue de %d desde el ultimo informe", metrica_uno->nombre_memoria, metrica_uno->cant_writes);
+			log_info(log_metrics, "En la memoria %d el MEMORY LOAD fue de %f", metrica_uno->nombre_memoria, memory_load);
+		}
+	}
+}
+
+
 void asignar_consistencia(t_memoria* memoria, t_consistencia consistencia){
 	switch(consistencia){
 		case STRONG:
@@ -443,10 +470,15 @@ int conseguir_memoria(char *nombre_tabla){
 	t_consistencia_tabla* tabla_en_uso;
 
 	tabla_en_uso = conseguir_tabla(nombre_tabla);
+	if(tabla_en_uso == NULL){
+		log_error(logger, "No se pudo encontrar la tabla");
+		return -1;
+	}else{
 	memoria = obtener_memoria_segun_consistencia(tabla_en_uso->consistencia);
 	int socket_memoria_a_utilizar = crear_conexion(memoria->ip, memoria->puerto);
 
 	return socket_memoria_a_utilizar;
+	}
 }
 
 t_memoria* obtener_memoria_segun_consistencia(t_consistencia consistencia){

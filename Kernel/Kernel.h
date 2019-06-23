@@ -112,6 +112,7 @@ t_memoria* obtener_memoria_segun_consistencia(t_consistencia consistencia);
 int get_random(int maximo);
 uint16_t convertir_string_a_int(char* string);
 void resolver_describe(t_instruccion_lql instruccion);
+void resolver_metrics();
 
 
 //				***** REVISAR COMO CREAR LAS CONEXIONES *****					//
