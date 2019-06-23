@@ -21,6 +21,7 @@ int main(void)
 	montaje = config_get_string_value(archivoconfig, "PUNTO_MONTAJE");
 	max_size_value = config_get_int_value(archivoconfig, "MAX_SIZE_VALUE");
 	tiempo_dump = config_get_long_value(archivoconfig,"TIEMPO_DUMP");
+	temporales_por_tabla= dictionary_create();
 
 	levantar_lfs(montaje);
 	crear_hilo_consola();
@@ -64,7 +65,16 @@ void dump_por_tabla(t_cache_tabla* tabla){
 		eliminar_registro(registro);
 	}
 
-	bajo_registros_a_blocks_y_creo_temp(tabla->nombre, array_registros);
+	int size_registros = string_length(array_registros);
+	t_list* bloques_ocupados = bajo_registros_a_blocks(size_registros,array_registros);
+	free(array_registros);
+
+	int num = proximo_archivo_temporal_para(tabla->nombre);
+	char* dir_temporal = string_from_format("%s/Tables/%s/%i.temp", path_montaje, tabla->nombre, num);
+
+	crear_archivo(dir_temporal, size_registros, bloques_ocupados);
+	free(dir_temporal);
+	list_destroy(bloques_ocupados);
 }
 
 void *dump(){
@@ -91,17 +101,40 @@ void crear_hilo_dump(){
 	}
 }
 
-void bajo_registros_a_blocks_y_creo_temp(char* nombre_tabla, char* registros){
 
-	int size_registros = string_length(registros);
+/**
+ * * @NAME: bajo_registros_a_blocks
+ 	* @DESC: Escribe registrs de una tabla en bloques
+ 	*          Retorna lista de numeros identificadores de los bloques escritos
+ 	*
+ 	*/
+t_list* bajo_registros_a_blocks(int size_registros, char* registros){
 
-	//if(size_reistros)
-	while(size_registros < block_size){
-		// TODO
+	int cantidad_bloques = ceil( size_registros/(double)block_size );
+	t_list* bloques = list_create();
+
+	for(int i=0; i < cantidad_bloques; i++){
+
+		int byte_inicial = i*block_size;
+		int byte_final = byte_inicial + tamanio_bloque(i+1,cantidad_bloques, size_registros);
+		char* datos = string_substring(registros, byte_inicial, byte_final);
+		int bloque = obtener_bloque_disponible();
+
+		escribir_bloque(bloque, datos);
+		list_add(bloques, bloque);
+		free(datos);
 	}
 
+	return bloques;
+}
 
-	//free(registros);
+int tamanio_bloque(int bloque_por_escribir, int bloques_totales, int size_datos){
+	int tamanio = block_size;
+
+	if(bloque_por_escribir == bloques_totales){
+		tamanio = (bloques_totales * block_size) - size_datos;
+	}
+	return tamanio;
 }
 
 void escribir_bloque(int bloque, char* datos){
@@ -109,10 +142,21 @@ void escribir_bloque(int bloque, char* datos){
 	char* dir_bloque = string_from_format("%s/Bloques/%i.bin", path_montaje, bloque);
 	FILE* file = fopen(dir_bloque, "wb+");
 
-	fwrite(datos, sizeof(datos[0]), sizeof(datos[0]), file);
+	fwrite(datos, sizeof(datos[0]), sizeof(datos), file);
 
 	fclose(file);
 	free(dir_bloque);
+}
+
+int proximo_archivo_temporal_para(char* tabla){
+	int temporales = dictionary_get(temporales_por_tabla, tabla);
+	if(temporales == NULL ){
+		temporales = 1;
+	}else{
+	temporales++;
+	}
+	dictionary_put(temporales_por_tabla, tabla, temporales);
+	return temporales;
 }
 
 //  ::::::::::: FIN DUMP ::::::::::::
@@ -316,21 +360,24 @@ void crear_particiones(char* dir_tabla,int  num_particiones){
 	int ind;
 	for(ind =0;ind < num_particiones; ind++){
 		char* dir_particion = string_from_format("%s/%i.bin", dir_tabla, ind);
-		int bloque[] = {obtener_bloque_disponible()};
+		t_list* bloque = list_create();
+		int num_bloque = obtener_bloque_disponible();
+		list_add(bloque, num_bloque);
 
 		crear_archivo(dir_particion, 0, bloque);
 		free(dir_particion);
+		list_destroy(bloque);
 	}
 }
 
-void crear_archivo(char* dir_archivo, int size, int* array_bloques){
+void crear_archivo(char* dir_archivo, int size, t_list* array_bloques){
 	FILE* file = fopen(dir_archivo, "wb+");
 	fclose(file);
 
 	guardar_datos_particion_o_temp(dir_archivo, size, array_bloques);
 }
 
-void guardar_datos_particion_o_temp(char* dir_archivo ,int size,int* array_bloques){
+void guardar_datos_particion_o_temp(char* dir_archivo, int size, t_list* array_bloques){
 	char * array_bloques_string = array_int_to_array_char(array_bloques);
 	char * char_size = string_itoa(size);
 
@@ -345,15 +392,16 @@ void guardar_datos_particion_o_temp(char* dir_archivo ,int size,int* array_bloqu
 	config_destroy(particion_tabla);
 }
 
-char* array_int_to_array_char(int* array_int) {
+char* array_int_to_array_char(t_list* array_int){
 	char * array_char = string_new();
-	int size_array = sizeof(array_int)/sizeof(array_int[0]);
 	string_append(&array_char, "[");
 
-	for(int i = 0; i<size_array; i++){
-		string_append(&array_char, string_itoa(array_int[i]));
+	void _agregar_como_string(int valor){
+		string_append(&array_char, string_itoa(valor));
 		string_append(&array_char, ",");
 	}
+
+	list_iterate(array_int, (void*)_agregar_como_string);
 
 	char* array_char_sin_ultima_coma = string_substring_until(array_char, string_length(array_char) -1);
 	string_append(&array_char_sin_ultima_coma,"]");
@@ -600,5 +648,6 @@ void leer_config() {				// APERTURA DE CONFIG
 	config_destroy(archivoconfig);
 	destuir_hilo_dump;
 	destruir_hilo_consola;
+	liberar_diccionario_temporales;
 }
 */

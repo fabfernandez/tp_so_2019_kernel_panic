@@ -33,6 +33,7 @@
 t_list* memtable;
 char* bmap;
 t_bitarray* bitarray;
+t_dictionary* temporales_por_tabla;
 
 typedef struct{
 	char* nombre;
@@ -74,17 +75,19 @@ bool existe_tabla_fisica(char* nombre_tabla);
 void crear_hilo_memoria(int socket_memoria);
 int resolver_operacion(int socket_memoria, t_operacion cod_op);
 char* string_block();
-char* array_int_to_array_char(int* array_int);
+char* array_int_to_array_char(t_list* array_int);
 int obtener_bloque_disponible();
 t_metadata* obtener_info_metadata_tabla(char* dir_tabla, char* nombre_tabla);
 void crear_particiones(char* dir_tabla,int  num_particiones);
-void crear_archivo(char* dir_archivo, int size, int* array_bloques);
-void guardar_datos_particion_o_temp(char* dir_archivo ,int size,int* array_bloques);
+void crear_archivo(char* dir_archivo, int size, t_list* array_bloques);
+void guardar_datos_particion_o_temp(char* dir_archivo , int size, t_list* array_bloques);
 void crear_archivo_metadata_tabla(char* dir_tabla, int num_particiones,long compactacion,t_consistencia consistencia);
 void crear_hilo_dump();
 void dump_por_tabla(t_cache_tabla* tabla);
-void bajo_registros_a_blocks_y_creo_temp(char* nombre_tabla, char* registros);
+t_list* bajo_registros_a_blocks(int size_registros, char* registros);
 void escribir_bloque(int bloque, char* datos);
+int tamanio_bloque(int bloque_por_escribir, int bloques_totales, int size_datos);
+int proximo_archivo_temporal_para(char* tabla);
 void eliminar_registro(t_registro* registro);
 void eliminar_tabla(t_cache_tabla* tabla_cache);
 
