@@ -15,6 +15,16 @@ void iniciar_hilo_planificacion(){
 	}
 }
 
+void iniciar_hilo_ready(){
+	pthread_t hilo_ready;
+
+	if(pthread_create(&hilo_ready, 0, revisa_ready_queue, NULL) !=0){
+		log_error(logger, "Error al crear el hilo");
+	}
+	if(pthread_detach(hilo_ready) != 0){
+		log_error(logger, "Error al crear el hilo");
+	}
+}
 
 void iniciar_hilo_ejecucion(){
 	pthread_t hilo_ejecucion;
@@ -29,6 +39,12 @@ void iniciar_hilo_ejecucion(){
 
 
 void* planificador(){
+	pthread_mutex_init(&exec_queue_mutex, NULL);
+	pthread_mutex_init(&ready_queue_mutex, NULL);
+	sem_init(&exec_queue_consumer, 1, 0);
+	sem_init(&ready_queue_consumer, 1, 0);
+
+	iniciar_hilo_ready();
 
 	for(int cant = 0; cant < CANT_EXEC; cant++){
 		iniciar_hilo_ejecucion();
@@ -36,11 +52,16 @@ void* planificador(){
 
 	while(1){
 		revisa_new_queue();
-		revisa_ready_queue();
 	}
+
+	pthread_mutex_destroy(&exec_queue_mutex);
+	pthread_mutex_destroy(&ready_queue_mutex);
+	sem_destroy(&exec_queue_consumer);
+	sem_destroy(&ready_queue_consumer);
 }
 
 void revisa_new_queue(){
+	sem_wait(&new_queue_consumer);
 	while(queue_size(new_queue)>0){
 		char* new_path=queue_pop(new_queue);
 
@@ -49,35 +70,63 @@ void revisa_new_queue(){
 		nuevo_script->path=new_path;
 		nuevo_script->offset=0;
 
+		pthread_mutex_lock(&ready_queue_mutex);
 		queue_push(ready_queue, nuevo_script);
+		pthread_mutex_unlock(&ready_queue_mutex);
+		sem_post(&ready_queue_consumer);
 	}
 }
 
 void revisa_ready_queue(){
-	while(puedo_ejecutar() && queue_size(ready_queue)>0) {
-		t_script* script=queue_pop(ready_queue);
-		queue_push(exec_queue, script);
+	while(1){
+		sem_wait(&ready_queue_consumer);
+		if(puedo_ejecutar() && hay_algo()) {
+			pthread_mutex_lock(&ready_queue_mutex);
+			t_script* script=queue_pop(ready_queue);
+			pthread_mutex_unlock(&ready_queue_mutex);
+
+			pthread_mutex_lock(&exec_queue_mutex);
+			queue_push(exec_queue, script);
+			pthread_mutex_unlock(&exec_queue_mutex);
+			sem_post(&exec_queue_consumer);
+		}
 	}
 }
 
+int hay_algo(){
+	pthread_mutex_lock(&ready_queue_mutex);
+	int size = queue_size(ready_queue);
+	pthread_mutex_unlock(&ready_queue_mutex);
+
+	return size > 0;
+}
 
 int puedo_ejecutar(){
-	return queue_size(exec_queue)<CANT_EXEC;
+	pthread_mutex_lock(&exec_queue_mutex);
+	int size = queue_size(exec_queue);
+	pthread_mutex_unlock(&exec_queue_mutex);
+
+	return size<CANT_EXEC;
 }
 
 void revisa_exec_queue(){
 	while(1){
-		if(queue_size(exec_queue)>0){
-			t_script* script_a_ejecutar = queue_pop(exec_queue);
+		sem_wait(&exec_queue_consumer);
 
-			ejecutar_script(script_a_ejecutar);
-			sleep(SLEEP_EJECUCION);
+		pthread_mutex_lock(&exec_queue_mutex);
+		t_script* script_a_ejecutar = queue_pop(exec_queue);
+		pthread_mutex_unlock(&exec_queue_mutex);
 
-			if (script_a_ejecutar->offset==NULL) {
-				queue_push(exit_queue, script_a_ejecutar);
-			} else {
-				queue_push(ready_queue, script_a_ejecutar);
-			}
+		ejecutar_script(script_a_ejecutar);
+		sleep(SLEEP_EJECUCION);
+
+		if (script_a_ejecutar->offset==NULL) {
+			queue_push(exit_queue, script_a_ejecutar);
+		} else {
+			pthread_mutex_lock(&ready_queue_mutex);
+			queue_push(ready_queue, script_a_ejecutar);
+			pthread_mutex_unlock(&ready_queue_mutex);
+			sem_post(&ready_queue_consumer);
 		}
 	}
 }

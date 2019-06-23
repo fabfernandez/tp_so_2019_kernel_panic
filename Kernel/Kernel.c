@@ -80,6 +80,7 @@ int main(void)
 
 	metricas = list_create();
 
+	sem_init(&new_queue_consumer, 1, 0);
 	iniciar_hilo_planificacion();
 	iniciar_hilo_metrics();
 	iniciarHiloGossiping(memorias_disponibles);
@@ -394,6 +395,7 @@ void ejecutar_script(t_script* script_a_ejecutar){
 void resolver_run(t_instruccion_lql instruccion){
 	char* path = instruccion.parametros.RUN.path_script;
 	queue_push(new_queue,path);
+	sem_post(&new_queue_consumer);
 }
 
 

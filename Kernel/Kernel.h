@@ -20,6 +20,7 @@
 #include <commons/collections/queue.h>
 #include <stdint.h>
 #include <time.h>
+#include <semaphore.h>
 
 							// ******* TIPOS NECESARIOS ******* //
 t_log* logger;
@@ -29,6 +30,12 @@ t_list* tablaGossiping;
 int retardo_gossiping;
 int CANT_EXEC;
 int CANT_METRICS;
+pthread_mutex_t exec_queue_mutex;
+pthread_mutex_t ready_queue_mutex;
+sem_t exec_queue_consumer;
+sem_t new_queue_consumer;
+sem_t ready_queue_consumer;
+
 
 typedef char* t_valor;					// VALOR QUE DEVUELVE EL SELECT(TODAVIA NO SABEMOS QUE ALMACENA EN TABLAS?)
 
