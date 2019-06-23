@@ -49,7 +49,7 @@ void eliminar_registro(t_registro* registro){
 
 void eliminar_tabla(t_cache_tabla* tabla_cache){
 	free(tabla_cache->nombre);
-	list_destroy(tabla_cache->registros);
+	list_destroy_and_destroy_elements(tabla_cache->registros, (void*)eliminar_registro);
 	free(tabla_cache);
 }
 
@@ -81,9 +81,9 @@ void *dump(){
 	while(1){
 		sleep(tiempo_dump);
 		log_info(logger, "Se realiza dump");
-		//Falta copiar memtable con mutex para dejarla libre antes de tod el proceso
+		t_list* datos = copiar_y_limpiar_memtable();
 
-		while(!list_is_empty(memtable)){
+		while(!list_is_empty(datos)){
 			t_cache_tabla* tabla = list_remove(memtable, 0);
 			dump_por_tabla(tabla);
 			eliminar_tabla(tabla);
@@ -157,6 +157,17 @@ int proximo_archivo_temporal_para(char* tabla){
 	}
 	dictionary_put(temporales_por_tabla, tabla, temporales);
 	return temporales;
+}
+
+t_list* copiar_y_limpiar_memtable(){
+
+	t_list* copia = list_duplicate(memtable);
+	pthread_mutex_lock(&mutexMemtable);
+
+	list_clean_and_destroy_elements(memtable, (void*)eliminar_tabla);
+
+	pthread_mutex_unlock(&mutexMemtable);
+	return copia;
 }
 
 //  ::::::::::: FIN DUMP ::::::::::::

@@ -51,6 +51,7 @@ t_config* archivoconfig;
 char* path_montaje;
 int  max_size_value, block_size, blocks;
 long tiempo_dump;
+pthread_mutex_t mutexMemtable;
 
 
 void levantar_lfs(char* montaje);
@@ -83,6 +84,7 @@ void crear_archivo(char* dir_archivo, int size, t_list* array_bloques);
 void guardar_datos_particion_o_temp(char* dir_archivo , int size, t_list* array_bloques);
 void crear_archivo_metadata_tabla(char* dir_tabla, int num_particiones,long compactacion,t_consistencia consistencia);
 void crear_hilo_dump();
+t_list* copiar_y_limpiar_memtable();
 void dump_por_tabla(t_cache_tabla* tabla);
 t_list* bajo_registros_a_blocks(int size_registros, char* registros);
 void escribir_bloque(int bloque, char* datos);
