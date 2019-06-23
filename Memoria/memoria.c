@@ -9,8 +9,8 @@ int main(int argc, char **argv)
 
 {
 	path = argv[1];
-	 FD_ZERO(&master);    // borra los conjuntos maestro y temporal
-	 FD_ZERO(&read_fds);
+	FD_ZERO(&master);    // borra los conjuntos maestro y temporal
+	FD_ZERO(&read_fds);
 	/*
 	 * INICIO LOGGER, CONFIG, LEVANTO DATOS E INICIO SERVER
 	 */
@@ -18,7 +18,11 @@ int main(int argc, char **argv)
 
 	iniciar_logger();
 	leer_config();
-
+	if(pthread_mutex_init(&mutexMemoria,NULL)==0){
+		log_info(logger, "MutexMemoria inicializado correctamente");
+	} else {
+		log_error(logger, "Fallo inicializacion de MutexMemoria");
+	};
 	/*
 	 * HAY QUE CAMBIAR RUTA A UNA VARIABLE PARA PODER LEVANTAR MEMORIAS CON DIFERENTES CONFIGS
 	 */
@@ -26,7 +30,7 @@ int main(int argc, char **argv)
 	char* memoria_principal = (char*) malloc(tamanio_memoria*sizeof(char));
 	log_info(logger,"Se reservaron %i bytes para la memoria", (tamanio_memoria*sizeof(char)));
 	tablas = list_create();
-	log_info(logger,"Tabla de segmentos creada, cantidad actual: %i ", tablas->elements_count);
+	log_info(logger,"Tabla de segmentos creada, cantidad actual: %i ", tablas->elements_count); // @suppress("Field cannot be resolved")
 	levantar_datos_lfs();
 	/*
 	 * obtener socket a la escucha
@@ -1332,8 +1336,6 @@ void resolver_describe_consola(t_instruccion_lql instruccion){
 				memcpy(&(paquete_insert->timestamp),&(datosPagina->timestamp),sizeof(long));
 				char* nombre = datosPagina->value;
 				char* tablan = unSegmento->nombreTabla;
-				free(datosPagina->value);
-				free(datosPagina);
 				paquete_insert->valor = malloc(sizeof(int)+string_size(nombre));
 				paquete_insert->nombre_tabla=malloc(sizeof(int)+string_size(tablan));
 				paquete_insert->valor->palabra= malloc(string_size(nombre));
@@ -1355,6 +1357,8 @@ void resolver_describe_consola(t_instruccion_lql instruccion){
 				free(paquete_insert->valor);
 				free(paquete_insert->nombre_tabla);
 				free(paquete_insert);
+				free(datosPagina->value);
+				free(datosPagina);
 				free(unaPagina);
 			}
 			list_clean(unSegmento->paginas);
