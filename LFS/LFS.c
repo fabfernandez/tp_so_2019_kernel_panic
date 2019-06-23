@@ -27,7 +27,6 @@ int main(void)
 	crear_hilo_dump();
 
 	int server_LFS = iniciar_servidor(ip_lfs, puerto_lfs);
-
 	while (1){
 		if ((socket_memoria = esperar_cliente(server_LFS)) == -1) {
 			//log_error(logger, "No pudo aceptarse la conexion del cliente");
@@ -58,8 +57,8 @@ void dump_por_tabla(t_cache_tabla* tabla){
 
 	while(!list_is_empty(tabla->registros)){
 		t_registro* registro = list_remove(tabla->registros, 0);
-		string_append(&array_registros, string_from_format("%d;", registro->timestamp));
-		string_append(&array_registros, string_from_format("%d;", registro->key));
+		string_append(&array_registros, string_from_format("%ld;", registro->timestamp));
+		string_append(&array_registros, string_from_format("%i;", registro->key));
 		string_append(&array_registros, registro->value);
 		string_append(&array_registros,"\n");
 		eliminar_registro(registro);
@@ -96,12 +95,24 @@ void bajo_registros_a_blocks_y_creo_temp(char* nombre_tabla, char* registros){
 
 	int size_registros = string_length(registros);
 
+	//if(size_reistros)
 	while(size_registros < block_size){
 		// TODO
 	}
 
 
 	//free(registros);
+}
+
+void escribir_bloque(int bloque, char* datos){
+
+	char* dir_bloque = string_from_format("%s/Bloques/%i.bin", path_montaje, bloque);
+	FILE* file = fopen(dir_bloque, "wb+");
+
+	fwrite(datos, sizeof(datos[0]), sizeof(datos[0]), file);
+
+	fclose(file);
+	free(dir_bloque);
 }
 
 //  ::::::::::: FIN DUMP ::::::::::::

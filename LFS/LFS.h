@@ -86,6 +86,7 @@ void crear_archivo_metadata_tabla(char* dir_tabla, int num_particiones,long comp
 void crear_hilo_dump();
 void dump_por_tabla(t_cache_tabla* tabla);
 void bajo_registros_a_blocks_y_creo_temp(char* nombre_tabla, char* registros);
+void escribir_bloque(int bloque, char* datos);
 void eliminar_registro(t_registro* registro);
 void eliminar_tabla(t_cache_tabla* tabla_cache);
 
