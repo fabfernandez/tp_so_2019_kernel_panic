@@ -28,6 +28,7 @@
 
 
 #include "LFS_Consola.h"
+#include "LFS_Dump.h"
 
 t_list* memtable;
 char* bmap;
@@ -82,16 +83,6 @@ void crear_particiones(char* dir_tabla,int  num_particiones);
 void crear_archivo(char* dir_archivo, int size, t_list* array_bloques);
 void guardar_datos_particion_o_temp(char* dir_archivo , int size, t_list* array_bloques);
 void crear_archivo_metadata_tabla(char* dir_tabla, int num_particiones,long compactacion,t_consistencia consistencia);
-void crear_hilo_dump();
-t_list* copiar_y_limpiar_memtable();
-void dump_por_tabla(t_cache_tabla* tabla);
-t_list* bajo_registros_a_blocks(int size_registros, char* registros);
-void escribir_bloque(int bloque, char* datos);
-int tamanio_bloque(int bloque_por_escribir, int bloques_totales, int size_datos);
-int proximo_archivo_temporal_para(char* tabla);
-void eliminar_registro(t_registro* registro);
-void eliminar_tabla(t_cache_tabla* tabla_cache);
-int div_redondeada_a_mayor(int a, int b);
 
 //t_metadata describe(char* tabla);
 
