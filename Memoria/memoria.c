@@ -41,7 +41,7 @@ int main(int argc, char **argv)
 	 * ME CONECTO CON LFS E INTENTO UN HANDSHAKE -----------------------INTENTA CONECTARSE, SI NO PUEDE CORTA LA EJECUCION
 	 */
 	socket_conexion_lfs = crear_conexion(ip__lfs,puerto__lfs); //
-	log_info(logger,"que paso %i",socketMemoriaSeed);
+	//log_info(logger,"que paso %i",socketMemoriaSeed);
 	if(socket_conexion_lfs != -1)
 		{
 		log_info(logger,"Creada la conexion para LFS %i", socket_conexion_lfs);
@@ -208,7 +208,9 @@ void *journaling_automatico(void* dato){
 	datosSelect* datos = (datosSelect*) dato;
 	while(1){
 		sleep(retardo_journaling);
+		pthread_mutex_lock(&mutexMemoria);
 		journaling(datos->memoria,datos->tabla);
+		pthread_mutex_unlock(&mutexMemoria);
 	}
 }
 void *iniciar_consola(void* dato){
@@ -243,11 +245,15 @@ void ejecutar_API_desde_consola(t_instruccion_lql instruccion,char* memoria,t_li
 	switch(operacion) {
 		case SELECT:
 			log_info(logger, "Se solicita SELECT a memoria");
+			pthread_mutex_lock(&mutexMemoria);
 			if(resolver_select_para_consola(instruccion,memoria,tablas)==-1){resolver_select_para_consola(instruccion,memoria,tablas);}
+			pthread_mutex_unlock(&mutexMemoria);
 			break;
 		case INSERT:
+			pthread_mutex_lock(&mutexMemoria);
 			log_info(logger, "Se solicitó INSERT");
 			if(resolver_insert_para_consola(instruccion,memoria,tablas)==-1){resolver_insert_para_consola(instruccion,memoria,tablas);}
+			pthread_mutex_unlock(&mutexMemoria);
 			break;
 		case CREATE:
 			log_info(logger, "Se solicitó CREATE");
@@ -255,10 +261,12 @@ void ejecutar_API_desde_consola(t_instruccion_lql instruccion,char* memoria,t_li
 			break;
 		case DESCRIBE:
 			log_info(logger, "Se solicitó DESCRIBE");
+			resolver_describe_consola(instruccion);
 			//aca debería enviarse el mensaje a LFS con DESCRIBE
 			break;
 		case DROP:
 			log_info(logger, "Se solicitó DROP");
+			resolver_drop_consola(instruccion);
 			//aca debería enviarse el mensaje a LFS con DROP
 			break;
 		case RUN:
@@ -267,6 +275,12 @@ void ejecutar_API_desde_consola(t_instruccion_lql instruccion,char* memoria,t_li
 		case GOSSPING:
 			log_info(logger, "Se solicitó GOSSIPING");
 			gossiping_consola();
+			break;
+		case JOURNAL:
+			log_info(logger, "Se solicitó Journaling");
+			pthread_mutex_lock(&mutexMemoria);
+			journaling(memoria, tablas);
+			pthread_mutex_unlock(&mutexMemoria);
 			break;
 		default:
 			log_warning(logger, "Operacion desconocida.");
@@ -634,7 +648,7 @@ pagina* crearPaginaInsert(){
 		log_info(logger,"posicionProxima:%i, cantidad:%i(lru encontro espacio)-> %i", posicionProximaLibre,cantidad_paginas,posicionDondePonerElDatoEnMemoria);
 		} else {
 			posicionDondePonerElDatoEnMemoria=posicionProximaLibre;
-			log_info(logger,"posicionProxima:%i, cantidad:%i(hay espacio de una)", posicionProximaLibre,cantidad_paginas);
+			log_info(logger,"posicionProxima:%i, cantidad:%i(hay espacio de una)", posicionProximaLibre,cantidad_paginas-posicionProximaLibre);
 			posicionProximaLibre+=1;
 	}
 	paginaa->posicionEnMemoria=posicionDondePonerElDatoEnMemoria;
@@ -762,7 +776,7 @@ int buscarRegistroEnTabla(char* tabla, uint16_t key, char* memoria_principal,t_l
 	int registroAInsertar = buscarRegistroEnTabla(tabla, key,memoria_principal,tablas);
 
 	if(posicionProximaLibre>=cantidad_paginas&&(lruu==-1)&&(registroAInsertar==-1)){ //
-		log_error(logger, "No hay lugar en la memoria, debe realizarse JOURNAL", tabla);
+		log_error(logger, "No hay lugar en la memoria, debe realizarse JOURNAL");
 		journaling(memoria_principal, tablas);
 		consulta_insert_a_usar = consulta_insert;
 		return -1;
@@ -910,7 +924,7 @@ void resolver_create (int socket_kernel_fd, int socket_conexion_lfs){
 	eliminar_paquete_create(consulta_create);
 }
 
-void resolver_describe_drop (int socket_kernel_fd, int socket_conexion_lfs, char* operacion){
+void resolver_describe_drop(int socket_kernel_fd, int socket_conexion_lfs, char* operacion){
 	t_paquete_drop_describe* consulta_describe_drop = deserealizar_drop_describe(socket_kernel_fd);
 	log_info(logger, "Se realiza %s", operacion);
 	log_info(logger, "Tabla: %s", consulta_describe_drop->nombre_tabla->palabra);
@@ -922,6 +936,18 @@ void resolver_describe_drop (int socket_kernel_fd, int socket_conexion_lfs, char
 	enviar_paquete_drop_describe(socket_conexion_lfs, consulta_describe_drop);
 	eliminar_paquete_drop_describe(consulta_describe_drop);
 }
+void resolver_drop_consola(t_instruccion_lql instruccion){
+	log_info(logger, "Se realiza DROP");
+	log_info(logger, "Tabla: %s", instruccion.parametros.DROP.tabla);
+	t_paquete_drop_describe* consulta = malloc(sizeof(t_paquete_drop_describe));
+	consulta->nombre_tabla = malloc(sizeof(t_buffer));
+	consulta->nombre_tabla->size = strlen(instruccion.parametros.DROP.tabla)+1;
+	consulta->nombre_tabla->palabra= malloc(strlen(instruccion.parametros.DROP.tabla)+1);
+	memcpy(consulta->nombre_tabla->palabra,&(instruccion.parametros.DROP.tabla),consulta->nombre_tabla->size);
+	consulta->codigo_operacion=DROP;
+	enviar_paquete_drop_describe(socket_conexion_lfs, consulta);
+	eliminar_paquete_drop_describe(consulta);
+}
 
 void resolver_describe_para_kernel(int socket_kernel_fd, int socket_conexion_lfs, char* operacion){
 	t_paquete_drop_describe* consulta_describe = deserealizar_drop_describe(socket_kernel_fd);
@@ -932,15 +958,14 @@ void resolver_describe_para_kernel(int socket_kernel_fd, int socket_conexion_lfs
 		//al kernel. Luego voy a deserializar la metadata tantas veces como sea necesario y mandar a Kernel.
 
 		log_info(logger, "DESCRIBE global... Pedimos la cantidad de tablas al LFS");
-		//enviar_paquete_drop_describe(socket_conexion_lfs, consulta_describe);
-		//int cant_tablas=0;
-		//recibir_numero_de_tablas (socket_conexion_lfs, cant_tablas);
-		//enviar_numero_de_tablas(socket_kernel_fd, cant_tablas);
-		//log_info(logger, "Cantidad de tablas en LFS: %i", cant_tablas);
-		//for(int i=0; i<cant_tablas; i++){
-			//t_metadata* metadata = deserealizar_metadata(socket_conexion_lfs);
-			//enviar_paquete_metadata(socket_kernel_fd, metadata);
-		//}
+		enviar_paquete_drop_describe(socket_conexion_lfs, consulta_describe);
+		int cant_tablas= recibir_numero_de_tablas (socket_conexion_lfs);
+		log_info(logger, "Cantidad de tablas en LFS: %d", cant_tablas);
+		enviar_numero_de_tablas(socket_kernel_fd, cant_tablas);
+		for(int i=0; i<cant_tablas; i++){
+			t_metadata* metadata = deserealizar_metadata(socket_conexion_lfs);
+			enviar_paquete_metadata(socket_kernel_fd, metadata);
+		}
 	}
 	else{
 		//Si es un DESCRIBE de una tabla especifica...
@@ -948,6 +973,49 @@ void resolver_describe_para_kernel(int socket_kernel_fd, int socket_conexion_lfs
 		enviar_paquete_drop_describe(socket_conexion_lfs, consulta_describe);
 		t_metadata* metadata = deserealizar_metadata(socket_conexion_lfs);
 		enviar_paquete_metadata(socket_kernel_fd, metadata);
+	}
+
+}
+void resolver_describe_consola(t_instruccion_lql instruccion){
+	t_paquete_drop_describe* consulta = malloc(sizeof(t_paquete_drop_describe));
+	consulta->nombre_tabla = malloc(sizeof(t_buffer));
+	int size_nombre_tabla = strlen(instruccion.parametros.DESCRIBE.tabla)+1;
+	log_info(logger,"Tabla %s , largo %i",instruccion.parametros.DESCRIBE.tabla,size_nombre_tabla);
+	consulta->nombre_tabla->size =  size_nombre_tabla;
+	consulta->nombre_tabla->palabra = malloc(size_nombre_tabla);
+	memcpy(consulta->nombre_tabla->palabra ,instruccion.parametros.DESCRIBE.tabla, size_nombre_tabla);
+	consulta->codigo_operacion=DESCRIBE;
+
+	if(string_is_empty(consulta->nombre_tabla->palabra)){
+		//Si es un DESCRIBE global, le pido al LFS el numero de tablas. Luego mando el numero de tablas
+		//al kernel. Luego voy a deserializar la metadata tantas veces como sea necesario y mandar a Kernel.
+		log_info(logger, "DESCRIBE global... Pedimos la cantidad de tablas al LFS");
+		enviar_paquete_drop_describe(socket_conexion_lfs, consulta);
+		int cant_tablas= recibir_numero_de_tablas(socket_conexion_lfs);
+		log_info(logger, "Cantidad de tablas en LFS: %d", cant_tablas);
+		for(int i=0; i<cant_tablas; i++){
+			t_metadata* metadata = deserealizar_metadata(socket_conexion_lfs);
+			log_info(logger, "NOMBRE: %s",metadata->nombre_tabla->palabra);
+			log_info(logger, "CONSISTENCIA: %i",metadata->consistencia);
+			log_info(logger, "PARTICIONES: %i",metadata->n_particiones);
+			log_info(logger, "T. COMPACTACION: %i",metadata->tiempo_compactacion);
+			free(metadata->nombre_tabla->palabra);
+			free(metadata->nombre_tabla);
+			free(metadata);
+		}
+	}
+	else{
+		//Si es un DESCRIBE de una tabla especifica...
+		log_info(logger, "DESCRIBE de la tabla %s", consulta->nombre_tabla->palabra);
+		enviar_paquete_drop_describe(socket_conexion_lfs, consulta);
+		t_metadata* metadata = deserealizar_metadata(socket_conexion_lfs);
+		log_info(logger, "NOMBRE: %s",metadata->nombre_tabla->palabra);
+		log_info(logger, "CONSISTENCIA: %i",metadata->consistencia);
+		log_info(logger, "PARTICIONES: %i",metadata->n_particiones);
+		log_info(logger, "T. COMPACTACION: %i",metadata->tiempo_compactacion);
+		free(metadata->nombre_tabla->palabra);
+		free(metadata->nombre_tabla);
+		free(metadata);
 	}
 
 }
@@ -994,13 +1062,16 @@ void resolver_describe_para_kernel(int socket_kernel_fd, int socket_conexion_lfs
 				case SELECT:
 					log_info(logger, "%i solicitó SELECT", socket_memoria);
 					//resolver_select_para_kernel(socket_memoria, socket_conexion_lfs,memoria_principal,tablas);
+					pthread_mutex_lock(&mutexMemoria);
 					if(resolver_select_para_kernel(socket_memoria, socket_conexion_lfs,memoria_principal,tablas)==-1){resolver_despues_de_journaling(socket_memoria,consulta_select_a_usar,socket_conexion_lfs,memoria_principal, tablas);}
+					pthread_mutex_unlock(&mutexMemoria);
 					//aca debería enviarse el mensaje a LFS con SELECT
 					break;
 				case INSERT:
 					log_info(logger, "%i solicitó INSERT", socket_memoria);
-
+					pthread_mutex_lock(&mutexMemoria);
 					if(resolver_insert_para_kernel(socket_memoria, socket_conexion_lfs,memoria_principal, tablas)==-1) {resolver_insert_despues_de_journaling(consulta_insert_a_usar, socket_conexion_lfs,memoria_principal,tablas);}
+					pthread_mutex_unlock(&mutexMemoria);
 					//aca debería enviarse el mensaje a LFS con INSERT
 					break;
 				case CREATE:
@@ -1018,11 +1089,19 @@ void resolver_describe_para_kernel(int socket_kernel_fd, int socket_conexion_lfs
 					resolver_describe_drop(socket_memoria, socket_conexion_lfs, "DROP");
 					//aca debería enviarse el mensaje a LFS con DROP
 					break;
+				case SOLICITUD_TABLA_GOSSIPING:
+					enviar_mi_tabla_de_gossiping(socket_memoria);
+					log_info(logger,"Tablas enviadas a KERNEL");
+					break;
 				case GOSSPING:
 					log_info(logger, "La memoria %i solicitó GOSSIPING", socket_memoria);
 					resolver_gossiping(socket_memoria);
-
-
+					break;
+				case JOURNAL:
+					log_info(logger, "Se soilicito Journaling");
+					pthread_mutex_lock(&mutexMemoria);
+					journaling(memoria_principal,tablas);
+					pthread_mutex_unlock(&mutexMemoria);
 					break;
 				case -1:
 					log_error(logger, "el cliente se desconecto. Terminando conexion con %i", socket_memoria);
@@ -1042,7 +1121,7 @@ void resolver_describe_para_kernel(int socket_kernel_fd, int socket_conexion_lfs
 	log_info(logger, "La IP de la memoria es %s",ip_memoria );
 	puerto_memoria = config_get_string_value(archivoconfig, "PUERTO_MEMORIA"); // asignamos puerto desde CONFIG
 	log_info(logger, "El puerto de la memoria es %s",puerto_memoria);
-	nombre_memoria = config_get_string_value(archivoconfig, "NOMBRE_MEMORIA"); // asignamos NOMBRE desde CONFIG
+	nombre_memoria = config_get_string_value(archivoconfig, "MEMORY_NUMBER"); // asignamos NOMBRE desde CONFIG
 	log_info(logger, "El nombre de la memoria es %s",nombre_memoria);
 	tamanio_memoria = config_get_int_value(archivoconfig, "TAM_MEM");
 	log_info(logger, "El tamaño de la memoria es: %i",tamanio_memoria);
@@ -1253,6 +1332,8 @@ void resolver_describe_para_kernel(int socket_kernel_fd, int socket_conexion_lfs
 				memcpy(&(paquete_insert->timestamp),&(datosPagina->timestamp),sizeof(long));
 				char* nombre = datosPagina->value;
 				char* tablan = unSegmento->nombreTabla;
+				free(datosPagina->value);
+				free(datosPagina);
 				paquete_insert->valor = malloc(sizeof(int)+string_size(nombre));
 				paquete_insert->nombre_tabla=malloc(sizeof(int)+string_size(tablan));
 				paquete_insert->valor->palabra= malloc(string_size(nombre));

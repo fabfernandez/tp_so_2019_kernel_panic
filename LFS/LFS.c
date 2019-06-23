@@ -139,6 +139,7 @@ void crear_hilo_memoria(int socket_memoria){
 	if (pthread_detach(hilo_memoria) != 0){
 		log_error(logger, "Error al frenar hilo");
 	}
+	//liberar memoria_f
 
 }
 
@@ -399,7 +400,10 @@ void resolver_describe(int socket_memoria){
 	t_paquete_drop_describe* consulta_describe = deserealizar_drop_describe(socket_memoria);
 	log_info(logger, "Se realiza DESCRIBE");
 	if(string_is_empty(consulta_describe->nombre_tabla->palabra)){
+		int cant_tablas = obtener_cantidad_tablas_LFS();
+		enviar_numero_de_tablas(socket_memoria, cant_tablas);
 		log_info(logger, "Se trata de un describe global.");
+		enviar_metadata_todas_tablas(socket_memoria);
 
 	}else{
 		char* nombre_tabla = consulta_describe->nombre_tabla->palabra;
@@ -407,6 +411,34 @@ void resolver_describe(int socket_memoria){
 	}
 
 	eliminar_paquete_drop_describe(consulta_describe);
+}
+
+int obtener_cantidad_tablas_LFS(){
+	int cant_tablas = 0;
+	char* path_tablas = string_from_format("%s/Tables", path_montaje);
+	DIR * dir = opendir(path_tablas);
+	struct dirent * entry = readdir(dir);
+	while(entry != NULL){
+		if (entry->d_type == DT_DIR &&  ( strcmp(entry->d_name, ".")!=0 && strcmp(entry->d_name, "..")!=0 )) {
+			log_info(logger,"Nombre: %s", entry->d_name);
+			cant_tablas = cant_tablas + 1;
+		}
+		entry = readdir(dir);
+	}
+	return cant_tablas;
+}
+
+void enviar_metadata_todas_tablas (int socket_memoria){
+	char* path_tablas = string_from_format("%s/Tables", path_montaje);
+	DIR * dir = opendir(path_tablas);
+	struct dirent * entry = readdir(dir);
+	while(entry != NULL){
+		if (entry->d_type == DT_DIR &&  ( strcmp(entry->d_name, ".")!=0 && strcmp(entry->d_name, "..")!=0 )){
+			char* nombre_tabla = entry->d_name;
+			enviar_tabla_para_describe(socket_memoria, nombre_tabla);
+		}
+		entry = readdir(dir);
+	}
 }
 
 void enviar_tabla_para_describe(int socket_memoria, char* nombre_tabla){
@@ -430,7 +462,7 @@ t_status_solicitud*  resolver_insert(char* nombre_tabla, uint16_t key, char* val
 	log_info(logger, "Consulta en la tabla: %s", nombre_tabla );
 	log_info(logger, "Consulta por key: %d", key);
 	log_info(logger, "Valor: %s", value);
-	log_info(logger, "TIMESTAMP: %d",timestamp);
+	log_info(logger, "TIMESTAMP:{ %d",timestamp);
 	if (existe_tabla_fisica(nombre_tabla)){
 		//llenar los datos de consistencia, particion que estan en la metadata de la tabla (ingresar al directorio de la tabla) Metadata
 		agregar_registro_memtable(crear_registro(value, key,  timestamp), nombre_tabla);

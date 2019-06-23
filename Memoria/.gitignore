@@ -1,4 +1,5 @@
-/Debug/.*o
-./settings
+/Debug/*.o
+/Debug/*.d
+/.settings
 *.log
-/Debug/
+/Debug/Memoria
