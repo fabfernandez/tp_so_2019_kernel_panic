@@ -1152,11 +1152,14 @@ void resolver_describe_consola(t_instruccion_lql instruccion){
 	*
 	*/
 	void intentar_handshake_a_lfs(int alguien){
-	char *mensaje = "Hola me conecto soy la memoria: ";
+	char* mensajee = "Hola me conecto soy la memoria: ";
+	char* mensaje_env = malloc(strlen(mensajee)+strlen(nombre_memoria)+1);
+	memcpy(mensaje_env,mensajee,strlen(mensajee));
+	memcpy(mensaje_env+strlen(mensajee),nombre_memoria,strlen(nombre_memoria)+1);
 		log_info(logger, "Trato de realizar un hasdshake");
-		if (enviar_handshake(alguien,mensaje)){
-			log_info(logger, "Se envió el mensaje %s", mensaje);
-
+		if (enviar_handshake(alguien,mensaje_env)){
+			log_info(logger, "Se envió el mensaje %s", mensaje_env);
+			free(mensaje_env);
 			recibir_datos(logger, alguien);
 			log_info(logger,"Conexion exitosa con LFS");
 		}
