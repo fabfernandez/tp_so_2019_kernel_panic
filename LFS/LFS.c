@@ -238,24 +238,23 @@ void crear_particiones(char* dir_tabla,int  num_particiones){
 	int ind;
 	for(ind =0;ind < num_particiones; ind++){
 		char* dir_particion = string_from_format("%s/%i.bin", dir_tabla, ind);
-		t_list* bloque = list_create();
-		int num_bloque = obtener_bloque_disponible();
-		list_add(bloque, num_bloque);
+		int* bloque = malloc(sizeof(int)); //TODO CHEQUEAR ESE MALLOC
+		bloque[0] = obtener_bloque_disponible();
 
 		crear_archivo(dir_particion, 0, bloque);
 		free(dir_particion);
-		list_destroy(bloque);
+		free(bloque);
 	}
 }
 
-void crear_archivo(char* dir_archivo, int size, t_list* array_bloques){
+void crear_archivo(char* dir_archivo, int size, int* array_bloques){
 	FILE* file = fopen(dir_archivo, "wb+");
 	fclose(file);
 
 	guardar_datos_particion_o_temp(dir_archivo, size, array_bloques);
 }
 
-void guardar_datos_particion_o_temp(char* dir_archivo, int size, t_list* array_bloques){
+void guardar_datos_particion_o_temp(char* dir_archivo, int size, int* array_bloques){
 	char * array_bloques_string = array_int_to_array_char(array_bloques);
 	char * char_size = string_itoa(size);
 
@@ -270,16 +269,15 @@ void guardar_datos_particion_o_temp(char* dir_archivo, int size, t_list* array_b
 	config_destroy(particion_tabla);
 }
 
-char* array_int_to_array_char(t_list* array_int){
+char* array_int_to_array_char(int* array_int){
 	char * array_char = string_new();
+	int size_array = sizeof(array_int)/sizeof(array_int[0]);
 	string_append(&array_char, "[");
 
-	void _agregar_como_string(int valor){
-		string_append(&array_char, string_itoa(valor));
+	for(int i=0; i<size_array ; i++){
+		string_append(&array_char, string_itoa(array_int[i]));
 		string_append(&array_char, ",");
 	}
-
-	list_iterate(array_int, (void*)_agregar_como_string);
 
 	char* array_char_sin_ultima_coma = string_substring_until(array_char, string_length(array_char) -1);
 	string_append(&array_char_sin_ultima_coma,"]");
