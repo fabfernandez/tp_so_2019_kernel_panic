@@ -23,7 +23,10 @@
 #define STRONG_HASH_TEXT "SHC"
 #define EVENTUAL_TEXT "SE"
 
-
+typedef struct{
+	char* nombre;
+	t_list* registros;
+}t_cache_tabla;
 typedef struct
 {
 	int size;
