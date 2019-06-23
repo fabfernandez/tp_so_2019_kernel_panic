@@ -16,7 +16,6 @@
 #include <fcntl.h>
 #include <global/protocolos.h>
 #include <global/utils.h>
-#include <math.h>
 #include <pthread.h>
 #include <readline/readline.h>
 #include <stdbool.h>
@@ -92,6 +91,7 @@ int tamanio_bloque(int bloque_por_escribir, int bloques_totales, int size_datos)
 int proximo_archivo_temporal_para(char* tabla);
 void eliminar_registro(t_registro* registro);
 void eliminar_tabla(t_cache_tabla* tabla_cache);
+int div_redondeada_a_mayor(int a, int b);
 
 //t_metadata describe(char* tabla);
 

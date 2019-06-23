@@ -110,7 +110,7 @@ void crear_hilo_dump(){
  	*/
 t_list* bajo_registros_a_blocks(int size_registros, char* registros){
 
-	int cantidad_bloques = ceil( size_registros/(double)block_size );
+	int cantidad_bloques = div_redondeada_a_mayor( size_registros,block_size );
 	t_list* bloques = list_create();
 
 	for(int i=0; i < cantidad_bloques; i++){
@@ -161,6 +161,7 @@ int proximo_archivo_temporal_para(char* tabla){
 
 t_list* copiar_y_limpiar_memtable(){
 
+	//desconfio que esto este haciendo lo que yo quiero
 	t_list* copia = list_create();
 	void _agregar_a_copia(t_cache_tabla* tabla){
 		list_add(copia, tabla);
@@ -173,6 +174,13 @@ t_list* copiar_y_limpiar_memtable(){
 
 	pthread_mutex_unlock(&mutexMemtable);
 	return copia;
+}
+
+int div_redondeada_a_mayor(int a, int b){
+	int resto = a % b;
+	int retorno = a/b;
+
+	return resto==0 ? retorno : (retorno+1);
 }
 
 //  ::::::::::: FIN DUMP ::::::::::::
