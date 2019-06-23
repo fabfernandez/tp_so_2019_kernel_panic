@@ -6,15 +6,28 @@
  */
 #include "LFS_Dump.h"
 
-void eliminar_registro(t_registro* registro){
-	free(registro->value);
-	free(registro);
+void *dump(){
+	while(1){
+		sleep(tiempo_dump);
+		log_info(logger, "Se realiza dump");
+		t_list* datos = copiar_y_limpiar_memtable();
+
+		while(!list_is_empty(datos)){
+			t_cache_tabla* tabla = list_remove(memtable, 0);
+			dump_por_tabla(tabla);
+			eliminar_tabla(tabla);
+		}
+	}
 }
 
-void eliminar_tabla(t_cache_tabla* tabla_cache){
-	free(tabla_cache->nombre);
-	list_destroy_and_destroy_elements(tabla_cache->registros, (void*)eliminar_registro);
-	free(tabla_cache);
+void crear_hilo_dump(){
+	pthread_t hilo_dump;
+	if (pthread_create(&hilo_dump, 0, dump, NULL) !=0){
+		log_error(logger, "Error al crear el hilo para proceso de dump");
+	}
+	if (pthread_detach(hilo_dump) != 0){
+		log_error(logger, "Error al frenar hilo de dump");
+	}
 }
 
 void dump_por_tabla(t_cache_tabla* tabla){
@@ -39,30 +52,6 @@ void dump_por_tabla(t_cache_tabla* tabla){
 	crear_archivo(dir_temporal, size_registros, bloques_ocupados);
 	free(dir_temporal);
 	list_destroy(bloques_ocupados);
-}
-
-void *dump(){
-	while(1){
-		sleep(tiempo_dump);
-		log_info(logger, "Se realiza dump");
-		t_list* datos = copiar_y_limpiar_memtable();
-
-		while(!list_is_empty(datos)){
-			t_cache_tabla* tabla = list_remove(memtable, 0);
-			dump_por_tabla(tabla);
-			eliminar_tabla(tabla);
-		}
-	}
-}
-
-void crear_hilo_dump(){
-	pthread_t hilo_dump;
-	if (pthread_create(&hilo_dump, 0, dump, NULL) !=0){
-		log_error(logger, "Error al crear el hilo para proceso de dump");
-	}
-	if (pthread_detach(hilo_dump) != 0){
-		log_error(logger, "Error al frenar hilo de dump");
-	}
 }
 
 
@@ -92,6 +81,12 @@ t_list* bajo_registros_a_blocks(int size_registros, char* registros){
 	return bloques;
 }
 
+/**
+ * * @NAME: tamanio_bloque
+ 	* @DESC: Define cantidad de bytes de datos que seran escritos en el proximo bloque
+ 	*
+ 	*/
+
 int tamanio_bloque(int bloque_por_escribir, int bloques_totales, int size_datos){
 	int tamanio = block_size;
 
@@ -112,6 +107,11 @@ void escribir_bloque(int bloque, char* datos){
 	free(dir_bloque);
 }
 
+/**
+ * * @NAME: proximo_archivo_temporal_para
+ 	* @DESC: Define index del proximo archivo temporal para una tabla
+ 	*
+ 	*/
 int proximo_archivo_temporal_para(char* tabla){
 	int temporales = dictionary_get(temporales_por_tabla, tabla);
 	if(temporales == NULL ){
@@ -123,6 +123,13 @@ int proximo_archivo_temporal_para(char* tabla){
 	return temporales;
 }
 
+
+/**
+ * * @NAME: copiar_y_limpiar_memtable
+ 	* @DESC: Duplica memtable para realizar el dump y no generar valores inconsistentes, ni
+ 	*          bloquear la utilizacion de la memtable por otros request mientras se realiza el dump.
+ 	*
+ 	*/
 t_list* copiar_y_limpiar_memtable(){
 
 	//desconfio que esto este haciendo lo que yo quiero
@@ -146,3 +153,15 @@ int div_redondeada_a_mayor(int a, int b){
 
 	return resto==0 ? retorno : (retorno+1);
 }
+
+void eliminar_registro(t_registro* registro){
+	free(registro->value);
+	free(registro);
+}
+
+void eliminar_tabla(t_cache_tabla* tabla_cache){
+	free(tabla_cache->nombre);
+	list_destroy_and_destroy_elements(tabla_cache->registros, (void*)eliminar_registro);
+	free(tabla_cache);
+}
+

@@ -39,12 +39,6 @@ int main(void)
 	return EXIT_SUCCESS;
 }
 
-
-//  ::::::::::: DUMP :::::::::::::::
-
-
-//  ::::::::::: FIN DUMP ::::::::::::
-
 void *atender_pedido_memoria (void* memoria_fd){
 	int socket_memoria = *((int *) memoria_fd);
 	pthread_t id_hilo = pthread_self();
