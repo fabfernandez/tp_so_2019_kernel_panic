@@ -193,8 +193,7 @@ void ejecutar_instruccion(t_instruccion_lql instruccion){
 			break;
 		case JOURNAL:
 			log_info(logger, "Kernel solicitó JOURNAL");
-			//aca resuelve el journal//
-			//no olvidar registrar_metricas_operacion(1);
+			resolver_journal();
 			break;
 		case METRICS:
 			log_info(logger, "Kernel solicitó METRICS");
@@ -316,6 +315,8 @@ void resolver_select(t_instruccion_lql instruccion){
 
 	if(socket_memoria_a_usar == -1){
 		log_error(logger, "No se pudo realizar el SELECT ya que no se ha encontrado la tabla.");
+	}else if(socket_memoria_a_usar == -2){
+		log_error(logger, "No se pudo realizar el SELECT ya que no se ha encontrado Memoria");
 	}else{
 		struct timespec spec;
 		clock_gettime(CLOCK_REALTIME, &spec);
@@ -351,6 +352,8 @@ void resolver_insert (t_instruccion_lql instruccion){
 
 	if(socket_memoria_a_usar == -1){
 		log_error(logger, "No se pudo realizar el INSERT ya que no se ha encontrado la tabla.");
+	}else if(socket_memoria_a_usar == -2){
+		log_error(logger, "No se pudo realizar el INSERT ya que no se ha encontrado Memoria");
 	}else{
 		struct timespec spec;
 		clock_gettime(CLOCK_REALTIME, &spec);
@@ -436,6 +439,16 @@ void resolver_metrics(){
 	}
 }
 
+void resolver_journal(){
+	for(int i=0; i<list_size(memorias_disponibles); i++){
+		t_memoria* memoria = list_get(memorias_disponibles, i);
+		int socket_conexion = crear_conexion(memoria->ip, memoria->puerto);
+		send(socket_conexion, JOURNAL, sizeof(int), MSG_WAITALL);
+		liberar_conexion(socket_conexion);
+		log_info(logger, "Se ha realizado el JOURNAL a la memoria: %d", memoria->numero_memoria);
+	}
+	log_info(logger, "Se ha realizado el JOURNAL a todas las memorias");
+}
 
 void asignar_consistencia(t_memoria* memoria, t_consistencia consistencia){
 	switch(consistencia){
@@ -471,14 +484,20 @@ int conseguir_memoria(char *nombre_tabla){
 
 	tabla_en_uso = conseguir_tabla(nombre_tabla);
 	if(tabla_en_uso == NULL){
-		log_error(logger, "No se pudo encontrar la tabla");
+		log_error(logger, "Si no me haces un describe no tengo idea de que me decis");
 		return -1;
 	}else{
-	memoria = obtener_memoria_segun_consistencia(tabla_en_uso->consistencia);
-	int socket_memoria_a_utilizar = crear_conexion(memoria->ip, memoria->puerto);
+		memoria = obtener_memoria_segun_consistencia(tabla_en_uso->consistencia);
+		if (memoria == NULL){
+			log_error(logger, "Si no agregas la memoria a la consistencia no te puedo ejecutar nada, crack");
+			return -2;
+		} else {
+			int socket_memoria_a_utilizar = crear_conexion(memoria->ip, memoria->puerto);
 
-	return socket_memoria_a_utilizar;
+			return socket_memoria_a_utilizar;
+		}
 	}
+
 }
 
 t_memoria* obtener_memoria_segun_consistencia(t_consistencia consistencia){

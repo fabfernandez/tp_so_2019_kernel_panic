@@ -113,6 +113,8 @@ int get_random(int maximo);
 uint16_t convertir_string_a_int(char* string);
 void resolver_describe(t_instruccion_lql instruccion);
 void resolver_metrics();
+void resolver_journal();
+
 
 
 //				***** REVISAR COMO CREAR LAS CONEXIONES *****					//
