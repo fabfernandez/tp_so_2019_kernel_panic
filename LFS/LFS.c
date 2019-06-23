@@ -161,10 +161,15 @@ int proximo_archivo_temporal_para(char* tabla){
 
 t_list* copiar_y_limpiar_memtable(){
 
-	t_list* copia = list_duplicate(memtable);
+	t_list* copia = list_create();
+	void _agregar_a_copia(t_cache_tabla* tabla){
+		list_add(copia, tabla);
+	}
+	list_iterate(memtable, (void*)_agregar_a_copia);
+
 	pthread_mutex_lock(&mutexMemtable);
 
-	list_clean_and_destroy_elements(memtable, (void*)eliminar_tabla);
+	list_clean(memtable);
 
 	pthread_mutex_unlock(&mutexMemtable);
 	return copia;
