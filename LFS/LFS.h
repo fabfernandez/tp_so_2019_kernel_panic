@@ -35,10 +35,7 @@ char* bmap;
 t_bitarray* bitarray;
 t_dictionary* temporales_por_tabla;
 
-typedef struct{
-	char* nombre;
-	t_list* registros;
-}t_cache_tabla;
+
 
 // ******* DEFINICION DE FUNCIONES A UTILIZAR ******* //
 void chequearSocket(int socketin);
