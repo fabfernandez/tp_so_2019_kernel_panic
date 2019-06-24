@@ -7,14 +7,15 @@
 #include "LFS_Dump.h"
 
 void *dump(){
+	log_info(logger, "Tiempo retardo dump: [%d]", tiempo_dump);
 	while(1){
-		log_info(logger, "%d", tiempo_dump);
 		sleep(tiempo_dump);
 		log_info(logger, "Se realiza dump");
 		t_list* datos = copiar_y_limpiar_memtable();
 
 		while(!list_is_empty(datos)){
 			t_cache_tabla* tabla = list_remove(memtable, 0);
+			log_info(logger, "Se realiza dump para tabla: [%s]",tabla->nombre);
 			dump_por_tabla(tabla);
 			eliminar_tabla(tabla);
 		}
@@ -50,6 +51,7 @@ void dump_por_tabla(t_cache_tabla* tabla){
 	int num = proximo_archivo_temporal_para(tabla->nombre);
 	char* dir_temporal = string_from_format("%s/Tables/%s/%i.temp", path_montaje, tabla->nombre, num);
 
+	log_info(logger, "Se crea el temporal en el path: [%s]", dir_temporal);
 	crear_archivo(dir_temporal, size_registros, bloques_ocupados);
 	free(dir_temporal);
 	list_destroy(bloques_ocupados);
@@ -65,16 +67,20 @@ void dump_por_tabla(t_cache_tabla* tabla){
 t_list* bajo_registros_a_blocks(int size_registros, char* registros){
 
 	int cantidad_bloques = div_redondeada_a_mayor( size_registros,block_size );
+	log_info(logger, "Cantidad de blocks a ocupar: [%d]",cantidad_bloques);
 	t_list* bloques = list_create();
 
 	for(int i=0; i < cantidad_bloques; i++){
 
 		int byte_inicial = i*block_size;
-		int byte_final = byte_inicial + tamanio_bloque(i+1,cantidad_bloques, size_registros);
+		int tamanio_registros = tamanio_bloque(i+1,cantidad_bloques, size_registros);
+		int byte_final = byte_inicial + tamanio_registros;
 		char* datos = string_substring(registros, byte_inicial, byte_final);
 		int bloque = obtener_bloque_disponible();
 
+		log_info(logger, "Se escriben [%d] bytes de registros, en el bloque: [%d]",tamanio_registros,bloque);
 		escribir_bloque(bloque, datos);
+		log_info(logger, "Bloque escrito satisfactoriamente");
 		list_add(bloques, &bloque);
 		free(datos);
 	}
@@ -115,12 +121,14 @@ void escribir_bloque(int bloque, char* datos){
  	*/
 int proximo_archivo_temporal_para(char* tabla){
 	int temporales = dictionary_get(temporales_por_tabla, tabla);
-	if(temporales != NULL ){
+	int a = temporales == NULL ? -1 : temporales;
+	if(temporales != -1 ){
 		temporales++;
 	}else{
 	temporales=1;
 	}
 	dictionary_put(temporales_por_tabla, tabla, temporales);
+	log_info(logger, "Se crea el temporal: [%d], para la tabla: [%s]",temporales, tabla);
 	return temporales;
 }
 
@@ -134,10 +142,12 @@ int proximo_archivo_temporal_para(char* tabla){
 t_list* copiar_y_limpiar_memtable(){
 
 	//desconfio que esto este haciendo lo que yo quiero
+	log_info(logger, "Duplico y limpio memtable para bloquear su uso el mejor tiempo posible");
 	pthread_mutex_lock(&mutexMemtable);
 
 	t_list* copia = list_duplicate(memtable);
 	memtable = list_create();
+	log_info(logger, "Memtable lista para recibir datos nuevos");
 
 	pthread_mutex_unlock(&mutexMemtable);
 	return copia;
