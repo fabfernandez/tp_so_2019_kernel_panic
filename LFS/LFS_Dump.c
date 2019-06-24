@@ -43,7 +43,7 @@ void dump_por_tabla(t_cache_tabla* tabla){
 	}
 
 	int size_registros = string_length(array_registros);
-	t_list* bloques_ocupados = bajo_registros_a_blocks(size_registros,array_registros); //CAMBIAR A INT *
+	t_list* bloques_ocupados = bajo_registros_a_blocks(size_registros,array_registros);
 	free(array_registros);
 
 	int num = proximo_archivo_temporal_para(tabla->nombre);
