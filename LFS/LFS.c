@@ -20,7 +20,7 @@ int main(void)
 	log_info(logger, "El puerto de la memoria es %s",puerto_lfs);
 	montaje = config_get_string_value(archivoconfig, "PUNTO_MONTAJE");
 	max_size_value = config_get_int_value(archivoconfig, "MAX_SIZE_VALUE");
-	tiempo_dump = config_get_long_value(archivoconfig,"TIEMPO_DUMP");
+	tiempo_dump = config_get_int_value(archivoconfig,"TIEMPO_DUMP");
 	temporales_por_tabla= dictionary_create();
 
 	levantar_lfs(montaje);

@@ -47,7 +47,7 @@ t_log* logger;
 t_config* archivoconfig;
 char* path_montaje;
 int  max_size_value, block_size, blocks;
-long tiempo_dump;
+int tiempo_dump;
 pthread_mutex_t mutexMemtable;
 
 

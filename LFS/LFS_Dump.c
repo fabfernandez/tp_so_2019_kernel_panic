@@ -8,6 +8,7 @@
 
 void *dump(){
 	while(1){
+		log_info(logger, "%d", tiempo_dump);
 		sleep(tiempo_dump);
 		log_info(logger, "Se realiza dump");
 		t_list* datos = copiar_y_limpiar_memtable();
@@ -74,7 +75,7 @@ t_list* bajo_registros_a_blocks(int size_registros, char* registros){
 		int bloque = obtener_bloque_disponible();
 
 		escribir_bloque(bloque, datos);
-		list_add(bloques, bloque);
+		list_add(bloques, &bloque);
 		free(datos);
 	}
 
@@ -114,10 +115,10 @@ void escribir_bloque(int bloque, char* datos){
  	*/
 int proximo_archivo_temporal_para(char* tabla){
 	int temporales = dictionary_get(temporales_por_tabla, tabla);
-	if(temporales == NULL ){
-		temporales = 1;
+	if(temporales != NULL ){
+		temporales++;
 	}else{
-	temporales++;
+	temporales=1;
 	}
 	dictionary_put(temporales_por_tabla, tabla, temporales);
 	return temporales;
@@ -133,15 +134,10 @@ int proximo_archivo_temporal_para(char* tabla){
 t_list* copiar_y_limpiar_memtable(){
 
 	//desconfio que esto este haciendo lo que yo quiero
-	t_list* copia = list_create();
-	void _agregar_a_copia(t_cache_tabla* tabla){
-		list_add(copia, tabla);
-	}
-	list_iterate(memtable, (void*)_agregar_a_copia);
-
 	pthread_mutex_lock(&mutexMemtable);
 
-	list_clean(memtable);
+	t_list* copia = list_duplicate(memtable);
+	memtable = list_create();
 
 	pthread_mutex_unlock(&mutexMemtable);
 	return copia;
