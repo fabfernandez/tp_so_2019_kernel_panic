@@ -9,14 +9,18 @@
 void *dump(){
 	while(1){
 		log_info(logger, "%d", tiempo_dump);
-		sleep(tiempo_dump);
-		log_info(logger, "Se realiza dump");
-		t_list* datos = copiar_y_limpiar_memtable();
+		sleep(tiempo_dump/1000);
+		if (list_is_empty(memtable)) {
+			log_info(logger, "DUMP- No hay datos para dumpear.");
+		}else{
+			log_info(logger, "Se realiza dump");
+			t_list* datos = copiar_y_limpiar_memtable();
 
-		while(!list_is_empty(datos)){
-			t_cache_tabla* tabla = list_remove(memtable, 0);
-			dump_por_tabla(tabla);
-			eliminar_tabla(tabla);
+			while(!list_is_empty(datos)){
+				t_cache_tabla* tabla = list_remove(datos, 0);
+				dump_por_tabla(tabla);
+				eliminar_tabla(tabla);
+			}
 		}
 	}
 }
