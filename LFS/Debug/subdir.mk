@@ -5,15 +5,18 @@
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
 ../LFS.c \
-../LFS_Consola.c 
+../LFS_Consola.c \
+../LFS_Dump.c 
 
 OBJS += \
 ./LFS.o \
-./LFS_Consola.o 
+./LFS_Consola.o \
+./LFS_Dump.o 
 
 C_DEPS += \
 ./LFS.d \
-./LFS_Consola.d 
+./LFS_Consola.d \
+./LFS_Dump.d 
 
 
 # Each subdirectory must supply rules for building sources it contributes

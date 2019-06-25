@@ -114,7 +114,7 @@ void escribir_bloque(int bloque, char* datos){
 	char* dir_bloque = string_from_format("%s/Bloques/%i.bin", path_montaje, bloque);
 	FILE* file = fopen(dir_bloque, "wb+");
 
-	fwrite(datos, sizeof(datos[0]), sizeof(datos), file);
+	fwrite(datos, sizeof(datos[0]), string_length(datos), file);
 
 	fclose(file);
 	free(dir_bloque);

@@ -5,14 +5,17 @@
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
 ../Kernel.c \
+../Kernel_Metrics.c \
 ../Kernel_Plani.c 
 
 OBJS += \
 ./Kernel.o \
+./Kernel_Metrics.o \
 ./Kernel_Plani.o 
 
 C_DEPS += \
 ./Kernel.d \
+./Kernel_Metrics.d \
 ./Kernel_Plani.d 
 
 
