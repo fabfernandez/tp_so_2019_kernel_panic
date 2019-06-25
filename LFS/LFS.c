@@ -113,8 +113,11 @@ int resolver_operacion(int socket_memoria, t_operacion cod_op){
 			break;
 		case DESCRIBE:
 			log_info(logger, "memoria solicitó DESCRIBE");
-
-			resolver_describe(socket_memoria);
+			t_paquete_drop_describe* consulta_describe = deserealizar_drop_describe(socket_memoria);
+			if (validar_datos_describe(consulta_describe->nombre_tabla->palabra, socket_memoria)){
+				resolver_describe(consulta_describe->nombre_tabla->palabra, socket_memoria);
+			}
+			eliminar_paquete_drop_describe(consulta_describe);
 			//aca debería enviarse el mensaje a LFS con DESCRIBE
 			break;
 		case DROP:
@@ -131,6 +134,25 @@ int resolver_operacion(int socket_memoria, t_operacion cod_op){
 			return EXIT_FAILURE;
 		}
 	return EXIT_SUCCESS;
+}
+
+bool validar_datos_describe(char* nombre_tabla, int socket_memoria){
+	t_status_solicitud* status;
+	bool es_valido = true;
+	if(string_is_empty(nombre_tabla)){
+		if (existe_tabla_fisica(nombre_tabla)) {
+			status = crear_paquete_status(true, "OK");
+			enviar_status_resultado(status, socket_memoria);
+			enviar_tabla_para_describe(socket_memoria, nombre_tabla);
+		}else {
+			char * mje_error = string_from_format("La tabla %s no existe", nombre_tabla);
+			log_error(logger, mje_error);
+			status = crear_paquete_status(false, mje_error);
+			enviar_status_resultado(status, socket_memoria);
+			es_valido = false;
+		}
+	}
+	return es_valido;
 }
 
 void levantar_lfs(char* montaje){
@@ -304,21 +326,16 @@ int crear_directorio_tabla (char* dir_tabla){
 	return !(mkdir(dir_tabla, 0777) != 0 && errno != EEXIST);
 }
 
-void resolver_describe(int socket_memoria){
-	t_paquete_drop_describe* consulta_describe = deserealizar_drop_describe(socket_memoria);
+void resolver_describe(char* nombre_tabla, int socket_memoria){
 	log_info(logger, "Se realiza DESCRIBE");
-	if(string_is_empty(consulta_describe->nombre_tabla->palabra)){
+	if(string_is_empty(nombre_tabla)){
 		int cant_tablas = obtener_cantidad_tablas_LFS();
 		enviar_numero_de_tablas(socket_memoria, cant_tablas);
 		log_info(logger, "Se trata de un describe global.");
 		enviar_metadata_todas_tablas(socket_memoria);
-
 	}else{
-		char* nombre_tabla = consulta_describe->nombre_tabla->palabra;
 		enviar_tabla_para_describe(socket_memoria, nombre_tabla);
 	}
-
-	eliminar_paquete_drop_describe(consulta_describe);
 }
 
 int obtener_cantidad_tablas_LFS(){
@@ -354,6 +371,11 @@ void enviar_tabla_para_describe(int socket_memoria, char* nombre_tabla){
 	char* dir_tabla = string_from_format("%s/Tables/%s", path_montaje, nombre_tabla);
 	t_metadata* metadata_tabla = obtener_info_metadata_tabla(dir_tabla, nombre_tabla);
 	enviar_paquete_metadata(socket_memoria, metadata_tabla);
+	log_info(logger, "Metadata tabla: %s", metadata_tabla->nombre_tabla->palabra);
+	log_info(logger, "Consistencia: %s", consistencia_to_string(metadata_tabla->consistencia));
+	log_info(logger, "Numero de particiones: %d", metadata_tabla->n_particiones);
+	log_info(logger, "Tiempo de compactacion: %d", metadata_tabla->tiempo_compactacion);
+
 }
 
 void resolver_describe_drop (int socket_memoria, char* operacion){
@@ -370,7 +392,7 @@ t_status_solicitud*  resolver_insert(char* nombre_tabla, uint16_t key, char* val
 	log_info(logger, "Consulta en la tabla: %s", nombre_tabla );
 	log_info(logger, "Consulta por key: %d", key);
 	log_info(logger, "Valor: %s", value);
-	log_info(logger, "TIMESTAMP:{ %d",timestamp);
+	log_info(logger, "TIMESTAMP: %d",timestamp);
 	if (existe_tabla_fisica(nombre_tabla)){
 		//llenar los datos de consistencia, particion que estan en la metadata de la tabla (ingresar al directorio de la tabla) Metadata
 		agregar_registro_memtable(crear_registro(value, key,  timestamp), nombre_tabla);
