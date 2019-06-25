@@ -238,13 +238,13 @@ void crear_particiones(char* dir_tabla,int  num_particiones){
 	int ind;
 	for(ind =0;ind < num_particiones; ind++){
 		char* dir_particion = string_from_format("%s/%i.bin", dir_tabla, ind);
-		t_list* bloque = list_create();
+		t_list* bloques = list_create();
 		int num_bloque= obtener_bloque_disponible();
-		list_add(bloque, &num_bloque);   //paso la direccion de memoria de num_bloque, que adentro tiene el bloque disponible
+		list_add(bloques, num_bloque);   //paso la direccion de memoria de num_bloque, que adentro tiene el bloque disponible
 
-		crear_archivo(dir_particion, 0, bloque);
+		crear_archivo(dir_particion, 0, bloques);
 		free(dir_particion);
-		list_destroy(bloque);
+		list_destroy(bloques);
 	}
 }
 
@@ -275,7 +275,7 @@ char* array_int_to_array_char(t_list* array_int){
 	string_append(&array_char, "[");
 
 	void _agregar_como_string(int* valor){
-		string_append(&array_char, string_itoa(*valor));
+		string_append(&array_char, string_itoa((int)valor));
 		string_append(&array_char, ",");
 	}
 

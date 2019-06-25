@@ -87,7 +87,7 @@ t_list* bajo_registros_a_blocks(int size_registros, char* registros){
 		log_info(logger, "Se escriben [%d] bytes de registros, en el bloque: [%d]",tamanio_registros,bloque);
 		escribir_bloque(bloque, datos);
 		log_info(logger, "Bloque escrito satisfactoriamente");
-		list_add(bloques, &bloque);
+		list_add(bloques, bloque);
 		free(datos);
 	}
 
