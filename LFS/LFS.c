@@ -274,8 +274,8 @@ void guardar_datos_particion_o_temp(char* dir_archivo, int size, t_list* array_b
 
 	config_save(particion_tabla);
 
-	free(array_bloques_string);
-	free(char_size);
+	//free(array_bloques_string);
+	//free(char_size);
 	config_destroy(particion_tabla);
 }
 
