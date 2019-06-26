@@ -22,6 +22,7 @@ int main(void)
 	max_size_value = config_get_int_value(archivoconfig, "MAX_SIZE_VALUE");
 	tiempo_dump = config_get_int_value(archivoconfig,"TIEMPO_DUMP");
 	temporales_por_tabla= dictionary_create();
+	iniciarMutexMemtable();
 
 	levantar_lfs(montaje);
 	crear_hilo_consola();
@@ -37,6 +38,14 @@ int main(void)
 	}
 	//terminar_programa(socket_memoria_entrante, conexionALFS); // termina conexion, destroy log y destroy config. ???
 	return EXIT_SUCCESS;
+}
+
+void iniciarMutexMemtable(){
+	if(pthread_mutex_init(&mutexMemtable,NULL)==0){
+		log_info(logger, "MutexMemtable inicializado correctamente");
+	} else {
+		log_error(logger, "Fallo inicializacion de MutexMemtable");
+	};
 }
 
 void *atender_pedido_memoria (void* memoria_fd){

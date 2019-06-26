@@ -80,6 +80,7 @@ void crear_particiones(char* dir_tabla,int  num_particiones);
 void crear_archivo(char* dir_archivo, int size, t_list* array_bloques);
 void guardar_datos_particion_o_temp(char* dir_archivo , int size, t_list* array_bloques);
 void crear_archivo_metadata_tabla(char* dir_tabla, int num_particiones,long compactacion,t_consistencia consistencia);
+void iniciarMutexMemtable();
 
 //t_metadata describe(char* tabla);
 
