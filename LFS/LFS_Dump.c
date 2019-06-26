@@ -104,7 +104,7 @@ int tamanio_bloque(int bloque_por_escribir, int bloques_totales, int size_datos)
 	int tamanio = block_size;
 
 	if(bloque_por_escribir == bloques_totales){
-		tamanio = (bloques_totales * block_size) - size_datos;
+		tamanio = size_datos - ((bloques_totales-1) * block_size);
 	}
 	return tamanio;
 }
