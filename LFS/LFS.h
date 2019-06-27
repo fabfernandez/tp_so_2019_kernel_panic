@@ -33,7 +33,6 @@
 t_list* memtable;
 char* bmap;
 t_bitarray* bitarray;
-t_dictionary* temporales_por_tabla;
 
 
 

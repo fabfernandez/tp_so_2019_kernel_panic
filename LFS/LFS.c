@@ -21,7 +21,6 @@ int main(void)
 	montaje = config_get_string_value(archivoconfig, "PUNTO_MONTAJE");
 	max_size_value = config_get_int_value(archivoconfig, "MAX_SIZE_VALUE");
 	tiempo_dump = config_get_int_value(archivoconfig,"TIEMPO_DUMP");
-	temporales_por_tabla= dictionary_create();
 	iniciarMutexMemtable();
 
 	levantar_lfs(montaje);
@@ -535,6 +534,5 @@ void leer_config() {				// APERTURA DE CONFIG
 	config_destroy(archivoconfig);
 	destuir_hilo_dump;
 	destruir_hilo_consola;
-	liberar_diccionario_temporales;
 }
 */

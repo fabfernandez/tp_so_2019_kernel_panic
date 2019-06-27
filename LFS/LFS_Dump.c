@@ -59,7 +59,7 @@ void dump_por_tabla(t_cache_tabla* tabla){
 	int num = proximo_archivo_temporal_para(path_tabla);
 	string_append(&path_tabla, string_from_format("/%i.temp", num));
 
-	log_info(logger, "Se crea el temporal en el path: [%s]", path_tabla);
+	log_info(logger, "Se crea el temporal: [%d], en el path: [%s]", num, path_tabla);
 	crear_archivo(path_tabla, size_registros, bloques_ocupados);
 	free(path_tabla);
 	list_destroy(bloques_ocupados);
@@ -127,22 +127,10 @@ void escribir_bloque(int bloque, char* datos){
  	* @DESC: Define index del proximo archivo temporal para una tabla
  	*
  	*/
-int proximo_archivo_temporal_para2(char* tabla){
-	int temporales = dictionary_get(temporales_por_tabla, tabla);
-	int a = temporales == NULL ? -1 : temporales;
-	if(temporales != -1 ){
-		temporales++;
-	}else{
-	temporales=1;
-	}
-	dictionary_put(temporales_por_tabla, tabla, temporales);
-	log_info(logger, "Se crea el temporal: [%d], para la tabla: [%s]",temporales, tabla);
-	return temporales;
-}
-
 int proximo_archivo_temporal_para(char* path_tabla){
 	int proximo_temporal = cantidad_archivos_actuales(path_tabla,"temp" );
-	return proximo_temporal++;
+	proximo_temporal++;
+	return proximo_temporal;
 }
 
 int cantidad_archivos_actuales(char* path_dir, char* extension_archivo){
