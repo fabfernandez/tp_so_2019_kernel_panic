@@ -54,12 +54,14 @@ void dump_por_tabla(t_cache_tabla* tabla){
 	t_list* bloques_ocupados = bajo_registros_a_blocks(size_registros,array_registros);
 	free(array_registros);
 
-	int num = proximo_archivo_temporal_para(tabla->nombre);
-	char* dir_temporal = string_from_format("%s/Tables/%s/%i.temp", path_montaje, tabla->nombre, num);
+	char* path_tabla = string_from_format("%s/Tables/%s", path_montaje, tabla->nombre);
 
-	log_info(logger, "Se crea el temporal en el path: [%s]", dir_temporal);
-	crear_archivo(dir_temporal, size_registros, bloques_ocupados);
-	free(dir_temporal);
+	int num = proximo_archivo_temporal_para(path_tabla);
+	string_append(&path_tabla, string_from_format("/%i.temp", num));
+
+	log_info(logger, "Se crea el temporal en el path: [%s]", path_tabla);
+	crear_archivo(path_tabla, size_registros, bloques_ocupados);
+	free(path_tabla);
 	list_destroy(bloques_ocupados);
 }
 
@@ -125,7 +127,7 @@ void escribir_bloque(int bloque, char* datos){
  	* @DESC: Define index del proximo archivo temporal para una tabla
  	*
  	*/
-int proximo_archivo_temporal_para(char* tabla){
+int proximo_archivo_temporal_para2(char* tabla){
 	int temporales = dictionary_get(temporales_por_tabla, tabla);
 	int a = temporales == NULL ? -1 : temporales;
 	if(temporales != -1 ){
@@ -136,6 +138,33 @@ int proximo_archivo_temporal_para(char* tabla){
 	dictionary_put(temporales_por_tabla, tabla, temporales);
 	log_info(logger, "Se crea el temporal: [%d], para la tabla: [%s]",temporales, tabla);
 	return temporales;
+}
+
+int proximo_archivo_temporal_para(char* path_tabla){
+	int proximo_temporal = cantidad_archivos_actuales(path_tabla,"temp" );
+	return proximo_temporal++;
+}
+
+int cantidad_archivos_actuales(char* path_dir, char* extension_archivo){
+	int temporales_que_hay = 0;
+	DIR * dir = opendir(path_dir);
+	struct dirent * entry = readdir(dir);
+
+	while(entry != NULL){
+		if (( strcmp(entry->d_name, ".")!=0 && strcmp(entry->d_name, "..")!=0 ) && archivo_es_del_tipo(entry->d_name, extension_archivo)) {
+			temporales_que_hay ++;
+		}
+		entry = readdir(dir);
+	}
+	return temporales_que_hay;
+}
+
+bool archivo_es_del_tipo(char* archivo, char* extension_archivo){
+	char ** nombre_y_extension = string_split(archivo, ".");
+	if (nombre_y_extension[1]== NULL){
+		return false;
+	}
+	return strcmp(nombre_y_extension[1], extension_archivo) == 0;
 }
 
 

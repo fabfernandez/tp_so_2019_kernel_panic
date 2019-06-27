@@ -17,6 +17,8 @@ t_list* bajo_registros_a_blocks(int size_registros, char* registros);
 void escribir_bloque(int bloque, char* datos);
 int tamanio_bloque(int bloque_por_escribir, int bloques_totales, int size_datos);
 int proximo_archivo_temporal_para(char* tabla);
+int cantidad_archivos_actuales(char* path_dir, char* extension_archivo);
+bool archivo_es_del_tipo(char* archivo, char* extension_archivo);
 void eliminar_registro(t_registro* registro);
 void eliminar_tabla(t_cache_tabla* tabla_cache);
 int div_redondeada_a_mayor(int a, int b);
