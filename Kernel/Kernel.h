@@ -20,7 +20,8 @@
 #include <commons/collections/queue.h>
 #include <stdint.h>
 #include <time.h>
-
+#include <semaphore.h>
+#include <math.h>
 							// ******* TIPOS NECESARIOS ******* //
 t_log* logger;
 t_log* log_metrics;
@@ -29,6 +30,12 @@ t_list* tablaGossiping;
 int retardo_gossiping;
 int CANT_EXEC;
 int CANT_METRICS;
+pthread_mutex_t exec_queue_mutex;
+pthread_mutex_t ready_queue_mutex;
+sem_t exec_queue_consumer;
+sem_t new_queue_consumer;
+sem_t ready_queue_consumer;
+
 
 typedef char* t_valor;					// VALOR QUE DEVUELVE EL SELECT(TODAVIA NO SABEMOS QUE ALMACENA EN TABLAS?)
 
@@ -104,14 +111,18 @@ void parsear_y_ejecutar(char* linea, int flag_de_consola);
 void* iniciar_peticion_tablas(void* tablaGossiping);
 void iniciarHiloGossiping(t_list* tablaGossiping);
 void ejecutar_script(t_script* script_a_ejecutar);
-int conseguir_memoria(char* nombre_tabla);
+int conseguir_memoria(char* nombre_tabla, uint16_t key);
 void recibir_tabla_de_gossiping(int socket);
 void guardar_consistencia_tabla(char* nombre_tabla, t_consistencia consistencia);
 t_consistencia_tabla* conseguir_tabla(char* nombre_tabla);
-t_memoria* obtener_memoria_segun_consistencia(t_consistencia consistencia);
+t_memoria* obtener_memoria_segun_consistencia(t_consistencia consistencia, uint16_t key);
+int funcion_hash_magica(uint16_t ki);
 int get_random(int maximo);
 uint16_t convertir_string_a_int(char* string);
 void resolver_describe(t_instruccion_lql instruccion);
+void resolver_metrics();
+void resolver_journal();
+
 
 
 //				***** REVISAR COMO CREAR LAS CONEXIONES *****					//

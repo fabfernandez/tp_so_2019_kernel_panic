@@ -61,9 +61,10 @@ t_status_solicitud* resolver_create (char* nombre_tabla, t_consistencia consiste
 int drop(char* tabla);
 int create(char* tabla, t_consistencia consistencia, int maximo_particiones, long tiempo_compactacion);
 void resolver_describe_drop (int socket_memoria, char* operacion);
-void resolver_describe(int socket_memoria);
+void resolver_describe(char* nombre_tabla, int socket_memoria);
 t_registro* crear_registro(char* value, uint16_t key, long timestamp);
 void agregar_registro_memtable(t_registro* registro_a_insertar, char * nombre_tabla);
+bool validar_datos_describe(char* nombre_tabla, int socket_memoria);
 t_cache_tabla* obtener_tabla_memtable(char* nombre_tabla);
 t_cache_tabla* crear_tabla_cache(char* nombre_tabla);
 t_cache_tabla* buscar_tabla_memtable(char* nombre_tabla);

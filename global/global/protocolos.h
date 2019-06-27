@@ -157,6 +157,9 @@ typedef struct {
 		struct {
 			char * path_script;
 		} RUN;
+		struct {
+			;
+		} METRICS;
 
 	} parametros;
 	char** _raw; //Para uso de la liberación

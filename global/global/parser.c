@@ -15,6 +15,7 @@
 #define RUN_KEY "RUN"
 #define JOURNAL_KEY "JOURNAL"
 #define GOSSIPING_KEY "GOSSIPING"
+#define METRICS_KEY "METRICS"
 #define TABLA_KEY "SOLICITUD_TABLA_GOSSIPING"
 
 t_instruccion_lql parsear_linea(char* line){
@@ -119,7 +120,12 @@ t_instruccion_lql parsear_linea(char* line){
 		ret.parametros.ADD.numero_memoria=atoi(split[2]);
 		ret.parametros.ADD.consistencia= get_valor_consistencia(split[4]);
 
-	} else {
+	} else if(string_equals_ignore_case(keyword, METRICS_KEY)){
+		ret.operacion=METRICS;
+		if(split[1] != NULL){
+			return lanzar_error("Formato incorrecto. METRICS\n");
+		}
+	}else {
 
 		return lanzar_error("Operacion no contemplada.\n");
 	}
