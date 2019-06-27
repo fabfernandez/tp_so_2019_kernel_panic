@@ -57,7 +57,7 @@ int resolver_operacion_por_consola(t_instruccion_lql instruccion){
 			break;
 		case DESCRIBE:
 			log_info(logger, "Se solicitó DESCRIBE por consola");
-			//resolver_describe_drop(instruccion);
+			resolver_describe_consola(instruccion.parametros.DESCRIBE.tabla);
 			//aca debería enviarse el mensaje a LFS con DESCRIBE
 			break;
 		case DROP:
@@ -71,6 +71,39 @@ int resolver_operacion_por_consola(t_instruccion_lql instruccion){
 			return EXIT_FAILURE;
 		}
 	return EXIT_SUCCESS;
+}
+
+void resolver_describe_consola(char* nombre_tabla){
+	log_info(logger, "Se realiza DESCRIBE");
+	if(string_is_empty(nombre_tabla)){
+		informar_todas_tablas();
+	}else{
+		mostrar_metadata_tabla(nombre_tabla);
+	}
+}
+
+void informar_todas_tablas(){
+	char* path_tablas = string_from_format("%s/Tables", path_montaje);
+	DIR * dir = opendir(path_tablas);
+	struct dirent * entry = readdir(dir);
+	while(entry != NULL){
+		if (entry->d_type == DT_DIR &&  ( strcmp(entry->d_name, ".")!=0 && strcmp(entry->d_name, "..")!=0 )){
+			char* nombre_tabla = entry->d_name;
+			mostrar_metadata_tabla(nombre_tabla);
+		}
+		entry = readdir(dir);
+	}
+}
+
+void mostrar_metadata_tabla(char* nombre_tabla){
+	log_info(logger, "Tabla: %s", nombre_tabla);
+	char* dir_tabla = string_from_format("%s/Tables/%s", path_montaje, nombre_tabla);
+	t_metadata* metadata_tabla = obtener_info_metadata_tabla(dir_tabla, nombre_tabla);
+	log_info(logger, "Metadata tabla: %s", metadata_tabla->nombre_tabla->palabra);
+	log_info(logger, "Consistencia: %s", consistencia_to_string(metadata_tabla->consistencia));
+	log_info(logger, "Numero de particiones: %d", metadata_tabla->n_particiones);
+	log_info(logger, "Tiempo de compactacion: %d", metadata_tabla->tiempo_compactacion);
+
 }
 
 void resolver_select_consola (char* nombre_tabla, uint16_t key){
