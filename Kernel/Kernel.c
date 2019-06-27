@@ -224,7 +224,7 @@ void resolver_describe_drop(t_instruccion_lql instruccion, t_operacion operacion
 	paquete_describe->codigo_operacion=operacion;
 
 	char* nombre_tabla = paquete_describe->nombre_tabla;
-	int socket_memoria_a_usar = conseguir_memoria(nombre_tabla);
+	int socket_memoria_a_usar = conseguir_memoria(nombre_tabla, -1);
 
 	enviar_paquete_drop_describe(socket_memoria_a_usar, paquete_describe);
 	//esperar numero de tblas si fue DESCRIBE
@@ -312,7 +312,7 @@ void resolver_select(t_instruccion_lql instruccion){
 	t_paquete_select* paquete_select = crear_paquete_select(instruccion);
 
 	char* nombre_tabla = paquete_select->nombre_tabla->palabra;
-	int socket_memoria_a_usar = conseguir_memoria(nombre_tabla);
+	int socket_memoria_a_usar = conseguir_memoria(nombre_tabla, paquete_select->key);
 
 	if(socket_memoria_a_usar == -1){
 		log_error(logger, "No se pudo realizar el SELECT ya que no se ha encontrado la tabla.");
@@ -349,7 +349,7 @@ void resolver_insert (t_instruccion_lql instruccion){
 	t_paquete_insert* paquete_insert = crear_paquete_insert(instruccion);
 
 	char* nombre_tabla = paquete_insert->nombre_tabla->palabra;
-	int socket_memoria_a_usar = conseguir_memoria(nombre_tabla);
+	int socket_memoria_a_usar = conseguir_memoria(nombre_tabla, paquete_insert->key);
 
 	if(socket_memoria_a_usar == -1){
 		log_error(logger, "No se pudo realizar el INSERT ya que no se ha encontrado la tabla.");
@@ -459,6 +459,7 @@ void asignar_consistencia(t_memoria* memoria, t_consistencia consistencia){
 			break;
 		case STRONG_HASH:
 			list_add(strong_hash_consistency, memoria);
+			resolver_journal_hash();
 			break;
 		case EVENTUAL:
 			list_add(eventual_consistency, memoria);
@@ -466,6 +467,18 @@ void asignar_consistencia(t_memoria* memoria, t_consistencia consistencia){
 		default:
 			break;
 	}
+}
+
+void resolver_journal_hash(){
+	for(int i=0; i<list_size(strong_hash_consistency); i++){
+			t_memoria* memoria = list_get(strong_hash_consistency, i);
+			int socket_conexion = crear_conexion(memoria->ip, memoria->puerto);
+			send(socket_conexion, JOURNAL, sizeof(int), MSG_WAITALL);
+			liberar_conexion(socket_conexion);
+			log_info(logger, "Se ha realizado el JOURNAL a la memoria: %d", memoria->numero_memoria);
+		}
+		log_info(logger, "Se ha realizado el JOURNAL a todas las memorias del criterio STRONG HASH");
+
 }
 
 char* tipo_consistencia(t_consistencia consistencia){
@@ -480,7 +493,7 @@ char* tipo_consistencia(t_consistencia consistencia){
 	}
 }
 
-int conseguir_memoria(char *nombre_tabla){
+int conseguir_memoria(char *nombre_tabla, uint16_t key){
 	t_memoria* memoria;
 	t_consistencia_tabla* tabla_en_uso;
 
@@ -489,7 +502,7 @@ int conseguir_memoria(char *nombre_tabla){
 		log_error(logger, "Si no me haces un describe no tengo idea de que me decis");
 		return -1;
 	}else{
-		memoria = obtener_memoria_segun_consistencia(tabla_en_uso->consistencia);
+		memoria = obtener_memoria_segun_consistencia(tabla_en_uso->consistencia, key);
 		if (memoria == NULL){
 			log_error(logger, "Si no agregas la memoria a la consistencia no te puedo ejecutar nada, crack");
 			return -2;
@@ -502,20 +515,35 @@ int conseguir_memoria(char *nombre_tabla){
 
 }
 
-t_memoria* obtener_memoria_segun_consistencia(t_consistencia consistencia){
+t_memoria* obtener_memoria_segun_consistencia(t_consistencia consistencia, uint16_t key){
 	int maximo_indice;
 	int indice_random;
+	int indice_hash;
 	switch(consistencia){
 		case STRONG:
 			return list_get(strong_consistency, 0);
 		case STRONG_HASH:
-			return list_get(strong_hash_consistency, 0);
+			indice_hash = funcion_hash_magica(key);
+			return list_get(strong_hash_consistency, indice_hash);
 		case EVENTUAL:
 		default:
 			maximo_indice = list_size(eventual_consistency);
 			indice_random = get_random(maximo_indice);
 			return list_get(eventual_consistency, indice_random);
 	}
+}
+
+int funcion_hash_magica(uint16_t ki){
+	int resto, suma, tamanio= 0;
+	float magia;
+	tamanio = list_size(strong_hash_consistency);
+
+	while(ki >= tamanio ){
+		ki = ki - tamanio;
+	}
+
+	return ki;
+
 }
 
 int get_random(int maximo){

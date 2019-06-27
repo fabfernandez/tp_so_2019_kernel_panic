@@ -21,7 +21,7 @@
 #include <stdint.h>
 #include <time.h>
 #include <semaphore.h>
-
+#include <math.h>
 							// ******* TIPOS NECESARIOS ******* //
 t_log* logger;
 t_log* log_metrics;
@@ -111,11 +111,12 @@ void parsear_y_ejecutar(char* linea, int flag_de_consola);
 void* iniciar_peticion_tablas(void* tablaGossiping);
 void iniciarHiloGossiping(t_list* tablaGossiping);
 void ejecutar_script(t_script* script_a_ejecutar);
-int conseguir_memoria(char* nombre_tabla);
+int conseguir_memoria(char* nombre_tabla, uint16_t key);
 void recibir_tabla_de_gossiping(int socket);
 void guardar_consistencia_tabla(char* nombre_tabla, t_consistencia consistencia);
 t_consistencia_tabla* conseguir_tabla(char* nombre_tabla);
-t_memoria* obtener_memoria_segun_consistencia(t_consistencia consistencia);
+t_memoria* obtener_memoria_segun_consistencia(t_consistencia consistencia, uint16_t key);
+int funcion_hash_magica(uint16_t ki);
 int get_random(int maximo);
 uint16_t convertir_string_a_int(char* string);
 void resolver_describe(t_instruccion_lql instruccion);
