@@ -8,8 +8,13 @@
 #ifndef LFS_COMPACTACION_H_
 #define LFS_COMPACTACION_H_
 
+#include "LFS_Dump.h"
+#include "LFS.h"
 
-
+void crear_hilo_compactacion();
+void *compactar();
+void realizar_compactacion(char* path_tabla, char* registros_filtrados);
+void renombrar_archivos_para_compactar(char* path_tabla);
 
 
 #endif /* LFS_COMPACTACION_H_ */
