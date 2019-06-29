@@ -20,7 +20,7 @@ void *compactar(char* nombre_tabla, int tiempo_compactacion){ //ESTO ES LEGAL ?
 			renombrar_temp_a_tempc(path_tabla);
 
 			char* registros = leer_registros_temporales(path_tabla);
-			char* registros_filtrados= filtrar_registros_duplicados_segun_particiones(path_tabla, registros);
+			char* registros_filtrados= filtrar_registros_duplicados_segun_particiones(path_tabla, registros); //esto podria devolver una matris filtrando los datos respecto de la particion a la que corresponde, devolveria una lista de lista donde cada posicin de la lista es el index de la particion, y la lista en esa posicion contiene los registros filtrados en base a ese archivo
 
 			bloquear_tabla();
 			int comienzo = timestamp();
