@@ -15,8 +15,9 @@ void crear_hilo_compactacion(char* nombre_tabla);
 void *compactar(void* nombre_tabla);
 long obtener_tiempo_compactacion(char* path_tabla);
 bool hay_temporales(char* path_tabla);
-void realizar_compactacion(char* path_tabla, char* registros_filtrados);
 void renombrar_archivos_para_compactar(char* path_tabla);
+void realizar_compactacion(char* path_tabla, char* registros_filtrados);
+
 
 
 #endif /* LFS_COMPACTACION_H_ */

@@ -20,7 +20,7 @@ void *compactar(void* nombre_tabla){
 			log_info(logger, "Compactacion- No hay datos para compactar en: %s.", path_tabla);
 		}else{
 			log_info(logger, "Se realiza compactacion en: %s.", path_tabla);
-			renombrar_temp_a_tempc(path_tabla);
+			renombrar_archivos_para_compactar(path_tabla);
 
 			char* registros = leer_registros_temporales(path_tabla);
 			char* registros_filtrados= filtrar_registros_duplicados_segun_particiones(path_tabla, registros); //esto podria devolver una matris filtrando los datos respecto de la particion a la que corresponde, devolveria una lista de lista donde cada posicin de la lista es el index de la particion, y la lista en esa posicion contiene los registros filtrados en base a ese archivo
@@ -69,10 +69,17 @@ void renombrar_archivos_para_compactar(char* path_tabla){
 
 	while(entry != NULL){
 		if (( strcmp(entry->d_name, ".")!=0 && strcmp(entry->d_name, "..")!=0 ) && archivo_es_del_tipo(entry->d_name, "temp")) {
-			//renombrar
+			char* temp = string_from_format("%s/%s", path_tabla, entry->d_name);
+
+			char ** nombre_y_extension = string_split(entry->d_name, ".");
+			char* tempc = string_from_format("%s/%s.temp", path_tabla, nombre_y_extension[0]);
+			rename(temp, tempc);
+
+			//free a todos esos char?
 		}
 		entry = readdir(dir);
 	}
+	closedir(dir);
 }
 
 void realizar_compactacion(char* path_tabla, char* registros_filtrados){
