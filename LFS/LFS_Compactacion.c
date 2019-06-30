@@ -9,7 +9,7 @@
 void *compactar(void* nombre_tabla){
 	char* tabla = (char*) nombre_tabla;
 	char* path_tabla = string_from_format("%s/Tables/%s", path_montaje, nombre_tabla);
-	long tiempo_compactacion = obtenr_tiempo_compactacion(path_tabla);
+	long tiempo_compactacion = obtener_tiempo_compactacion(path_tabla);
 
 	log_info(logger, "Tiempo retardo compactacion: [%i]", tiempo_compactacion);
 	while(1){
@@ -48,7 +48,7 @@ void crear_hilo_compactacion(char* nombre_tabla){
 	}
 }
 
-long obtenr_tiempo_compactacion(char* path_tabla){
+long obtener_tiempo_compactacion(char* path_tabla){
 	char* path_metadata = string_from_format("%s/Metadata", path_tabla);
 
 	t_config* metadata_tabla = config_create(path_metadata);
