@@ -6,11 +6,14 @@
  */
 #include "LFS_Compactacion.h"
 
-void *compactar(char* nombre_tabla, int tiempo_compactacion){ //ESTO ES LEGAL ?
-	char* path_tabla; //genero el path
-	log_info(logger, "Tiempo retardo compactacion: [%d]", tiempo_compactacion);
+void *compactar(void* nombre_tabla){
+	char* tabla = (char*) nombre_tabla;
+	char* path_tabla = string_from_format("%s/Tables/%s", path_montaje, nombre_tabla);
+	long tiempo_compactacion = obtenr_tiempo_compactacion(path_tabla);
+
+	log_info(logger, "Tiempo retardo compactacion: [%i]", tiempo_compactacion);
 	while(1){
-		log_info(logger, "%d", tiempo_compactacion);
+		log_info(logger, "%i", tiempo_compactacion);
 		sleep(tiempo_compactacion/1000);
 
 		if (hay_temporales(path_tabla)) {
@@ -35,15 +38,24 @@ void *compactar(char* nombre_tabla, int tiempo_compactacion){ //ESTO ES LEGAL ?
 	}
 }
 
-//podria recibir path de tabla, o nombre por parametro, y tiempo de retardo entre cada compact. para esa tabla
-void crear_hilo_compactacion(){
+void crear_hilo_compactacion(char* nombre_tabla){
 	pthread_t hilo_compactacion;
-	if (pthread_create(&hilo_compactacion, 0, compactar, NULL) !=0){
+	if (pthread_create(&hilo_compactacion, 0, compactar, nombre_tabla) !=0){
 		log_error(logger, "Error al crear el hilo para proceso de compactacion");
 	}
 	if (pthread_detach(hilo_compactacion) != 0){
 		log_error(logger, "Error al frenar hilo de compactacion");
 	}
+}
+
+long obtenr_tiempo_compactacion(char* path_tabla){
+	char* path_metadata = string_from_format("%s/Metadata", path_tabla);
+
+	t_config* metadata_tabla = config_create(path_metadata);
+	long tiempo_compactacion = config_get_long_value(metadata_tabla,"COMPACTION_TIME");
+	config_destroy(metadata_tabla);
+
+	return tiempo_compactacion;
 }
 
 void renombrar_archivos_para_compactar(char* path_tabla){
@@ -58,6 +70,6 @@ void renombrar_archivos_para_compactar(char* path_tabla){
 	}
 }
 
-void realizar_compactacion(path_tabla, registros_filtrados){
+void realizar_compactacion(char* path_tabla, char* registros_filtrados){
 	//escribir archivos, liberar .bin, escribir nuevos .bin
 }
