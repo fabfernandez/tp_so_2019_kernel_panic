@@ -7,7 +7,7 @@
 #include "LFS_Compactacion.h"
 
 void *compactar(void* nombre_tabla){
-	char* tabla = (char*) nombre_tabla;
+	//char* tabla = (char*) nombre_tabla;
 	char* path_tabla = string_from_format("%s/Tables/%s", path_montaje, nombre_tabla);
 	long tiempo_compactacion = obtener_tiempo_compactacion(path_tabla);
 
@@ -56,6 +56,11 @@ long obtener_tiempo_compactacion(char* path_tabla){
 	config_destroy(metadata_tabla);
 
 	return tiempo_compactacion;
+}
+
+bool hay_temporales(char* path_tabla){
+	int cant_temporales = cantidad_archivos_actuales(path_tabla, "temp");
+	return cant_temporales == 0 ? false : true;
 }
 
 void renombrar_archivos_para_compactar(char* path_tabla){
