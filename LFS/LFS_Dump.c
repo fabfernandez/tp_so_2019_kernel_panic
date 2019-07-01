@@ -164,7 +164,6 @@ bool archivo_es_del_tipo(char* archivo, char* extension_archivo){
  	*/
 t_list* copiar_y_limpiar_memtable(){
 
-	//desconfio que esto este haciendo lo que yo quiero
 	log_info(logger, "Duplico y limpio memtable para bloquear su uso el mejor tiempo posible");
 	pthread_mutex_lock(&mutexMemtable);
 
