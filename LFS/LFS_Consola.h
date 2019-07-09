@@ -12,7 +12,7 @@
 #include<global/parser.h>
 #include "LFS.h"
 
-
+bool finalizo;
 int resolver_operacion_por_consola(t_instruccion_lql instruccion);
 void crear_hilo_consola();
 void *levantar_consola();

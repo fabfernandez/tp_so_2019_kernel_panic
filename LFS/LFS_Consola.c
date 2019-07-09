@@ -7,23 +7,25 @@
 #include "LFS_Consola.h"
 
 void crear_hilo_consola(){
-	pthread_t hilo_consola;
 	if (pthread_create(&hilo_consola, 0, levantar_consola, NULL) !=0){
-		log_error(logger, "Error al crear el hilo");
+		log_error(logger_consola, "Error al crear el hilo");
 	}
 	if (pthread_detach(hilo_consola) != 0){
-		log_error(logger, "Error al frenar hilo");
+		log_error(logger_consola, "Error al frenar hilo");
 	}
 }
 
 void *levantar_consola(){
-	while(1){
+	finalizo = false;
+	while(!finalizo){
+
+		printf("Ingrese las operaciones que desea realizar. Para finalizar: EXIT \n");
 		char* linea = readline("Consola LFS >");
 		t_instruccion_lql instruccion = parsear_linea(linea);
 		if (instruccion.valido) {
 			resolver_operacion_por_consola(instruccion);
 		}else{
-			printf("Reingrese la instruccion");
+			printf("Reingrese la instruccion\n");
 		}
 		free(linea);
 	}
@@ -33,11 +35,11 @@ int resolver_operacion_por_consola(t_instruccion_lql instruccion){
 	switch(instruccion.operacion)
 		{
 		case SELECT:
-			log_info(logger, "Se solicito SELECT por consola");
+			log_info(logger_consola, "Se solicito SELECT por consola");
 			resolver_select_consola(instruccion.parametros.SELECT.tabla, instruccion.parametros.SELECT.key);
 			break;
 		case INSERT:
-			log_info(logger, "Se solicitó INSERT por consola");
+			log_info(logger_consola, "Se solicitó INSERT por consola");
 			t_status_solicitud* status = resolver_insert(instruccion.parametros.INSERT.tabla,
 													instruccion.parametros.INSERT.key,
 													instruccion.parametros.INSERT.value,
@@ -45,18 +47,18 @@ int resolver_operacion_por_consola(t_instruccion_lql instruccion){
 			eliminar_paquete_status(status);
 			break;
 		case CREATE:
-			log_info(logger, "Se solicitó CREATE por consola");
+			log_info(logger_consola, "Se solicitó CREATE por consola");
 			status = resolver_create(instruccion.parametros.CREATE.tabla,
 					instruccion.parametros.CREATE.consistencia,
 					instruccion.parametros.CREATE.num_particiones,
 					instruccion.parametros.CREATE.compactacion_time);
 			//enviar_status_resultado(status, socket_memoria);
-			log_info(logger, status->mensaje->palabra);
+			log_info(logger_consola, status->mensaje->palabra);
 			eliminar_paquete_status(status);
 			//aca debería enviarse el mensaje a LFS con CREATE
 			break;
 		case DESCRIBE:
-			log_info(logger, "Se solicitó DESCRIBE por consola");
+			log_info(logger_consola, "Se solicitó DESCRIBE por consola");
 			resolver_describe_consola(instruccion.parametros.DESCRIBE.tabla);
 			//aca debería enviarse el mensaje a LFS con DESCRIBE
 			break;
@@ -65,16 +67,19 @@ int resolver_operacion_por_consola(t_instruccion_lql instruccion){
 			resolver_drop(instruccion.parametros.DROP.tabla);
 			//aca debería enviarse el mensaje a LFS con DROP
 			break;
+		case EXIT:
+			finalizo=true;
+			break;
 
 		default:
-			log_warning(logger, "Operacion desconocida.");
+			log_warning(logger_consola, "Operacion desconocida.");
 			return EXIT_FAILURE;
 		}
 	return EXIT_SUCCESS;
 }
 
 void resolver_describe_consola(char* nombre_tabla){
-	log_info(logger, "Se realiza DESCRIBE");
+	log_info(logger_consola, "Se realiza DESCRIBE");
 	if(string_is_empty(nombre_tabla)){
 		informar_todas_tablas();
 	}else{
@@ -96,22 +101,24 @@ void informar_todas_tablas(){
 }
 
 void mostrar_metadata_tabla(char* nombre_tabla){
-	log_info(logger, "Tabla: %s", nombre_tabla);
+	log_info(logger_consola, "Tabla: %s", nombre_tabla);
 	char* dir_tabla = string_from_format("%s/Tables/%s", path_montaje, nombre_tabla);
 	t_metadata* metadata_tabla = obtener_info_metadata_tabla(dir_tabla, nombre_tabla);
-	log_info(logger, "Metadata tabla: %s", metadata_tabla->nombre_tabla->palabra);
-	log_info(logger, "Consistencia: %s", consistencia_to_string(metadata_tabla->consistencia));
-	log_info(logger, "Numero de particiones: %d", metadata_tabla->n_particiones);
-	log_info(logger, "Tiempo de compactacion: %d", metadata_tabla->tiempo_compactacion);
+	log_info(logger_consola, "Metadata tabla: %s", metadata_tabla->nombre_tabla->palabra);
+	log_info(logger_consola, "Consistencia: %s", consistencia_to_string(metadata_tabla->consistencia));
+	log_info(logger_consola, "Numero de particiones: %d", metadata_tabla->n_particiones);
+	log_info(logger_consola, "Tiempo de compactacion: %d", metadata_tabla->tiempo_compactacion);
 
 }
 
 void resolver_select_consola (char* nombre_tabla, uint16_t key){
 
-	log_info(logger, "Se realiza SELECT");
-	log_info(logger, "Consulta en la tabla: %s", nombre_tabla);
-	log_info(logger, "Consulta por key: %d", key);
 	t_list* registros_encontrados = list_create();
+
+	log_info(logger_consola, "Se realiza SELECT");
+	log_info(logger_consola, "Consulta en la tabla: %s", nombre_tabla);
+	log_info(logger_consola, "Consulta por key: %d", key);
+
 	if (existe_tabla_fisica(nombre_tabla)){
 
 		t_list* registros_memtable = buscar_registros_memtable(nombre_tabla, key);
@@ -125,16 +132,16 @@ void resolver_select_consola (char* nombre_tabla, uint16_t key){
 
 		if(registro_buscado !=NULL){
 			char* resultado = generar_registro_string(registro_buscado->timestamp, registro_buscado->key, registro_buscado->value);
-			log_info(logger, "Resultado: %s", resultado);
+			log_info(logger_consola, "Resultado: %s", resultado);
 
 		}else{
 			char * mje_error = string_from_format("No se encontró registro con key: %d en la tabla %s", key, nombre_tabla);
-			log_error(logger, mje_error);
+			log_error(logger_consola, mje_error);
 		}
 
 	}else{
 		char * mje_error = string_from_format("La tabla %s no existe", nombre_tabla);
-		log_error(logger, mje_error);
+		log_error(logger_consola, mje_error);
 	}
 }
 

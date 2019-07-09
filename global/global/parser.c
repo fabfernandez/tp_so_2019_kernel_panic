@@ -6,6 +6,7 @@
  */
 #include "parser.h"
 
+#define EXIT_KEY "EXIT"
 #define INSERT_KEY "INSERT"
 #define SELECT_KEY "SELECT"
 #define CREATE_KEY "CREATE"
@@ -125,6 +126,8 @@ t_instruccion_lql parsear_linea(char* line){
 		if(split[1] != NULL){
 			return lanzar_error("Formato incorrecto. METRICS\n");
 		}
+	} else if(string_equals_ignore_case(keyword, EXIT_KEY)){
+			ret.operacion=EXIT;
 	}else {
 
 		return lanzar_error("Operacion no contemplada.\n");

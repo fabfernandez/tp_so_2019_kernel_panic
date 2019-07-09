@@ -7,19 +7,18 @@
 #include "LFS_Dump.h"
 
 void *dump(){
-	log_info(logger, "Tiempo retardo dump: [%d]", tiempo_dump);
+	log_info(logger_dump, "Tiempo retardo dump: [%d]", tiempo_dump);
 	while(1){
-		log_info(logger, "%d", tiempo_dump);
 		sleep(tiempo_dump/1000);
 		if (list_is_empty(memtable)) {
-			log_info(logger, "DUMP- No hay datos para dumpear.");
+			log_info(logger_dump, "DUMP- No hay datos para dumpear.");
 		}else{
-			log_info(logger, "Se realiza dump");
+			log_info(logger_dump, "Se realiza dump");
 			t_list* datos = copiar_y_limpiar_memtable();
 
 			while(!list_is_empty(datos)){
 				t_cache_tabla* tabla = list_remove(datos, 0);
-				log_info(logger, "Se realiza dump para tabla: [%s]",tabla->nombre);
+				log_info(logger_dump, "Se realiza dump para tabla: [%s]",tabla->nombre);
 				dump_por_tabla(tabla);
 				eliminar_tabla(tabla);
 			}
@@ -29,12 +28,11 @@ void *dump(){
 }
 
 void crear_hilo_dump(){
-	pthread_t hilo_dump;
 	if (pthread_create(&hilo_dump, 0, dump, NULL) !=0){
-		log_error(logger, "Error al crear el hilo para proceso de dump");
+		log_error(logger_dump, "Error al crear el hilo para proceso de dump");
 	}
 	if (pthread_detach(hilo_dump) != 0){
-		log_error(logger, "Error al frenar hilo de dump");
+		log_error(logger_dump, "Error al frenar hilo de dump");
 	}
 }
 
@@ -59,7 +57,7 @@ void dump_por_tabla(t_cache_tabla* tabla){
 	int num = proximo_archivo_temporal_para(path_tabla);
 	string_append(&path_tabla, string_from_format("/%i.temp", num));
 
-	log_info(logger, "Se crea el temporal: [%d], en el path: [%s]", num, path_tabla);
+	log_info(logger_dump, "Se crea el temporal: [%d], en el path: [%s]", num, path_tabla);
 	crear_archivo(path_tabla, size_registros, bloques_ocupados);
 	free(path_tabla);
 	list_destroy(bloques_ocupados);
@@ -75,7 +73,7 @@ void dump_por_tabla(t_cache_tabla* tabla){
 t_list* bajo_registros_a_blocks(int size_registros, char* registros){
 
 	int cantidad_bloques = div_redondeada_a_mayor( size_registros,block_size );
-	log_info(logger, "Cantidad de blocks a ocupar: [%d]",cantidad_bloques);
+	log_info(logger_dump, "Cantidad de blocks a ocupar: [%d]",cantidad_bloques);
 	t_list* bloques = list_create();
 
 	for(int i=0; i < cantidad_bloques; i++){
@@ -86,9 +84,9 @@ t_list* bajo_registros_a_blocks(int size_registros, char* registros){
 		char* datos = string_substring(registros, byte_inicial, byte_final);
 		int bloque = obtener_bloque_disponible();
 
-		log_info(logger, "Se escriben [%d] bytes de registros, en el bloque: [%d]",tamanio_registros,bloque);
+		log_info(logger_dump, "Se escriben [%d] bytes de registros, en el bloque: [%d]",tamanio_registros,bloque);
 		escribir_bloque(bloque, datos);
-		log_info(logger, "Bloque escrito satisfactoriamente");
+		log_info(logger_dump, "Bloque escrito satisfactoriamente");
 		list_add(bloques, bloque);
 		free(datos);
 	}
@@ -165,12 +163,12 @@ bool archivo_es_del_tipo(char* archivo, char* extension_archivo){
 t_list* copiar_y_limpiar_memtable(){
 
 	//desconfio que esto este haciendo lo que yo quiero
-	log_info(logger, "Duplico y limpio memtable para bloquear su uso el mejor tiempo posible");
+	log_info(logger_dump, "Duplico y limpio memtable para bloquear su uso el mejor tiempo posible");
 	pthread_mutex_lock(&mutexMemtable);
 
 	t_list* copia = list_duplicate(memtable);
 	memtable = list_create();
-	log_info(logger, "Memtable lista para recibir datos nuevos");
+	log_info(logger_dump, "Memtable lista para recibir datos nuevos");
 
 	pthread_mutex_unlock(&mutexMemtable);
 	return copia;

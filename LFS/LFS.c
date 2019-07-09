@@ -12,7 +12,7 @@ int main(void)
 	char* puerto_lfs;
 	int socket_memoria;
 	char *montaje;
-	iniciar_logger(); // creamos log
+	iniciar_loggers(); // creamos log
 	leer_config(); // abrimos config
 	ip_lfs = config_get_string_value(archivoconfig, "IP_LFS"); // asignamos IP de memoria a conectar desde CONFIG
 	log_info(logger, "La IP de la memoria es %s",ip_lfs );
@@ -28,14 +28,14 @@ int main(void)
 	crear_hilo_dump();
 
 	int server_LFS = iniciar_servidor(ip_lfs, puerto_lfs);
-	while (1){
+	while (!fin_de_programa){
 		if ((socket_memoria = esperar_cliente(server_LFS)) == -1) {
 			//log_error(logger, "No pudo aceptarse la conexion del cliente");
 		} else {
 			crear_hilo_memoria(socket_memoria);
 		}
 	}
-	//terminar_programa(socket_memoria_entrante, conexionALFS); // termina conexion, destroy log y destroy config. ???
+	terminar_programa(); // termina conexion, destroy log y destroy config. ???
 	return EXIT_SUCCESS;
 }
 
@@ -255,7 +255,7 @@ void levantar_lfs(char* montaje){
 	log_info(logger, "Inicia filesystem");
 	path_montaje = malloc(string_size(montaje));
 	memcpy(path_montaje, montaje,string_size(montaje) );
-
+	fin_de_programa=false;
 	memtable = list_create();
 	obtener_info_metadata();
 	obtener_bitmap();
@@ -702,14 +702,23 @@ t_registro* buscar_registro_actual(t_list* registros_encontrados){
 	return registro_actual;
 }
 
- void iniciar_logger() { 								// CREACION DE LOG
-	logger = log_create("/home/utnso/tp-2019-1c-Los-Dinosaurios-Del-Libro/LFS/lfs.log", "LFS", 1, LOG_LEVEL_INFO);
+ void iniciar_loggers() { 								// CREACION DE LOG
+	logger = log_create("/home/utnso/tp-2019-1c-Los-Dinosaurios-Del-Libro/LFS/logs/lfs.log", "LFS", 0, LOG_LEVEL_INFO);
+	logger_dump = log_create("/home/utnso/tp-2019-1c-Los-Dinosaurios-Del-Libro/LFS/logs/dump_lfs.log", "LFS", 0, LOG_LEVEL_INFO);
+	logger_compactacion = log_create("/home/utnso/tp-2019-1c-Los-Dinosaurios-Del-Libro/LFS/logs/compactacion_lfs.log", "LFS", 0, LOG_LEVEL_INFO);
+	logger_consola = log_create("/home/utnso/tp-2019-1c-Los-Dinosaurios-Del-Libro/LFS/logs/consola_lfs.log", "LFS", 1, LOG_LEVEL_INFO);
 }
 
 void leer_config() {				// APERTURA DE CONFIG
 	archivoconfig = config_create("/home/utnso/tp-2019-1c-Los-Dinosaurios-Del-Libro/LFS/lfs.config");
 }
-
+void terminar_programa(){
+	log_destroy(logger);
+	log_destroy(logger_dump);
+	log_destroy(logger_compactacion);
+	log_destroy(logger_consola);
+	config_destroy(archivoconfig);
+}
 /*void terminar_programa(int conexionKernel, int conexionALFS)
 {
 	liberar_conexion(conexionKernel);
