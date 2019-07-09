@@ -158,7 +158,7 @@ t_status_solicitud* resolver_drop(t_log* log_a_usar, char* nombre_tabla){
 	char* dir_tabla = string_from_format("%s/Tables/%s", path_montaje, nombre_tabla);
 	if (existe_tabla_fisica(nombre_tabla)){
 		eliminar_tabla_memtable(nombre_tabla);
-		liberar_bloques(dir_tabla);
+		liberar_bloques_tabla(dir_tabla);
 		eliminar_directorio(dir_tabla);
 		paquete_a_enviar = crear_paquete_status(true, "OK");
 	}else{
@@ -169,7 +169,31 @@ t_status_solicitud* resolver_drop(t_log* log_a_usar, char* nombre_tabla){
 
 	return paquete_a_enviar;
 }
-void liberar_bloques(char* path_tabla){
+void liberar_bloques_tabla(char* path_tabla){
+
+	DIR * dir = opendir(path_tabla);
+	struct dirent * entry = readdir(dir);
+	while(entry != NULL){
+		if (( strcmp(entry->d_name, ".")!=0 && strcmp(entry->d_name, "..")!=0 ) && (archivo_es_del_tipo(entry->d_name,"temp") || archivo_es_del_tipo(entry->d_name,"tempc") || archivo_es_del_tipo(entry->d_name,"bin"))) {
+			char* dir_archivo = string_from_format("%s/%s", path_tabla, entry->d_name);
+			liberar_bloques_archivo(dir_archivo);
+		}
+		entry = readdir(dir);
+	}
+}
+
+void liberar_bloques_archivo(char* path_archivo){
+	t_config* archivo = config_create(path_archivo);
+	int size_files = config_get_int_value(archivo, "SIZE");
+	char **bloques = config_get_array_value(archivo, "BLOCKS");
+	int ind_bloques=0;
+
+	while(bloques[ind_bloques]!=NULL){
+		liberar_bloque(atoi(bloques[ind_bloques]));
+		ind_bloques = ind_bloques + 1;
+	}
+
+	config_destroy(archivo);
 
 }
 
@@ -188,7 +212,7 @@ void eliminar_directorio(char* path_tabla){
 	DIR * dir = opendir(path_tabla);
 	struct dirent * entry = readdir(dir);
 	while(entry != NULL){
-		if (entry->d_type == DT_DIR &&  ( strcmp(entry->d_name, ".")!=0 && strcmp(entry->d_name, "..")!=0 ) && (archivo_es_del_tipo(entry->d_name,"temp") || archivo_es_del_tipo(entry->d_name,"tempc") || archivo_es_del_tipo(entry->d_name,"bin"))) {
+		if ( strcmp(entry->d_name, ".")!=0 && strcmp(entry->d_name, "..")!=0 ) {
 			char* dir_archivo = string_from_format("%s/%s", path_tabla, entry->d_name);
 			if (unlink(dir_archivo) == 0)
 				log_info(logger, "Eliminado archivo: %s\n", entry->d_name);
@@ -379,9 +403,9 @@ char* array_int_to_array_char(t_list* array_int){
 void liberar_bloque(int num_bloque){
 
 	char* dir_bloque = string_from_format("%s/Bloques/%d.bin", path_montaje, num_bloque);
-	FILE* fpFile = fopen(dir_bloque,"wb+");
+	FILE* fpFile = fopen(dir_bloque,"wb");
 	fclose(fpFile);
-	truncate(fpFile, block_size);
+	truncate(dir_bloque, block_size);
 	bitarray_clean_bit(bitarray, num_bloque);
 	msync(bmap, sizeof(bitarray), MS_SYNC);
 }
@@ -677,7 +701,7 @@ char* leer_bloques_de_archivo(char* path_archivo){
 			ind_bloques = ind_bloques+1;
 		}
 	}
-
+	config_destroy(archivo);
 	return buffer_bloques;
 
 }
