@@ -40,7 +40,7 @@ int resolver_operacion_por_consola(t_instruccion_lql instruccion){
 			break;
 		case INSERT:
 			log_info(logger_consola, "Se solicitó INSERT por consola");
-			t_status_solicitud* status = resolver_insert(instruccion.parametros.INSERT.tabla,
+			t_status_solicitud* status = resolver_insert(logger_consola,instruccion.parametros.INSERT.tabla,
 													instruccion.parametros.INSERT.key,
 													instruccion.parametros.INSERT.value,
 													instruccion.parametros.INSERT.timestamp);
@@ -48,7 +48,7 @@ int resolver_operacion_por_consola(t_instruccion_lql instruccion){
 			break;
 		case CREATE:
 			log_info(logger_consola, "Se solicitó CREATE por consola");
-			status = resolver_create(instruccion.parametros.CREATE.tabla,
+			status = resolver_create(logger_consola, instruccion.parametros.CREATE.tabla,
 					instruccion.parametros.CREATE.consistencia,
 					instruccion.parametros.CREATE.num_particiones,
 					instruccion.parametros.CREATE.compactacion_time);
@@ -64,7 +64,7 @@ int resolver_operacion_por_consola(t_instruccion_lql instruccion){
 			break;
 		case DROP:
 			log_info(logger, "Se solicitó DROP por consola");
-			resolver_drop(instruccion.parametros.DROP.tabla);
+			resolver_drop(logger_consola, instruccion.parametros.DROP.tabla);
 			//aca debería enviarse el mensaje a LFS con DROP
 			break;
 		case EXIT:
