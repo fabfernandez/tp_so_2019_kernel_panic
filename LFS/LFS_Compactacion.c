@@ -7,7 +7,7 @@
 #include "LFS_Compactacion.h"
 
 void *compactar(void* nombre_tabla){
-	//char* tabla = (char*) nombre_tabla;
+	//char* tabla = (char*) nombre_tabla; Agregar linea comentada si descubro que void* rompe en ejecucion y necesito castera char*
 	char* path_tabla = string_from_format("%s/Tables/%s", path_montaje, nombre_tabla);
 	long tiempo_compactacion = obtener_tiempo_compactacion(path_tabla);
 
@@ -22,20 +22,21 @@ void *compactar(void* nombre_tabla){
 			log_info(logger, "Se realiza compactacion en: %s.", path_tabla);
 			int cantidad_archivos_renombrados = renombrar_archivos_para_compactar(path_tabla);
 
-			char* registros = leer_registros_temporales(path_tabla, cantidad_archivos_renombrados);
+			t_list* registros = leer_registros_temporales(path_tabla, cantidad_archivos_renombrados);
 			char* registros_filtrados= filtrar_registros_duplicados_segun_particiones(path_tabla, registros); //esto podria devolver una matris filtrando los datos respecto de la particion a la que corresponde, devolveria una lista de lista donde cada posicin de la lista es el index de la particion, y la lista en esa posicion contiene los registros filtrados en base a ese archivo
 
-			bloquear_tabla();
+			bloquear_tabla(); //lo hace gaby
 			int comienzo = timestamp();
 
 			realizar_compactacion(path_tabla, registros_filtrados);
 			int tiempo_operatoria = comienzo - timestamp();
 
-			desbloquear_tabla();
+			desbloquear_tabla(); // lo hace gaby
 			log_info(logger, "La tabla: %s estuvo bloqueada %d milisegundos.", nombre_tabla, tiempo_operatoria);
 
 		}
 	}
+	//free path_tabla
 }
 
 void crear_hilo_compactacion(char* nombre_tabla){
@@ -85,8 +86,8 @@ int renombrar_archivos_para_compactar(char* path_tabla){
 	return cantidad_temporales;
 }
 
-char* leer_registros_temporales(char* path_tabla, int cantidad_temporales){
-	char* registros = string_new();
+t_list* leer_registros_temporales(char* path_tabla, int cantidad_temporales){
+	t_list* registros = list_create();
 
 	for(int i=1 ; i<=cantidad_temporales; i++){
 		char* path_archivo = string_from_format("%s/%d.tempc", path_tabla, i);
@@ -95,7 +96,8 @@ char* leer_registros_temporales(char* path_tabla, int cantidad_temporales){
 		char* bloques = config_get_string_value(tempc,"BLOCKS");
 		int size = config_get_int_value(tempc,"SIZE");
 
-		string_append(&registros, leer_registros_bloques(bloques,size));
+		//t_list* bloques_ints = chars_to_ints(bloques);
+		list_add_all(registros, leer_registros_bloques(bloques,size));
 
 		//free(bloques)
 		//free(path_archivo)
@@ -104,10 +106,31 @@ char* leer_registros_temporales(char* path_tabla, int cantidad_temporales){
 	return registros;
 }
 
-char* leer_registros_bloques(char* bloques, int size_total){
+/*
+ * t_list* chars_to_ints(char* bloques){
+	t_list* bloques_int = list_create();
+
+	for(int i=1 ; bloques[i] != ']'; i++){
+		list_add(bloques_int, atoi(bloques[i]));
+	}
+
+	return bloques_int;
+}*/
+
+t_list* leer_registros_bloques(char* bloques, int size_total){
 	char* registros = string_new();
-	//???
-	return registros;
+
+	for(int i=1 ; bloques[i] != ']'; i++){
+		int bloque = atoi(bloques[i]);
+
+		string_append(&registros, leer_registros_de_bloque(bloque));
+	}
+	string_append(&registros, "\0");
+
+	t_list* registros_finales = transformar_registros(registros);
+	free(registros);
+
+	return registros_finales;
 }
 
 char* leer_registros_de_bloque(int bloque){
@@ -116,7 +139,7 @@ char* leer_registros_de_bloque(int bloque){
 	char* dir_bloque = string_from_format("%s/Bloques/%i.bin", path_montaje, bloque);
 	FILE* file = fopen(dir_bloque, "rb+");
 
-	char* buffer = malloc(sizeof(char));
+	char* buffer = (char*) malloc(sizeof(char));
 
 	while(!feof(file)){
 		fread(buffer, sizeof(char), 1, file);
@@ -127,6 +150,60 @@ char* leer_registros_de_bloque(int bloque){
 	free(dir_bloque);
 
 	return registros;
+}
+
+t_list* transformar_registros(char* registros){
+	t_list* registros_finales = list_create();
+
+	for(int i=0 ; registros[i] != '\0'; i++){
+		int l=0;
+
+
+		char* timestamp_char = (char*) malloc(sizeof(char)*11);
+		while(registros[i] != '\n'){
+			timestamp_char[l] = registros[i];
+			i++;
+			l++;
+		}
+		timestamp_char[l]= '\0';
+		long timestamp = atol(timestamp_char);
+		free(timestamp_char);
+		l=0;
+
+
+		char* key_char = (char*) malloc(sizeof(char));
+		while(registros[i] != '\n'){
+			key_char[l] = registros[i];
+			key_char = (char*) realloc(key_char,sizeof(char));
+			i++;
+			l++;
+		}
+		key_char[l]='\0';
+		uint16_t key = (uint16_t) atol(key_char);
+		free(key_char);
+		l=0;
+
+
+		char* value= (char*) malloc(sizeof(char));
+		while(registros[i] != '\n'){
+			value[l] = registros[i];
+			value = (char*) realloc(value,sizeof(char));
+			i++;
+			l++;
+		}
+		value[l]='\0';
+
+		t_registro* registro_nuevo = crear_registro(value, key, timestamp);
+		list_add(registros_finales, registro_nuevo);
+	}
+
+	return registros_finales;
+}
+
+void filtrar_registros_duplicados_segun_particiones(char* path_tabla, char* registros_nuevos){
+	//raro porque deberia tener leidos todos los datos de cada particion.
+	//generar estructuras para la tabla,
+	//validar que mis registros esten tocando todas las particiones (para no tocar particiones al pedo
 }
 
 void realizar_compactacion(char* path_tabla, char* registros_filtrados){
