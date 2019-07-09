@@ -25,6 +25,7 @@ void *compactar(void* nombre_tabla){
 			t_list* registros = leer_registros_temporales(path_tabla, cantidad_archivos_renombrados);
 			char* registros_filtrados= filtrar_registros_duplicados_segun_particiones(path_tabla, registros); //esto podria devolver una matris filtrando los datos respecto de la particion a la que corresponde, devolveria una lista de lista donde cada posicin de la lista es el index de la particion, y la lista en esa posicion contiene los registros filtrados en base a ese archivo
 
+
 			bloquear_tabla(nombre_tabla); //lo hace gaby
 			int comienzo = time(NULL);
 
@@ -129,9 +130,9 @@ t_list* leer_registros_bloques(char* bloques, int size_total){
 	char* registros = string_new();
 
 	for(int i=1 ; bloques[i] != ']'; i++){
-		int bloque = atoi(bloques[i]);
+		int bloque = atoi(&bloques[i]);
 
-		string_append(&registros, leer_registros_de_bloque(bloque));
+		string_append(&registros, leer_registros_char_de_bloque(bloque));
 	}
 	string_append(&registros, "\0");
 
@@ -141,7 +142,7 @@ t_list* leer_registros_bloques(char* bloques, int size_total){
 	return registros_finales;
 }
 
-char* leer_registros_de_bloque(int bloque){
+char* leer_registros_char_de_bloque(int bloque){
 	char* registros = string_new();
 
 	char* dir_bloque = string_from_format("%s/Bloques/%i.bin", path_montaje, bloque);
@@ -168,7 +169,7 @@ t_list* transformar_registros(char* registros){
 
 
 		char* timestamp_char = (char*) malloc(sizeof(char)*11);
-		while(registros[i] != '\n'){
+		while(registros[i] != ';'){
 			timestamp_char[l] = registros[i];
 			i++;
 			l++;
@@ -176,11 +177,12 @@ t_list* transformar_registros(char* registros){
 		timestamp_char[l]= '\0';
 		long timestamp = atol(timestamp_char);
 		free(timestamp_char);
+		i++;
 		l=0;
 
 
 		char* key_char = (char*) malloc(sizeof(char));
-		while(registros[i] != '\n'){
+		while(registros[i] != ';'){
 			key_char[l] = registros[i];
 			key_char = (char*) realloc(key_char,sizeof(char));
 			i++;
@@ -189,6 +191,7 @@ t_list* transformar_registros(char* registros){
 		key_char[l]='\0';
 		uint16_t key = (uint16_t) atol(key_char);
 		free(key_char);
+		i++;
 		l=0;
 
 
@@ -208,7 +211,7 @@ t_list* transformar_registros(char* registros){
 	return registros_finales;
 }
 
-void filtrar_registros_duplicados_segun_particiones(char* path_tabla, char* registros_nuevos){
+void filtrar_registros_duplicados_segun_particiones(char* path_tabla, t_list* registros_nuevos){
 	//raro porque deberia tener leidos todos los datos de cada particion.
 	//generar estructuras para la tabla,
 	//validar que mis registros esten tocando todas las particiones (para no tocar particiones al pedo

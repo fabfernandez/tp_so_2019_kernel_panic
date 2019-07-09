@@ -18,7 +18,7 @@ bool hay_temporales(char* path_tabla);
 int renombrar_archivos_para_compactar(char* path_tabla);
 t_list* leer_registros_temporales(char* path_tabla, int cantidad_temporales);
 t_list* leer_registros_bloques(char* bloques, int size_total);
-char* leer_registros_de_bloque(int bloque);
+char* leer_registros_char_de_bloque(int bloque);
 t_list* transformar_registros(char* registros);
 void realizar_compactacion(char* path_tabla, char* registros_filtrados);
 
