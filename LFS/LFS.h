@@ -26,7 +26,6 @@
 #include <sys/stat.h>
 #include <time.h>
 
-
 #include "LFS_Consola.h"
 #include "LFS_Dump.h"
 
@@ -35,20 +34,24 @@ char* bmap;
 t_bitarray* bitarray;
 
 
-
 // ******* DEFINICION DE FUNCIONES A UTILIZAR ******* //
 void chequearSocket(int socketin);
-void iniciar_logger(void);
+void iniciar_loggers();
 void leer_config();
-void terminar_programa(int conexion);
+void terminar_programa();
 					// ******* TIPOS NECESARIOS ******* //
 t_log* logger;
+t_log* logger_dump;
+t_log* logger_compactacion;
+t_log* logger_consola;
 t_config* archivoconfig;
 char* path_montaje;
 int  max_size_value, block_size, blocks;
 int tiempo_dump;
 pthread_mutex_t mutexMemtable;
-
+bool fin_de_programa;
+pthread_t hilo_consola;
+pthread_t hilo_dump;
 
 t_list* leer_registros_de_bloque(int bloque, int bytes_a_leer);
 int crear_directorio_tabla (char* dir_tabla);

@@ -5,16 +5,19 @@
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
 ../LFS.c \
+../LFS_Compactacion.c \
 ../LFS_Consola.c \
 ../LFS_Dump.c 
 
 OBJS += \
 ./LFS.o \
+./LFS_Compactacion.o \
 ./LFS_Consola.o \
 ./LFS_Dump.o 
 
 C_DEPS += \
 ./LFS.d \
+./LFS_Compactacion.d \
 ./LFS_Consola.d \
 ./LFS_Dump.d 
 

@@ -24,6 +24,7 @@ int main(void)
 	iniciarMutexMemtable();
 
 	levantar_lfs(montaje);
+	char* registros = leer_registros_de_bloque(41);
 	crear_hilo_consola();
 	crear_hilo_dump();
 
