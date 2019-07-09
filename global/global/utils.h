@@ -38,6 +38,7 @@ int create(char* tabla, t_consistencia consistencia, int maximo_particiones, lon
 
 t_metadata describe(char* tabla);
 
+char* consistencia_to_string(t_consistencia consistencia);
 int crear_conexion(char* ip, char* puerto);
 int enviar_mensaje(char* mensaje, int socket_cliente, int cod_operacion);
 t_paquete* crear_paquete(void);

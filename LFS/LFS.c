@@ -12,7 +12,7 @@ int main(void)
 	char* puerto_lfs;
 	int socket_memoria;
 	char *montaje;
-	iniciar_logger(); // creamos log
+	iniciar_loggers(); // creamos log
 	leer_config(); // abrimos config
 	ip_lfs = config_get_string_value(archivoconfig, "IP_LFS"); // asignamos IP de memoria a conectar desde CONFIG
 	log_info(logger, "La IP de la memoria es %s",ip_lfs );
@@ -28,14 +28,14 @@ int main(void)
 	crear_hilo_dump();
 
 	int server_LFS = iniciar_servidor(ip_lfs, puerto_lfs);
-	while (1){
+	while (!fin_de_programa){
 		if ((socket_memoria = esperar_cliente(server_LFS)) == -1) {
 			//log_error(logger, "No pudo aceptarse la conexion del cliente");
 		} else {
 			crear_hilo_memoria(socket_memoria);
 		}
 	}
-	//terminar_programa(socket_memoria_entrante, conexionALFS); // termina conexion, destroy log y destroy config. ???
+	terminar_programa(); // termina conexion, destroy log y destroy config. ???
 	return EXIT_SUCCESS;
 }
 
@@ -57,6 +57,37 @@ void *atender_pedido_memoria (void* memoria_fd){
 		}
 	}
 	    //free(i);
+}
+
+t_list* leer_registros_de_bloque(int bloque, int bytes_a_leer){
+
+	t_list* registros = list_create();
+	char* dir_bloque = string_from_format("%s/Bloques/%i.bin", path_montaje, bloque);
+	FILE* file = fopen(dir_bloque, "rb+");
+
+	char* buffer = malloc(bytes_a_leer);
+	fread(buffer, sizeof(char), bytes_a_leer, file);
+	fclose(file);
+	//armar la lista de registros con el buffer
+	char **array_buffer_registro = string_split(buffer, "\n");
+	int i=0;
+	while (array_buffer_registro[i]!=NULL){
+		char** string_registro = string_split(array_buffer_registro[i], ";");
+		if (esta_completo_buffer_registro(array_buffer_registro[i])){
+			uint16_t key = (uint16_t) atoi(string_registro[1]);
+			long timestamp = (long)atoi(string_registro[0]);
+			t_registro* registro= crear_registro(string_registro[2], key, timestamp);
+			list_add(registros, registro);
+		}else{
+
+		}
+
+		i = i+1;
+	}
+
+	free(buffer);
+	free(dir_bloque);
+	return registros;
 }
 
 void crear_hilo_memoria(int socket_memoria){
@@ -109,14 +140,14 @@ int resolver_operacion(int socket_memoria, t_operacion cod_op){
 		case INSERT:
 			log_info(logger, "memoria solicitó INSERT");
 			t_paquete_insert* consulta_insert = deserealizar_insert(socket_memoria);
-			status = resolver_insert(consulta_insert->nombre_tabla->palabra, consulta_insert->key, consulta_insert->valor->palabra, consulta_insert->timestamp);
+			status = resolver_insert(logger, consulta_insert->nombre_tabla->palabra, consulta_insert->key, consulta_insert->valor->palabra, consulta_insert->timestamp);
 			enviar_status_resultado(status, socket_memoria);
 			eliminar_paquete_insert(consulta_insert);
 			break;
 		case CREATE:
 			log_info(logger, "memoria solicitó CREATE");
 			t_paquete_create* create = deserializar_create (socket_memoria);
-			status = resolver_create(create->nombre_tabla->palabra, create->consistencia, create->num_particiones, create->tiempo_compac);
+			status = resolver_create(logger, create->nombre_tabla->palabra, create->consistencia, create->num_particiones, create->tiempo_compac);
 			enviar_status_resultado(status, socket_memoria);
 			//eliminar_paquete_status(status);
 			eliminar_paquete_create(create);
@@ -133,7 +164,10 @@ int resolver_operacion(int socket_memoria, t_operacion cod_op){
 			break;
 		case DROP:
 			log_info(logger, "memoria solicitó DROP");
-			//resolver_drop(socket_memoria, "DROP");
+			t_paquete_drop_describe* consulta_drop = deserealizar_drop_describe(socket_memoria);
+			status = resolver_drop(logger, consulta_drop->nombre_tabla->palabra);
+			enviar_status_resultado(status, socket_memoria);
+			eliminar_paquete_drop_describe(consulta_drop);
 			//aca debería enviarse el mensaje a LFS con DROP
 			break;
 		case -1:
@@ -146,6 +180,62 @@ int resolver_operacion(int socket_memoria, t_operacion cod_op){
 		}
 	return EXIT_SUCCESS;
 }
+
+t_status_solicitud* resolver_drop(t_log* log_a_usar, char* nombre_tabla){
+
+	t_status_solicitud* paquete_a_enviar;
+	log_info(log_a_usar, "Se realiza DROP");
+	log_info(log_a_usar, "Tabla: %s",nombre_tabla);
+	char* dir_tabla = string_from_format("%s/Tables/%s", path_montaje, nombre_tabla);
+	if (existe_tabla_fisica(nombre_tabla)){
+		eliminar_tabla_memtable(nombre_tabla);
+		liberar_bloques(dir_tabla);
+		eliminar_directorio(dir_tabla);
+		paquete_a_enviar = crear_paquete_status(true, "OK");
+	}else{
+		char * mje_error = string_from_format("La tabla %s no existe", nombre_tabla);
+		log_error(log_a_usar, mje_error);
+		paquete_a_enviar = crear_paquete_status(false, mje_error);
+	}
+
+	return paquete_a_enviar;
+}
+void liberar_bloques(char* path_tabla){
+
+}
+
+void eliminar_tabla_memtable(char* nombre_tabla){
+	int _es_tabla_con_nombre(t_cache_tabla* tabla) {
+		return string_equals_ignore_case(tabla->nombre, nombre_tabla);
+	}
+	t_list* tabla_cache_eliminada = list_remove_by_condition(memtable, _es_tabla_con_nombre);
+	if (tabla_cache_eliminada!=NULL){
+		list_destroy(tabla_cache_eliminada);
+	}
+}
+
+void eliminar_directorio(char* path_tabla){
+
+	DIR * dir = opendir(path_tabla);
+	struct dirent * entry = readdir(dir);
+	while(entry != NULL){
+		if (entry->d_type == DT_DIR &&  ( strcmp(entry->d_name, ".")!=0 && strcmp(entry->d_name, "..")!=0 ) && (archivo_es_del_tipo(entry->d_name,"temp") || archivo_es_del_tipo(entry->d_name,"tempc") || archivo_es_del_tipo(entry->d_name,"bin"))) {
+			char* dir_archivo = string_from_format("%s/%s", path_tabla, entry->d_name);
+			if (unlink(dir_archivo) == 0)
+				log_info(logger, "Eliminado archivo: %s\n", entry->d_name);
+			else
+				log_info(logger, "No se puede eliminar archivo: %s\n", entry->d_name);
+		}
+		entry = readdir(dir);
+	}
+	if (rmdir(path_tabla) == 0)
+		log_info(logger, "Eliminado dir tabla: %s\n", path_tabla);
+	else
+		log_info(logger, "No se puede eliminar dir tabla: %s\n", path_tabla);
+
+	closedir(dir);
+}
+
 
 bool validar_datos_describe(char* nombre_tabla, int socket_memoria){
 	t_status_solicitud* status;
@@ -171,7 +261,7 @@ void levantar_lfs(char* montaje){
 	log_info(logger, "Inicia filesystem");
 	path_montaje = malloc(string_size(montaje));
 	memcpy(path_montaje, montaje,string_size(montaje) );
-
+	fin_de_programa=false;
 	memtable = list_create();
 	obtener_info_metadata();
 	obtener_bitmap();
@@ -189,8 +279,6 @@ void obtener_bitmap(){
     }
 
     bmap = mmap(NULL, mystat.st_size, PROT_READ | PROT_WRITE, MAP_SHARED,	fd, 0);
-    int tamanioBitarray = blocks/8;
-
 	bitarray = bitarray_create_with_mode(bmap, blocks/8, MSB_FIRST);
 }
 
@@ -224,7 +312,7 @@ void obtener_info_metadata(){
 	// no hay que hacer un destroy de ese config ?
 }
 
-t_status_solicitud* resolver_create (char* nombre_tabla, t_consistencia consistencia, int num_particiones, long compactacion){
+t_status_solicitud* resolver_create (t_log* log_a_usar,char* nombre_tabla, t_consistencia consistencia, int num_particiones, long compactacion){
 
 	/*
 	 * Verificar que la tabla no exista en el file system. Por convención, una tabla existe si ya hay
@@ -238,15 +326,15 @@ t_status_solicitud* resolver_create (char* nombre_tabla, t_consistencia consiste
 		bloque
 	 * */
 	t_status_solicitud* status;
-	log_info(logger, "Se realiza CREATE");
-	log_info(logger, "Tabla: %s",nombre_tabla);
-	log_info(logger, "Num Particiones: %d",num_particiones);
-	log_info(logger, "Tiempo compactacion: %d", compactacion);
-	log_info(logger, "Consistencia: %d", consistencia);
+	log_info(log_a_usar, "Se realiza CREATE");
+	log_info(log_a_usar, "Tabla: %s",nombre_tabla);
+	log_info(log_a_usar, "Num Particiones: %d",num_particiones);
+	log_info(log_a_usar, "Tiempo compactacion: %d", compactacion);
+	log_info(log_a_usar, "Consistencia: %d", consistencia);
 
 	if(existe_tabla_fisica(nombre_tabla)){
 		char * mje_error = string_from_format("La tabla %s ya existe", nombre_tabla);
-		log_error(logger, mje_error);
+		log_error(log_a_usar, mje_error);
 		status = crear_paquete_status(false, mje_error);
 	}else{
 		char* dir_tabla = string_from_format("%s/Tables/%s", path_montaje, nombre_tabla);
@@ -256,7 +344,7 @@ t_status_solicitud* resolver_create (char* nombre_tabla, t_consistencia consiste
 			status = crear_paquete_status(true, "OK");
 		}else{
 			char * mje_error = string_from_format("No pudo crearse la tabla %s", nombre_tabla);
-			log_error(logger, mje_error);
+			log_error(log_a_usar, mje_error);
 			status = crear_paquete_status(false, mje_error);
 		}
 
@@ -319,6 +407,11 @@ char* array_int_to_array_char(t_list* array_int){
 	return array_char_sin_ultima_coma;
 }
 
+void liberar_bloque(int num_bloque){
+	bitarray_clean_bit(bitarray, num_bloque);
+	msync(bmap, sizeof(bitarray), MS_SYNC);
+}
+
 int obtener_bloque_disponible(){
 
 	bool esta_ocupado=true;
@@ -379,6 +472,7 @@ int obtener_cantidad_tablas_LFS(){
 		}
 		entry = readdir(dir);
 	}
+	closedir(dir);
 	return cant_tablas;
 }
 
@@ -414,21 +508,21 @@ void resolver_describe_drop (int socket_memoria, char* operacion){
 	eliminar_paquete_drop_describe(consulta_describe_drop);
 }
 
-t_status_solicitud*  resolver_insert(char* nombre_tabla, uint16_t key, char* value, long timestamp){
+t_status_solicitud*  resolver_insert(t_log* log_a_usar, char* nombre_tabla, uint16_t key, char* value, long timestamp){
 
 	t_status_solicitud* paquete_a_enviar;
-	log_info(logger, "Se realiza INSERT");
-	log_info(logger, "Consulta en la tabla: %s", nombre_tabla );
-	log_info(logger, "Consulta por key: %d", key);
-	log_info(logger, "Valor: %s", value);
-	log_info(logger, "TIMESTAMP: %d",timestamp);
+	log_info(log_a_usar, "Se realiza INSERT");
+	log_info(log_a_usar, "Consulta en la tabla: %s", nombre_tabla );
+	log_info(log_a_usar, "Consulta por key: %d", key);
+	log_info(log_a_usar, "Valor: %s", value);
+	log_info(log_a_usar, "TIMESTAMP: %d",timestamp);
 	if (existe_tabla_fisica(nombre_tabla)){
 		//llenar los datos de consistencia, particion que estan en la metadata de la tabla (ingresar al directorio de la tabla) Metadata
 		agregar_registro_memtable(crear_registro(value, key,  timestamp), nombre_tabla);
 		paquete_a_enviar = crear_paquete_status(true, "OK");
 	}else{
 		char * mje_error = string_from_format("La tabla %s no existe", nombre_tabla);
-		log_error(logger, mje_error);
+		log_error(log_a_usar, mje_error);
 		paquete_a_enviar = crear_paquete_status(false, mje_error);
 	}
 
@@ -501,9 +595,16 @@ t_status_solicitud* resolver_select (char* nombre_tabla, uint16_t key){
 	log_info(logger, "Se realiza SELECT");
 	log_info(logger, "Consulta en la tabla: %s", nombre_tabla);
 	log_info(logger, "Consulta por key: %d", key);
+	t_list* registros_encontrados = list_create();
 	if (existe_tabla_fisica(nombre_tabla)){
-		t_registro* registro_buscado = buscar_registro_memtable(nombre_tabla, key);
-		//TODO: buscar en archivos temporales y en bloques
+		t_list* registros_memtable = buscar_registros_memtable(nombre_tabla, key);
+		t_list* registros_temporales = buscar_registros_temporales(nombre_tabla, key);
+		t_list* registros_particion = buscar_registros_en_particion(nombre_tabla, key);
+
+		list_add_all(registros_encontrados, registros_memtable);
+		list_add_all(registros_encontrados, registros_temporales);
+		list_add_all(registros_encontrados, registros_particion);
+		t_registro* registro_buscado = buscar_registro_actual(registros_encontrados);
 		if(registro_buscado !=NULL){
 			char* resultado = generar_registro_string(registro_buscado->timestamp, registro_buscado->key, registro_buscado->value);
 			status = crear_paquete_status(true, resultado );
@@ -523,9 +624,112 @@ t_status_solicitud* resolver_select (char* nombre_tabla, uint16_t key){
 	return status;
 
 }
+t_list* buscar_registros_en_particion(char* nombre_tabla,uint16_t key){
 
+	char* path_metadata = string_from_format("%s/Tables/%s/Metadata", path_montaje, nombre_tabla);
+	t_config* metadata = config_create(path_metadata);
+	int num_particiones = config_get_int_value(metadata, "PARTITIONS");
+	t_list* registros_encontrados = list_create();
+	int particion = key % num_particiones;
+	char* path_particion = string_from_format("%s/Tables/%s/%d.bin", path_montaje, nombre_tabla, particion);
+	t_list* registros_en_particion = buscar_registros_con_key_en_archivo(path_particion, key);
+	list_add_all(registros_encontrados, registros_en_particion);
+	config_destroy(metadata);
+	return registros_encontrados;
+}
 
-t_registro* buscar_registro_memtable(char* nombre_tabla, uint16_t key){
+t_list* buscar_registros_temporales(char* nombre_tabla, uint16_t key){
+
+	char* path_tablas = string_from_format("%s/Tables/%s", path_montaje, nombre_tabla);
+	t_list* registros_encontrados = list_create();
+	DIR * dir = opendir(path_tablas);
+	struct dirent * entry = readdir(dir);
+	while(entry != NULL){
+		if (( strcmp(entry->d_name, ".")!=0 && strcmp(entry->d_name, "..")!=0 ) && (archivo_es_del_tipo(entry->d_name,"temp") || archivo_es_del_tipo(entry->d_name,"tempc"))){
+			char* path_archivo_temporal = string_from_format("%s/%s", path_tablas, entry->d_name);
+			t_list* registros_en_temporal = buscar_registros_con_key_en_archivo(path_archivo_temporal, key);
+			list_add_all(registros_encontrados, registros_en_temporal);
+		}
+		entry = readdir(dir);
+	}
+	return registros_encontrados;
+}
+
+t_list* buscar_registros_con_key_en_archivo(char* path_archivo,uint16_t key){
+
+	int _es_registro_con_key(t_registro* registro){
+		return registro->key== key;
+	}
+
+	t_list* registros_con_key = list_create();
+	t_config* archivo = config_create(path_archivo);
+	int size_files = config_get_int_value(archivo, "SIZE");
+	char **bloques = config_get_array_value(archivo, "BLOCKS");
+	int resto_a_leer = size_files;
+	char* registro_a_completar=string_new();
+	int size_a_leer;
+	int ind_bloques=0;
+	t_list* registros_de_bloques = list_create();
+
+	if (size_files!=0){
+		while(bloques[ind_bloques]!=NULL){
+			if (resto_a_leer-block_size > 0){
+				size_a_leer = block_size;
+				resto_a_leer=resto_a_leer-block_size;
+			}else{
+				size_a_leer = resto_a_leer;
+			}
+			int num_bloque=atoi(bloques[ind_bloques]);
+
+			char* dir_bloque = string_from_format("%s/Bloques/%i.bin", path_montaje, num_bloque);
+			FILE* file = fopen(dir_bloque, "rb+");
+
+			char* buffer = malloc(size_a_leer);
+			fread(buffer, sizeof(char), size_a_leer, file);
+			fclose(file);
+			char **array_buffer_registro = string_split(buffer, "\n");
+			int ind_registros=0;
+			while (array_buffer_registro[ind_registros]!=NULL){
+				char** string_registro = string_split(array_buffer_registro[ind_registros], ";");
+				if (esta_completo_buffer_registro(string_registro)){
+					uint16_t key = (uint16_t) atoi(string_registro[1]);
+					long timestamp = (long)atoi(string_registro[0]);
+					t_registro* registro= crear_registro(string_registro[2], key, timestamp);
+					list_add(registros_de_bloques, registro);
+				}else{
+					string_append(&registro_a_completar,array_buffer_registro[ind_registros]);
+					char** string_registro = string_split(registro_a_completar, ";");
+					if (esta_completo_buffer_registro(string_registro)){
+						uint16_t key = (uint16_t) atoi(string_registro[1]);
+						long timestamp = (long)atoi(string_registro[0]);
+						t_registro* registro= crear_registro(string_registro[2], key, timestamp);
+						list_add(registros_de_bloques, registro);
+						registro_a_completar = string_new();
+					}
+				}
+
+				ind_registros = ind_registros+1;
+			}
+
+			free(buffer);
+			free(dir_bloque);
+			ind_bloques = ind_bloques+1;
+		}
+		t_list* registros_filtrados = list_filter(registros_de_bloques, _es_registro_con_key);
+		list_add_all(registros_con_key, registros_filtrados);
+	}
+
+	return registros_con_key;
+}
+bool esta_completo_buffer_registro(char** buffer_registro) {
+	int i = 0;
+	while(buffer_registro[i]!=NULL){
+		i=i+1;
+	}
+	return i==3;
+}
+
+t_list* buscar_registros_memtable(char* nombre_tabla, uint16_t key){
 
 	int _es_tabla_con_nombre(t_cache_tabla* tabla) {
 			return string_equals_ignore_case(tabla->nombre, nombre_tabla);
@@ -534,23 +738,44 @@ t_registro* buscar_registro_memtable(char* nombre_tabla, uint16_t key){
 		return registro->key== key;
 	}
 
-	t_registro* registro=NULL;
+	t_list* registros_encontrados = list_create();
 	t_cache_tabla* tabla_cache= list_find(memtable, (void*) _es_tabla_con_nombre);
 	if(tabla_cache!=NULL){
-		registro = list_find(tabla_cache->registros,(void*) _es_registro_con_key);
+		list_filter(tabla_cache->registros,(void*) _es_registro_con_key);
 	}
 
-	return registro;
+	return registros_encontrados;
 }
 
- void iniciar_logger() { 								// CREACION DE LOG
-	logger = log_create("/home/utnso/tp-2019-1c-Los-Dinosaurios-Del-Libro/LFS/lfs.log", "LFS", 1, LOG_LEVEL_INFO);
+t_registro* buscar_registro_actual(t_list* registros_encontrados){
+	t_registro* registro_actual = NULL;
+	int _registro_mayor_por_timestamp(t_registro* registroA, t_registro* registroB){
+			return registroA->timestamp>registroB->timestamp;
+	}
+	if (!list_is_empty(registros_encontrados)){
+		 list_sort(registros_encontrados, _registro_mayor_por_timestamp);
+		 registro_actual= list_get(registros_encontrados,0);
+	}
+	return registro_actual;
+}
+
+ void iniciar_loggers() { 								// CREACION DE LOG
+	logger = log_create("/home/utnso/tp-2019-1c-Los-Dinosaurios-Del-Libro/LFS/logs/lfs.log", "LFS", 0, LOG_LEVEL_INFO);
+	logger_dump = log_create("/home/utnso/tp-2019-1c-Los-Dinosaurios-Del-Libro/LFS/logs/dump_lfs.log", "LFS", 0, LOG_LEVEL_INFO);
+	logger_compactacion = log_create("/home/utnso/tp-2019-1c-Los-Dinosaurios-Del-Libro/LFS/logs/compactacion_lfs.log", "LFS", 0, LOG_LEVEL_INFO);
+	logger_consola = log_create("/home/utnso/tp-2019-1c-Los-Dinosaurios-Del-Libro/LFS/logs/consola_lfs.log", "LFS", 1, LOG_LEVEL_INFO);
 }
 
 void leer_config() {				// APERTURA DE CONFIG
 	archivoconfig = config_create("/home/utnso/tp-2019-1c-Los-Dinosaurios-Del-Libro/LFS/lfs.config");
 }
-
+void terminar_programa(){
+	log_destroy(logger);
+	log_destroy(logger_dump);
+	log_destroy(logger_compactacion);
+	log_destroy(logger_consola);
+	config_destroy(archivoconfig);
+}
 /*void terminar_programa(int conexionKernel, int conexionALFS)
 {
 	liberar_conexion(conexionKernel);
