@@ -74,7 +74,7 @@ int obtener_cantidad_tablas_LFS();
 void liberar_bloque(int num_bloque);
 void enviar_metadata_todas_tablas (int socket_memoria);
 int create(char* tabla, t_consistencia consistencia, int maximo_particiones, long tiempo_compactacion);
-void resolver_describe_drop (int socket_memoria, char* operacion);
+t_status_solicitud* resolver_drop(char* nombre_tabla);
 void resolver_describe(char* nombre_tabla, int socket_memoria);
 t_registro* buscar_registro_actual(t_list* registros_encontrados);
 t_registro* crear_registro(char* value, uint16_t key, long timestamp);

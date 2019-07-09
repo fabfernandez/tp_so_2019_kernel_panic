@@ -24,7 +24,6 @@ int main(void)
 	iniciarMutexMemtable();
 
 	levantar_lfs(montaje);
-	char* registros = leer_registros_de_bloque(41);
 	crear_hilo_consola();
 	crear_hilo_dump();
 
@@ -194,6 +193,9 @@ t_status_solicitud* resolver_drop(char* nombre_tabla){
 	}
 
 	return paquete_a_enviar;
+}
+void liberar_bloques(char* path_tabla){
+
 }
 
 void eliminar_tabla_memtable(char* nombre_tabla){
