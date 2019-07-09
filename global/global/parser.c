@@ -46,11 +46,11 @@ t_instruccion_lql parsear_linea(char* line){
 		}
 		string_to_upper(insert_split[1]);
 		ret.parametros.INSERT.tabla = insert_split[1];
-		ret.parametros.INSERT.key= (uint16_t)atoi(insert_split[2]);
+		ret.parametros.INSERT.key= (uint16_t)atol(insert_split[2]);
 		if(value_ts[1] == NULL){
 			ret.parametros.INSERT.timestamp= (unsigned long)time(NULL);
 		} else{
-			ret.parametros.INSERT.timestamp=(long)atoi(value_ts[1]);
+			ret.parametros.INSERT.timestamp=(long)atol(value_ts[1]);
 		}
 		char* value = value_ts[0];
 		ret.parametros.INSERT.value = value;
@@ -62,7 +62,7 @@ t_instruccion_lql parsear_linea(char* line){
 		}
 		string_to_upper(split[1]);
 		ret.parametros.SELECT.tabla = split[1];
-		ret.parametros.SELECT.key= (uint16_t)atoi(split[2]);
+		ret.parametros.SELECT.key= (uint16_t)atol(split[2]);
 	} else if(string_equals_ignore_case(keyword, CREATE_KEY)){
 		ret.operacion=CREATE;
 		if (split[1] == NULL || split[2]== NULL || split[3] == NULL || split[4] == NULL){
@@ -76,7 +76,7 @@ t_instruccion_lql parsear_linea(char* line){
 		}
 		ret.parametros.CREATE.consistencia = get_valor_consistencia(split[2]);
 		ret.parametros.CREATE.num_particiones=atoi(split[3]);
-		ret.parametros.CREATE.compactacion_time=(long)atoi(split[4]);
+		ret.parametros.CREATE.compactacion_time=(long)atol(split[4]);
 	} else if(string_equals_ignore_case(keyword, DESCRIBE_KEY)){
 		ret.operacion=DESCRIBE;
 		if(split[1] !=NULL){

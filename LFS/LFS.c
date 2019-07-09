@@ -74,8 +74,8 @@ t_list* leer_registros_de_bloque(int bloque, int bytes_a_leer){
 	while (array_buffer_registro[i]!=NULL){
 		char** string_registro = string_split(array_buffer_registro[i], ";");
 		if (esta_completo_buffer_registro(array_buffer_registro[i])){
-			uint16_t key = (uint16_t) atoi(string_registro[1]);
-			long timestamp = (long)atoi(string_registro[0]);
+			uint16_t key = (uint16_t) atol(string_registro[1]);
+			long timestamp = (long)atol(string_registro[0]);
 			t_registro* registro= crear_registro(string_registro[2], key, timestamp);
 			list_add(registros, registro);
 		}else{
@@ -405,6 +405,11 @@ char* array_int_to_array_char(t_list* array_int){
 }
 
 void liberar_bloque(int num_bloque){
+
+	char* dir_bloque = string_from_format("%s/Bloques/%d.bin", path_montaje, num_bloque);
+	FILE* fpFile = fopen(dir_bloque,"wb+");
+	fclose(fpFile);
+	truncate(fpFile, block_size);
 	bitarray_clean_bit(bitarray, num_bloque);
 	msync(bmap, sizeof(bitarray), MS_SYNC);
 }
@@ -689,16 +694,16 @@ t_list* buscar_registros_con_key_en_archivo(char* path_archivo,uint16_t key){
 			while (array_buffer_registro[ind_registros]!=NULL){
 				char** string_registro = string_split(array_buffer_registro[ind_registros], ";");
 				if (esta_completo_buffer_registro(string_registro)){
-					uint16_t key = (uint16_t) atoi(string_registro[1]);
-					long timestamp = (long)atoi(string_registro[0]);
+					uint16_t key = (uint16_t) atol(string_registro[1]);
+					long timestamp = (long)atol(string_registro[0]);
 					t_registro* registro= crear_registro(string_registro[2], key, timestamp);
 					list_add(registros_de_bloques, registro);
 				}else{
 					string_append(&registro_a_completar,array_buffer_registro[ind_registros]);
 					char** string_registro = string_split(registro_a_completar, ";");
 					if (esta_completo_buffer_registro(string_registro)){
-						uint16_t key = (uint16_t) atoi(string_registro[1]);
-						long timestamp = (long)atoi(string_registro[0]);
+						uint16_t key = (uint16_t) atol(string_registro[1]);
+						long timestamp = (long)atol(string_registro[0]);
 						t_registro* registro= crear_registro(string_registro[2], key, timestamp);
 						list_add(registros_de_bloques, registro);
 						registro_a_completar = string_new();
