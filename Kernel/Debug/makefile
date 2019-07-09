@@ -25,7 +25,7 @@ endif
 all: Kernel
 
 dependents:
-	-cd /home/utnso/tp-2019-1c-Los-Dinosaurios-Del-Libro/global/Debug && $(MAKE) all
+	-cd /home/utnso/tp-2019-1c-Los-Dinosaurios-Del-Libro/global/Debug && $(MAKE) clean all
 
 # Tool invocations
 Kernel: $(OBJS) $(USER_OBJS) /home/utnso/tp-2019-1c-Los-Dinosaurios-Del-Libro/global/Debug/libglobal.so
