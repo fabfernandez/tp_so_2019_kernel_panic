@@ -28,7 +28,6 @@
 
 #include "LFS_Consola.h"
 #include "LFS_Dump.h"
-
 t_list* memtable;
 char* bmap;
 t_bitarray* bitarray;
