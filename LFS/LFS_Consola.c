@@ -62,7 +62,7 @@ int resolver_operacion_por_consola(t_instruccion_lql instruccion){
 			break;
 		case DROP:
 			log_info(logger, "Se solicitó DROP por consola");
-			//resolver_describe_drop(instruccion);
+			resolver_drop(instruccion.parametros.DROP.tabla);
 			//aca debería enviarse el mensaje a LFS con DROP
 			break;
 
@@ -111,9 +111,18 @@ void resolver_select_consola (char* nombre_tabla, uint16_t key){
 	log_info(logger, "Se realiza SELECT");
 	log_info(logger, "Consulta en la tabla: %s", nombre_tabla);
 	log_info(logger, "Consulta por key: %d", key);
+	t_list* registros_encontrados = list_create();
 	if (existe_tabla_fisica(nombre_tabla)){
-		t_registro* registro_buscado = buscar_registro_memtable(nombre_tabla, key);
-		//TODO: buscar en archivos temporales y en bloques
+
+		t_list* registros_memtable = buscar_registros_memtable(nombre_tabla, key);
+		t_list* registros_temporales = buscar_registros_temporales(nombre_tabla, key);
+		t_list* registros_particion = buscar_registros_en_particion(nombre_tabla, key);
+
+		list_add_all(registros_encontrados, registros_memtable);
+		list_add_all(registros_encontrados, registros_temporales);
+		list_add_all(registros_encontrados, registros_particion);
+		t_registro* registro_buscado = buscar_registro_actual(registros_encontrados);
+
 		if(registro_buscado !=NULL){
 			char* resultado = generar_registro_string(registro_buscado->timestamp, registro_buscado->key, registro_buscado->value);
 			log_info(logger, "Resultado: %s", resultado);
