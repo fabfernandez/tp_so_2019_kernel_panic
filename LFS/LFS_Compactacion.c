@@ -11,41 +11,49 @@ void *compactar(void* nombre_tabla){
 	char* path_tabla = string_from_format("%s/Tables/%s", path_montaje, nombre_tabla);
 	long tiempo_compactacion = obtener_tiempo_compactacion(path_tabla);
 
-	log_info(logger, "Tiempo retardo compactacion: [%i]", tiempo_compactacion);
+	log_info(logger_compactacion, "Tiempo retardo compactacion: [%i]", tiempo_compactacion);
 	while(1){
-		log_info(logger, "%i", tiempo_compactacion);
+		log_info(logger_compactacion, "%i", tiempo_compactacion);
 		sleep(tiempo_compactacion/1000);
 
 		if (hay_temporales(path_tabla)) {
-			log_info(logger, "Compactacion- No hay datos para compactar en: %s.", path_tabla);
+			log_info(logger_compactacion, "Compactacion- No hay datos para compactar en: %s.", path_tabla);
 		}else{
-			log_info(logger, "Se realiza compactacion en: %s.", path_tabla);
+			log_info(logger_compactacion, "Se realiza compactacion en: %s.", path_tabla);
 			int cantidad_archivos_renombrados = renombrar_archivos_para_compactar(path_tabla);
 
 			t_list* registros = leer_registros_temporales(path_tabla, cantidad_archivos_renombrados);
 			char* registros_filtrados= filtrar_registros_duplicados_segun_particiones(path_tabla, registros); //esto podria devolver una matris filtrando los datos respecto de la particion a la que corresponde, devolveria una lista de lista donde cada posicin de la lista es el index de la particion, y la lista en esa posicion contiene los registros filtrados en base a ese archivo
 
-			bloquear_tabla(); //lo hace gaby
-			int comienzo = timestamp();
+			bloquear_tabla(nombre_tabla); //lo hace gaby
+			int comienzo = time(NULL);
 
 			realizar_compactacion(path_tabla, registros_filtrados);
-			int tiempo_operatoria = comienzo - timestamp();
 
-			desbloquear_tabla(); // lo hace gaby
-			log_info(logger, "La tabla: %s estuvo bloqueada %d milisegundos.", nombre_tabla, tiempo_operatoria);
+			desbloquear_tabla(nombre_tabla); // lo hace gaby
+			int tiempo_operatoria = comienzo - time(NULL);
+			log_info(logger_compactacion, "La tabla: %s estuvo bloqueada %d milisegundos por compactacion.", nombre_tabla, tiempo_operatoria);
 
 		}
 	}
 	//free path_tabla
 }
 
+void bloquear_tabla(char* nombre_tabla){
+
+}
+
+void desbloquear_tabla(char* nombre_tabla){
+
+}
+
 void crear_hilo_compactacion(char* nombre_tabla){
 	pthread_t hilo_compactacion;
 	if (pthread_create(&hilo_compactacion, 0, compactar, nombre_tabla) !=0){
-		log_error(logger, "Error al crear el hilo para proceso de compactacion");
+		log_error(logger_compactacion, "Error al crear el hilo para proceso de compactacion");
 	}
 	if (pthread_detach(hilo_compactacion) != 0){
-		log_error(logger, "Error al frenar hilo de compactacion");
+		log_error(logger_compactacion, "Error al frenar hilo de compactacion");
 	}
 }
 
@@ -91,17 +99,17 @@ t_list* leer_registros_temporales(char* path_tabla, int cantidad_temporales){
 
 	for(int i=1 ; i<=cantidad_temporales; i++){
 		char* path_archivo = string_from_format("%s/%d.tempc", path_tabla, i);
-
-		t_config* tempc = config_create(path_archivo);
-		char* bloques = config_get_string_value(tempc,"BLOCKS");
-		int size = config_get_int_value(tempc,"SIZE");
-
-		//t_list* bloques_ints = chars_to_ints(bloques);
-		list_add_all(registros, leer_registros_bloques(bloques,size));
-
-		//free(bloques)
-		//free(path_archivo)
-		config_destroy(tempc);
+		list_add_all(registros, obtener_registros_de_archivo(path_archivo));
+//		t_config* tempc = config_create(path_archivo);
+//		char* bloques = config_get_string_value(tempc,"BLOCKS");
+//		int size = config_get_int_value(tempc,"SIZE");
+//
+//		//t_list* bloques_ints = chars_to_ints(bloques);
+//		list_add_all(registros, leer_registros_bloques(bloques,size));
+//
+//		//free(bloques)
+//		//free(path_archivo)
+//		config_destroy(tempc);
 	}
 	return registros;
 }

@@ -53,11 +53,13 @@ bool fin_de_programa;
 pthread_t hilo_consola;
 pthread_t hilo_dump;
 
-t_list* leer_registros_de_bloque(int bloque, int bytes_a_leer);
+t_list* filtrar_registros_con_key(t_list* registros, uint16_t key);
+char* leer_bloques_de_archivo(char* path_archivo);
+t_list* obtener_registros_de_archivo(char* path_archivo_temporal);
+t_list* obtener_registros_de_buffer(char* buffer);
 int crear_directorio_tabla (char* dir_tabla);
 void levantar_lfs(char* montaje);
 void obtener_bitmap();
-bool esta_completo_buffer_registro(char** buffer_registro);
 void obtener_info_metadata();
 int obtener_cantidad_tablas_LFS();
 void agregar_registro_memtable(t_registro* registro_a_insertar, char * nombre_tabla);
@@ -65,7 +67,6 @@ typedef char* t_valor;	//valor que devuelve el select
 t_registro* buscar_registro_actual(t_list* registros_encontrados);
 t_list* buscar_registros_en_particion(char* nombre_tabla,uint16_t key);
 t_list* buscar_registros_temporales(char* nombre_tabla, uint16_t key);
-t_list* buscar_registros_con_key_en_archivo(char* path_archivo,uint16_t key);
 t_status_solicitud* resolver_insert(t_log* log_a_usar, char* tabla, uint16_t key, char* value, long timestamp);
 t_status_solicitud* resolver_select (char* nombre_tabla, uint16_t key);
 t_status_solicitud* resolver_create (t_log* log_a_usar, char* nombre_tabla, t_consistencia consistencia, int num_particiones, long compactacion);

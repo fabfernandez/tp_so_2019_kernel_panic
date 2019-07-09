@@ -59,37 +59,6 @@ void *atender_pedido_memoria (void* memoria_fd){
 	    //free(i);
 }
 
-t_list* leer_registros_de_bloque(int bloque, int bytes_a_leer){
-
-	t_list* registros = list_create();
-	char* dir_bloque = string_from_format("%s/Bloques/%i.bin", path_montaje, bloque);
-	FILE* file = fopen(dir_bloque, "rb+");
-
-	char* buffer = malloc(bytes_a_leer);
-	fread(buffer, sizeof(char), bytes_a_leer, file);
-	fclose(file);
-	//armar la lista de registros con el buffer
-	char **array_buffer_registro = string_split(buffer, "\n");
-	int i=0;
-	while (array_buffer_registro[i]!=NULL){
-		char** string_registro = string_split(array_buffer_registro[i], ";");
-		if (esta_completo_buffer_registro(array_buffer_registro[i])){
-			uint16_t key = (uint16_t) atol(string_registro[1]);
-			long timestamp = (long)atol(string_registro[0]);
-			t_registro* registro= crear_registro(string_registro[2], key, timestamp);
-			list_add(registros, registro);
-		}else{
-
-		}
-
-		i = i+1;
-	}
-
-	free(buffer);
-	free(dir_bloque);
-	return registros;
-}
-
 void crear_hilo_memoria(int socket_memoria){
 	pthread_t hilo_memoria;
 	int *memoria_fd = malloc(sizeof(*memoria_fd));
@@ -637,8 +606,9 @@ t_list* buscar_registros_en_particion(char* nombre_tabla,uint16_t key){
 	t_list* registros_encontrados = list_create();
 	int particion = key % num_particiones;
 	char* path_particion = string_from_format("%s/Tables/%s/%d.bin", path_montaje, nombre_tabla, particion);
-	t_list* registros_en_particion = buscar_registros_con_key_en_archivo(path_particion, key);
-	list_add_all(registros_encontrados, registros_en_particion);
+	t_list* registros_en_particion = obtener_registros_de_archivo(path_particion);
+	t_list* registros_con_key=	filtrar_registros_con_key(registros_en_particion, key);
+	list_add_all(registros_encontrados, registros_con_key);
 	config_destroy(metadata);
 	return registros_encontrados;
 }
@@ -652,29 +622,38 @@ t_list* buscar_registros_temporales(char* nombre_tabla, uint16_t key){
 	while(entry != NULL){
 		if (( strcmp(entry->d_name, ".")!=0 && strcmp(entry->d_name, "..")!=0 ) && (archivo_es_del_tipo(entry->d_name,"temp") || archivo_es_del_tipo(entry->d_name,"tempc"))){
 			char* path_archivo_temporal = string_from_format("%s/%s", path_tablas, entry->d_name);
-			t_list* registros_en_temporal = buscar_registros_con_key_en_archivo(path_archivo_temporal, key);
-			list_add_all(registros_encontrados, registros_en_temporal);
+			t_list* registros_en_temporal = obtener_registros_de_archivo(path_archivo_temporal);
+			t_list* registros_con_key=	filtrar_registros_con_key(registros_en_temporal, key);
+			list_add_all(registros_encontrados, registros_con_key);
 		}
 		entry = readdir(dir);
 	}
 	return registros_encontrados;
 }
 
-t_list* buscar_registros_con_key_en_archivo(char* path_archivo,uint16_t key){
+t_list* filtrar_registros_con_key(t_list* registros, uint16_t key){
 
-	int _es_registro_con_key(t_registro* registro){
+	bool _es_registro_con_key(t_registro* registro){
 		return registro->key== key;
 	}
+	return  list_filter(registros, _es_registro_con_key);
+}
 
-	t_list* registros_con_key = list_create();
+t_list* obtener_registros_de_archivo(char* path_archivo_temporal){
+
+	char* buffer_registros = leer_bloques_de_archivo(path_archivo_temporal);
+	return obtener_registros_de_buffer(buffer_registros);
+}
+
+char* leer_bloques_de_archivo(char* path_archivo){
 	t_config* archivo = config_create(path_archivo);
 	int size_files = config_get_int_value(archivo, "SIZE");
 	char **bloques = config_get_array_value(archivo, "BLOCKS");
 	int resto_a_leer = size_files;
-	char* registro_a_completar=string_new();
 	int size_a_leer;
 	int ind_bloques=0;
-	t_list* registros_de_bloques = list_create();
+	char* buffer;
+	char* buffer_bloques = string_new();
 
 	if (size_files!=0){
 		while(bloques[ind_bloques]!=NULL){
@@ -689,49 +668,37 @@ t_list* buscar_registros_con_key_en_archivo(char* path_archivo,uint16_t key){
 			char* dir_bloque = string_from_format("%s/Bloques/%i.bin", path_montaje, num_bloque);
 			FILE* file = fopen(dir_bloque, "rb+");
 
-			char* buffer = malloc(size_a_leer);
+			buffer = malloc(size_a_leer);
 			fread(buffer, sizeof(char), size_a_leer, file);
+			string_append(&buffer_bloques, buffer);
 			fclose(file);
-			char **array_buffer_registro = string_split(buffer, "\n");
-			int ind_registros=0;
-			while (array_buffer_registro[ind_registros]!=NULL){
-				char** string_registro = string_split(array_buffer_registro[ind_registros], ";");
-				if (esta_completo_buffer_registro(string_registro)){
-					uint16_t key = (uint16_t) atol(string_registro[1]);
-					long timestamp = (long)atol(string_registro[0]);
-					t_registro* registro= crear_registro(string_registro[2], key, timestamp);
-					list_add(registros_de_bloques, registro);
-				}else{
-					string_append(&registro_a_completar,array_buffer_registro[ind_registros]);
-					char** string_registro = string_split(registro_a_completar, ";");
-					if (esta_completo_buffer_registro(string_registro)){
-						uint16_t key = (uint16_t) atol(string_registro[1]);
-						long timestamp = (long)atol(string_registro[0]);
-						t_registro* registro= crear_registro(string_registro[2], key, timestamp);
-						list_add(registros_de_bloques, registro);
-						registro_a_completar = string_new();
-					}
-				}
-
-				ind_registros = ind_registros+1;
-			}
-
 			free(buffer);
 			free(dir_bloque);
 			ind_bloques = ind_bloques+1;
 		}
-		t_list* registros_filtrados = list_filter(registros_de_bloques, _es_registro_con_key);
-		list_add_all(registros_con_key, registros_filtrados);
 	}
 
-	return registros_con_key;
+	return buffer_bloques;
+
 }
-bool esta_completo_buffer_registro(char** buffer_registro) {
-	int i = 0;
-	while(buffer_registro[i]!=NULL){
-		i=i+1;
+
+t_list* obtener_registros_de_buffer(char* buffer){
+	t_list* registros_de_bloques = list_create();
+	char **array_buffer_registro = string_split(buffer, "\n");
+	int ind_registros=0;
+	while (array_buffer_registro[ind_registros]!=NULL){
+		char** string_registro = string_split(array_buffer_registro[ind_registros], ";");
+
+		uint16_t key = (uint16_t) atol(string_registro[1]);
+		long timestamp = (long)atol(string_registro[0]);
+		t_registro* registro= crear_registro(string_registro[2], key, timestamp);
+		list_add(registros_de_bloques, registro);
+
+		ind_registros = ind_registros+1;
 	}
-	return i==3;
+
+	return registros_de_bloques;
+
 }
 
 t_list* buscar_registros_memtable(char* nombre_tabla, uint16_t key){
