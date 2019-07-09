@@ -87,7 +87,7 @@ t_list* bajo_registros_a_blocks(int size_registros, char* registros){
 		log_info(logger_dump, "Se escriben [%d] bytes de registros, en el bloque: [%d]",tamanio_registros,bloque);
 		escribir_bloque(bloque, datos);
 		log_info(logger_dump, "Bloque escrito satisfactoriamente");
-		list_add(bloques, bloque);
+		list_add(bloques, (int) bloque);
 		free(datos);
 	}
 
@@ -162,8 +162,8 @@ bool archivo_es_del_tipo(char* archivo, char* extension_archivo){
  	*/
 t_list* copiar_y_limpiar_memtable(){
 
-	//desconfio que esto este haciendo lo que yo quiero
-	log_info(logger_dump, "Duplico y limpio memtable para bloquear su uso el mejor tiempo posible");
+	log_info(logger, "Duplico y limpio memtable para bloquear su uso el mejor tiempo posible");
+
 	pthread_mutex_lock(&mutexMemtable);
 
 	t_list* copia = list_duplicate(memtable);

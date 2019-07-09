@@ -299,6 +299,7 @@ t_metadata* obtener_info_metadata_tabla(char* dir_tabla, char* nombre_tabla){
 	t_metadata* metadata_tabla = crear_paquete_metadata(nombre_tabla, get_valor_consistencia(consistencia_string), num_particiones, compactacion);
 	return metadata_tabla;
 
+	// no hay que hacer un destroy de ese config ?
 }
 
 void obtener_info_metadata(){
@@ -307,6 +308,8 @@ void obtener_info_metadata(){
 	t_config* metadata  = config_create(path_metadata);
 	block_size = config_get_int_value(metadata, "BLOCK_SIZE");
 	blocks = config_get_int_value(metadata, "BLOCKS");
+
+	// no hay que hacer un destroy de ese config ?
 }
 
 t_status_solicitud* resolver_create (t_log* log_a_usar,char* nombre_tabla, t_consistencia consistencia, int num_particiones, long compactacion){
