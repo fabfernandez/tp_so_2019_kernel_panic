@@ -23,14 +23,16 @@ void *compactar(void* nombre_tabla){
 			int cantidad_archivos_renombrados = renombrar_archivos_para_compactar(path_tabla);
 
 			t_list* registros = leer_registros_temporales(path_tabla, cantidad_archivos_renombrados);
-			char* registros_filtrados= filtrar_registros_duplicados_segun_particiones(path_tabla, registros); //esto podria devolver una matris filtrando los datos respecto de la particion a la que corresponde, devolveria una lista de lista donde cada posicin de la lista es el index de la particion, y la lista en esa posicion contiene los registros filtrados en base a ese archivo
+			t_list* registros_filtrados= filtrar_registros_duplicados_segun_particiones(path_tabla, registros); //esto podria devolver una matris filtrando los datos respecto de la particion a la que corresponde, devolveria una lista de lista donde cada posicin de la lista es el index de la particion, y la lista en esa posicion contiene los registros filtrados en base a ese archivo
 
-			bloquear_tabla(nombre_tabla); //lo hace gaby
+			list_destroy(registros);
+
+			bloquear_tabla(nombre_tabla);
 			int comienzo = time(NULL);
 
 			realizar_compactacion(path_tabla, registros_filtrados);
 
-			desbloquear_tabla(nombre_tabla); // lo hace gaby
+			desbloquear_tabla(nombre_tabla);
 			int tiempo_operatoria = comienzo - time(NULL);
 			log_info(logger_compactacion, "La tabla: %s estuvo bloqueada %d milisegundos por compactacion.", nombre_tabla, tiempo_operatoria);
 
@@ -91,6 +93,8 @@ int renombrar_archivos_para_compactar(char* path_tabla){
 		entry = readdir(dir);
 	}
 	closedir(dir);
+
+	log_info(logger_compactacion, "Renombrando %d archivos temp a tempc en: %s.", cantidad_temporales ,path_tabla);
 	return cantidad_temporales;
 }
 
@@ -114,6 +118,22 @@ t_list* leer_registros_temporales(char* path_tabla, int cantidad_temporales){
 	return registros;
 }
 
+t_list* leer_registros_particiones(char* path_tabla){
+	char* path_metadata = string_from_format("%s/Metadata", path_tabla);
+	t_config* metadata = config_create(path_metadata);
+	int num_particiones = config_get_int_value(metadata, "PARTITIONS");
+
+	t_list* registros = list_create();
+
+	for(int i=0 ; i<=num_particiones; i++){
+		char* path_archivo = string_from_format("%s/%d.bin", path_tabla, i);
+		list_add(registros, obtener_registros_de_archivo(path_archivo));
+	}
+
+	config_destroy(metadata);
+	return registros;
+}
+
 /*
  * t_list* chars_to_ints(char* bloques){
 	t_list* bloques_int = list_create();
@@ -125,13 +145,13 @@ t_list* leer_registros_temporales(char* path_tabla, int cantidad_temporales){
 	return bloques_int;
 }*/
 
-t_list* leer_registros_bloques(char* bloques, int size_total){
+/*t_list* leer_registros_bloques(char* bloques, int size_total){
 	char* registros = string_new();
 
 	for(int i=1 ; bloques[i] != ']'; i++){
-		int bloque = atoi(bloques[i]);
+		int bloque = atoi(&bloques[i]);
 
-		string_append(&registros, leer_registros_de_bloque(bloque));
+		string_append(&registros, leer_registros_char_de_bloque(bloque));
 	}
 	string_append(&registros, "\0");
 
@@ -141,7 +161,7 @@ t_list* leer_registros_bloques(char* bloques, int size_total){
 	return registros_finales;
 }
 
-char* leer_registros_de_bloque(int bloque){
+char* leer_registros_char_de_bloque(int bloque){
 	char* registros = string_new();
 
 	char* dir_bloque = string_from_format("%s/Bloques/%i.bin", path_montaje, bloque);
@@ -168,7 +188,7 @@ t_list* transformar_registros(char* registros){
 
 
 		char* timestamp_char = (char*) malloc(sizeof(char)*11);
-		while(registros[i] != '\n'){
+		while(registros[i] != ';'){
 			timestamp_char[l] = registros[i];
 			i++;
 			l++;
@@ -176,11 +196,12 @@ t_list* transformar_registros(char* registros){
 		timestamp_char[l]= '\0';
 		long timestamp = atol(timestamp_char);
 		free(timestamp_char);
+		i++;
 		l=0;
 
 
 		char* key_char = (char*) malloc(sizeof(char));
-		while(registros[i] != '\n'){
+		while(registros[i] != ';'){
 			key_char[l] = registros[i];
 			key_char = (char*) realloc(key_char,sizeof(char));
 			i++;
@@ -189,6 +210,7 @@ t_list* transformar_registros(char* registros){
 		key_char[l]='\0';
 		uint16_t key = (uint16_t) atol(key_char);
 		free(key_char);
+		i++;
 		l=0;
 
 
@@ -206,14 +228,71 @@ t_list* transformar_registros(char* registros){
 	}
 
 	return registros_finales;
+}*/
+
+t_list* filtrar_registros_duplicados_segun_particiones(char* path_tabla, t_list* registros_nuevos){
+	t_list* registros_particiones = leer_registros_particiones(path_tabla);
+	int num_particiones = list_size(registros_particiones);
+
+	while(!list_is_empty(registros_nuevos)){
+		t_registro* un_registro = list_remove(registros_nuevos, 0);
+
+		int particion = un_registro->key % num_particiones;
+		actualizar_registro(list_get(registros_particiones,particion), un_registro); //PRECAUCION: Capaz list_get no funciona, necesitaria que trabaje con el puntero de la lista
+	}
+
+	log_info(logger_compactacion, "Se obtienen registros filtrados para: %s.", path_tabla);
+	return registros_particiones;
 }
 
-void filtrar_registros_duplicados_segun_particiones(char* path_tabla, char* registros_nuevos){
-	//raro porque deberia tener leidos todos los datos de cada particion.
-	//generar estructuras para la tabla,
-	//validar que mis registros esten tocando todas las particiones (para no tocar particiones al pedo
+void actualizar_registro(t_list* registros, t_registro* un_registro){
+
+	int _es_registro_con_key(t_registro* registro){
+		return registro->key== un_registro->key;
+	}
+
+	t_registro* registro_viejo = list_find(registros, (void*) _es_registro_con_key);
+
+	if(registro_viejo == NULL){
+		list_add(registros, un_registro);
+	}else{
+		if(registro_viejo->timestamp <= un_registro->timestamp){
+			list_remove_by_condition(registros, (void*) _es_registro_con_key);
+			eliminar_registro(registro_viejo);
+			list_add(registros, un_registro);
+		}else{
+			eliminar_registro(un_registro);
+		}
+	}
 }
 
-void realizar_compactacion(char* path_tabla, char* registros_filtrados){
-	//escribir archivos, liberar .bin, escribir nuevos .bin
+void realizar_compactacion(char* path_tabla, t_list* registros_filtrados){
+	liberar_bloques_tabla(path_tabla);
+
+	//borra todos tempc y .bin para una tabla
+	eliminar_temp_y_bin_tabla(path_tabla);
+
+	for(int i=0 ; !list_is_empty(registros_filtrados); i++){
+		t_list* registros_de_particion = list_remove(registros_filtrados, 0);
+		char* path_archivo = string_from_format("%s/%d.bin", path_tabla, i);
+
+		escribir_registros_y_crear_archivo(registros_de_particion, path_archivo);
+		free(path_archivo);
+		list_destroy(registros_de_particion);
+	}
+}
+
+void eliminar_temp_y_bin_tabla(char* path_tabla){
+	DIR * dir = opendir(path_tabla);
+	struct dirent * entry = readdir(dir);
+	while(entry != NULL){
+		if ( strcmp(entry->d_name, ".")!=0 && strcmp(entry->d_name, "..")!=0 && strcmp(entry->d_name, "Metadata")!=0  && !archivo_es_del_tipo(entry->d_name, "temp")) {
+			char* dir_archivo = string_from_format("%s/%s", path_tabla, entry->d_name);
+			if (unlink(dir_archivo) == 0)
+				log_info(logger, "Eliminado archivo: %s\n", entry->d_name);
+			else
+				log_info(logger, "No se puede eliminar archivo: %s\n", entry->d_name);
+		}
+		entry = readdir(dir);
+	}
 }
