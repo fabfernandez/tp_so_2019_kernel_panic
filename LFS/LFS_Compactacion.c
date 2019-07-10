@@ -93,6 +93,8 @@ int renombrar_archivos_para_compactar(char* path_tabla){
 		entry = readdir(dir);
 	}
 	closedir(dir);
+
+	log_info(logger_compactacion, "Renombrando %d archivos temp a tempc en: %s.", cantidad_temporales ,path_tabla);
 	return cantidad_temporales;
 }
 
@@ -239,6 +241,7 @@ t_list* filtrar_registros_duplicados_segun_particiones(char* path_tabla, t_list*
 		actualizar_registro(list_get(registros_particiones,particion), un_registro); //PRECAUCION: Capaz list_get no funciona, necesitaria que trabaje con el puntero de la lista
 	}
 
+	log_info(logger_compactacion, "Se obtienen registros filtrados para: %s.", path_tabla);
 	return registros_particiones;
 }
 
@@ -263,6 +266,16 @@ void actualizar_registro(t_list* registros, t_registro* un_registro){
 	}
 }
 
-void realizar_compactacion(char* path_tabla, char* registros_filtrados){
-	//escribir archivos, liberar .bin, escribir nuevos .bin
+void realizar_compactacion(char* path_tabla, t_list* registros_filtrados){
+	liberar_bloques_tabla(path_tabla);
+
+	//falta borrar todos tempc y .bin
+	for(int i=0 ; !list_is_empty(registros_filtrados); i++){
+		t_list* registros_de_particion = list_remove(registros_filtrados, 0);
+		char* path_archivo = string_from_format("%s/%d.bin", path_tabla, i);
+
+		escribir_registros_y_crear_archivo(registros_de_particion, path_archivo);
+		free(path_archivo);
+		list_destroy(registros_de_particion);
+	}
 }

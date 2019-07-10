@@ -23,7 +23,7 @@ t_list* leer_registros_particiones(char* path_tabla);
 //t_list* transformar_registros(char* registros);
 t_list* filtrar_registros_duplicados_segun_particiones(char* path_tabla, t_list* registros_nuevos);
 void actualizar_registro(t_list* registros, t_registro* un_registro);
-void realizar_compactacion(char* path_tabla, char* registros_filtrados);
+void realizar_compactacion(char* path_tabla, t_list* registros_filtrados);
 
 
 

@@ -174,7 +174,7 @@ void liberar_bloques_tabla(char* path_tabla){
 	DIR * dir = opendir(path_tabla);
 	struct dirent * entry = readdir(dir);
 	while(entry != NULL){
-		if (( strcmp(entry->d_name, ".")!=0 && strcmp(entry->d_name, "..")!=0 ) && (archivo_es_del_tipo(entry->d_name,"temp") || archivo_es_del_tipo(entry->d_name,"tempc") || archivo_es_del_tipo(entry->d_name,"bin"))) {
+		if (( strcmp(entry->d_name, ".")!=0 && strcmp(entry->d_name, "..")!=0 ) && ( archivo_es_del_tipo(entry->d_name,"tempc") || archivo_es_del_tipo(entry->d_name,"bin"))) {
 			char* dir_archivo = string_from_format("%s/%s", path_tabla, entry->d_name);
 			liberar_bloques_archivo(dir_archivo);
 		}
