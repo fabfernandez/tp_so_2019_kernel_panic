@@ -331,7 +331,7 @@ void resolver_select(t_instruccion_lql instruccion){
 			error = 0;
 		}else{
 			log_error(logger, "Error: %s", status->mensaje->palabra);
-			error = 1;
+			error = 0;
 		}
 		clock_gettime(CLOCK_REALTIME, &spec);
 		int timestamp_destino = spec.tv_sec;

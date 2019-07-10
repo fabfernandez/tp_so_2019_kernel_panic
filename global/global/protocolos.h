@@ -21,7 +21,7 @@
 
 #define STRONG_TEXT "SC"
 #define STRONG_HASH_TEXT "SHC"
-#define EVENTUAL_TEXT "SE"
+#define EVENTUAL_TEXT "EC"
 
 typedef struct{
 	char* nombre;
