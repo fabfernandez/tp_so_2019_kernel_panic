@@ -23,15 +23,16 @@ void *compactar(void* nombre_tabla){
 			int cantidad_archivos_renombrados = renombrar_archivos_para_compactar(path_tabla);
 
 			t_list* registros = leer_registros_temporales(path_tabla, cantidad_archivos_renombrados);
-			char* registros_filtrados= filtrar_registros_duplicados_segun_particiones(path_tabla, registros); //esto podria devolver una matris filtrando los datos respecto de la particion a la que corresponde, devolveria una lista de lista donde cada posicin de la lista es el index de la particion, y la lista en esa posicion contiene los registros filtrados en base a ese archivo
+			t_list* registros_filtrados= filtrar_registros_duplicados_segun_particiones(path_tabla, registros); //esto podria devolver una matris filtrando los datos respecto de la particion a la que corresponde, devolveria una lista de lista donde cada posicin de la lista es el index de la particion, y la lista en esa posicion contiene los registros filtrados en base a ese archivo
 
+			list_destroy(registros);
 
-			bloquear_tabla(nombre_tabla); //lo hace gaby
+			bloquear_tabla(nombre_tabla);
 			int comienzo = time(NULL);
 
 			realizar_compactacion(path_tabla, registros_filtrados);
 
-			desbloquear_tabla(nombre_tabla); // lo hace gaby
+			desbloquear_tabla(nombre_tabla);
 			int tiempo_operatoria = comienzo - time(NULL);
 			log_info(logger_compactacion, "La tabla: %s estuvo bloqueada %d milisegundos por compactacion.", nombre_tabla, tiempo_operatoria);
 
@@ -115,6 +116,22 @@ t_list* leer_registros_temporales(char* path_tabla, int cantidad_temporales){
 	return registros;
 }
 
+t_list* leer_registros_particiones(char* path_tabla){
+	char* path_metadata = string_from_format("%s/Metadata", path_tabla);
+	t_config* metadata = config_create(path_metadata);
+	int num_particiones = config_get_int_value(metadata, "PARTITIONS");
+
+	t_list* registros = list_create();
+
+	for(int i=0 ; i<=num_particiones; i++){
+		char* path_archivo = string_from_format("%s/%d.bin", path_tabla, i);
+		list_add(registros, obtener_registros_de_archivo(path_archivo));
+	}
+
+	config_destroy(metadata);
+	return registros;
+}
+
 /*
  * t_list* chars_to_ints(char* bloques){
 	t_list* bloques_int = list_create();
@@ -126,7 +143,7 @@ t_list* leer_registros_temporales(char* path_tabla, int cantidad_temporales){
 	return bloques_int;
 }*/
 
-t_list* leer_registros_bloques(char* bloques, int size_total){
+/*t_list* leer_registros_bloques(char* bloques, int size_total){
 	char* registros = string_new();
 
 	for(int i=1 ; bloques[i] != ']'; i++){
@@ -209,12 +226,41 @@ t_list* transformar_registros(char* registros){
 	}
 
 	return registros_finales;
+}*/
+
+t_list* filtrar_registros_duplicados_segun_particiones(char* path_tabla, t_list* registros_nuevos){
+	t_list* registros_particiones = leer_registros_particiones(path_tabla);
+	int num_particiones = list_size(registros_particiones);
+
+	while(!list_is_empty(registros_nuevos)){
+		t_registro* un_registro = list_remove(registros_nuevos, 0);
+
+		int particion = un_registro->key % num_particiones;
+		actualizar_registro(list_get(registros_particiones,particion), un_registro); //PRECAUCION: Capaz list_get no funciona, necesitaria que trabaje con el puntero de la lista
+	}
+
+	return registros_particiones;
 }
 
-void filtrar_registros_duplicados_segun_particiones(char* path_tabla, t_list* registros_nuevos){
-	//raro porque deberia tener leidos todos los datos de cada particion.
-	//generar estructuras para la tabla,
-	//validar que mis registros esten tocando todas las particiones (para no tocar particiones al pedo
+void actualizar_registro(t_list* registros, t_registro* un_registro){
+
+	int _es_registro_con_key(t_registro* registro){
+		return registro->key== un_registro->key;
+	}
+
+	t_registro* registro_viejo = list_find(registros, (void*) _es_registro_con_key);
+
+	if(registro_viejo == NULL){
+		list_add(registros, un_registro);
+	}else{
+		if(registro_viejo->timestamp <= un_registro->timestamp){
+			list_remove_by_condition(registros, (void*) _es_registro_con_key);
+			eliminar_registro(registro_viejo);
+			list_add(registros, un_registro);
+		}else{
+			eliminar_registro(un_registro);
+		}
+	}
 }
 
 void realizar_compactacion(char* path_tabla, char* registros_filtrados){
