@@ -258,7 +258,7 @@ void levantar_lfs(char* montaje){
 	memtable = list_create();
 	obtener_info_metadata();
 	obtener_bitmap();
-
+	//crear_hilos_compactacion_por_cada_tabla();
 }
 
 void obtener_bitmap(){
@@ -330,6 +330,7 @@ t_status_solicitud* resolver_create (t_log* log_a_usar,char* nombre_tabla, t_con
 		log_error(log_a_usar, mje_error);
 		status = crear_paquete_status(false, mje_error);
 	}else{
+		crear_hilo_compactacion(nombre_tabla);
 		char* dir_tabla = string_from_format("%s/Tables/%s", path_montaje, nombre_tabla);
 		if (crear_directorio_tabla(dir_tabla)){
 			crear_archivo_metadata_tabla(dir_tabla, num_particiones, compactacion, consistencia);
