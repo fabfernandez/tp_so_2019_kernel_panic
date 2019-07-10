@@ -73,6 +73,7 @@ void revisa_new_queue(){
 		pthread_mutex_lock(&ready_queue_mutex);
 		queue_push(ready_queue, nuevo_script);
 		pthread_mutex_unlock(&ready_queue_mutex);
+		log_info(logger, "El archivo %s pasa a estado READY", new_path);
 		sem_post(&ready_queue_consumer);
 	}
 }
@@ -88,6 +89,7 @@ void revisa_ready_queue(){
 			pthread_mutex_lock(&exec_queue_mutex);
 			queue_push(exec_queue, script);
 			pthread_mutex_unlock(&exec_queue_mutex);
+			log_info(logger, "El archivo %s pasa a estado EXEC", script->path);
 			sem_post(&exec_queue_consumer);
 		}
 	}
@@ -122,10 +124,12 @@ void revisa_exec_queue(){
 
 		if (script_a_ejecutar->offset==NULL) {
 			queue_push(exit_queue, script_a_ejecutar);
+			log_info(logger, "El archivo %s pasa a estado EXIT", script_a_ejecutar->path);
 		} else {
 			pthread_mutex_lock(&ready_queue_mutex);
 			queue_push(ready_queue, script_a_ejecutar);
 			pthread_mutex_unlock(&ready_queue_mutex);
+			log_info(logger, "El archivo %s pasa a estado READY", script_a_ejecutar->path);
 			sem_post(&ready_queue_consumer);
 		}
 	}
