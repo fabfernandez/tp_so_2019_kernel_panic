@@ -24,7 +24,7 @@ t_list* leer_registros_particiones(char* path_tabla);
 t_list* filtrar_registros_duplicados_segun_particiones(char* path_tabla, t_list* registros_nuevos);
 void actualizar_registro(t_list* registros, t_registro* un_registro);
 void realizar_compactacion(char* path_tabla, t_list* registros_filtrados);
-
+void eliminar_temp_y_bin_tabla(char* path_tabla);
 
 
 #endif /* LFS_COMPACTACION_H_ */

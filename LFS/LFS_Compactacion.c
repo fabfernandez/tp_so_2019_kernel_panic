@@ -269,21 +269,8 @@ void actualizar_registro(t_list* registros, t_registro* un_registro){
 void realizar_compactacion(char* path_tabla, t_list* registros_filtrados){
 	liberar_bloques_tabla(path_tabla);
 
-	//falta borrar todos tempc y .bin
-
-	DIR * dir = opendir(path_tabla);
-		struct dirent * entry = readdir(dir);
-		while(entry != NULL){
-			if ( strcmp(entry->d_name, ".")!=0 && strcmp(entry->d_name, "..")!=0 && strcmp(entry->d_name, "Metadata")!=0  && !archivo_es_del_tipo(entry->d_name, "temp")) {
-				char* dir_archivo = string_from_format("%s/%s", path_tabla, entry->d_name);
-				if (unlink(dir_archivo) == 0)
-					log_info(logger, "Eliminado archivo: %s\n", entry->d_name);
-				else
-					log_info(logger, "No se puede eliminar archivo: %s\n", entry->d_name);
-			}
-			entry = readdir(dir);
-		}
-
+	//borra todos tempc y .bin para una tabla
+	eliminar_temp_y_bin_tabla(path_tabla);
 
 	for(int i=0 ; !list_is_empty(registros_filtrados); i++){
 		t_list* registros_de_particion = list_remove(registros_filtrados, 0);
@@ -292,5 +279,20 @@ void realizar_compactacion(char* path_tabla, t_list* registros_filtrados){
 		escribir_registros_y_crear_archivo(registros_de_particion, path_archivo);
 		free(path_archivo);
 		list_destroy(registros_de_particion);
+	}
+}
+
+void eliminar_temp_y_bin_tabla(char* path_tabla){
+	DIR * dir = opendir(path_tabla);
+	struct dirent * entry = readdir(dir);
+	while(entry != NULL){
+		if ( strcmp(entry->d_name, ".")!=0 && strcmp(entry->d_name, "..")!=0 && strcmp(entry->d_name, "Metadata")!=0  && !archivo_es_del_tipo(entry->d_name, "temp")) {
+			char* dir_archivo = string_from_format("%s/%s", path_tabla, entry->d_name);
+			if (unlink(dir_archivo) == 0)
+				log_info(logger, "Eliminado archivo: %s\n", entry->d_name);
+			else
+				log_info(logger, "No se puede eliminar archivo: %s\n", entry->d_name);
+		}
+		entry = readdir(dir);
 	}
 }
