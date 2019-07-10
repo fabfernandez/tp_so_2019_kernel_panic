@@ -174,7 +174,7 @@ void liberar_bloques_tabla(char* path_tabla){
 	DIR * dir = opendir(path_tabla);
 	struct dirent * entry = readdir(dir);
 	while(entry != NULL){
-		if (( strcmp(entry->d_name, ".")!=0 && strcmp(entry->d_name, "..")!=0 ) && (archivo_es_del_tipo(entry->d_name,"temp") || archivo_es_del_tipo(entry->d_name,"tempc") || archivo_es_del_tipo(entry->d_name,"bin"))) {
+		if (( strcmp(entry->d_name, ".")!=0 && strcmp(entry->d_name, "..")!=0 ) && ( archivo_es_del_tipo(entry->d_name,"tempc") || archivo_es_del_tipo(entry->d_name,"bin"))) {
 			char* dir_archivo = string_from_format("%s/%s", path_tabla, entry->d_name);
 			liberar_bloques_archivo(dir_archivo);
 		}
@@ -258,7 +258,7 @@ void levantar_lfs(char* montaje){
 	memtable = list_create();
 	obtener_info_metadata();
 	obtener_bitmap();
-
+	//crear_hilos_compactacion_por_cada_tabla();
 }
 
 void obtener_bitmap(){
@@ -330,6 +330,7 @@ t_status_solicitud* resolver_create (t_log* log_a_usar,char* nombre_tabla, t_con
 		log_error(log_a_usar, mje_error);
 		status = crear_paquete_status(false, mje_error);
 	}else{
+		crear_hilo_compactacion(nombre_tabla);
 		char* dir_tabla = string_from_format("%s/Tables/%s", path_montaje, nombre_tabla);
 		if (crear_directorio_tabla(dir_tabla)){
 			crear_archivo_metadata_tabla(dir_tabla, num_particiones, compactacion, consistencia);

@@ -37,10 +37,22 @@ void crear_hilo_dump(){
 }
 
 void dump_por_tabla(t_cache_tabla* tabla){
+	char* path_tabla = string_from_format("%s/Tables/%s", path_montaje, tabla->nombre);
+	int num = proximo_archivo_temporal_para(path_tabla);
+	string_append(&path_tabla, string_from_format("/%i.temp", num));
+
+	log_info(logger_dump, "Se crea el temporal: [%d], en el path: [%s]", num, path_tabla);
+
+	escribir_registros_y_crear_archivo(tabla->registros, path_tabla);
+	free(path_tabla);
+
+}
+
+void escribir_registros_y_crear_archivo(t_list* registros, char* path_archivo_nuevo){
 	char * array_registros = string_new();
 
-	while(!list_is_empty(tabla->registros)){
-		t_registro* registro = list_remove(tabla->registros, 0);
+	while(!list_is_empty(registros)){
+		t_registro* registro = list_remove(registros, 0);
 		string_append(&array_registros, string_from_format("%ld;", registro->timestamp));
 		string_append(&array_registros, string_from_format("%i;", registro->key));
 		string_append(&array_registros, registro->value);
@@ -52,14 +64,7 @@ void dump_por_tabla(t_cache_tabla* tabla){
 	t_list* bloques_ocupados = bajo_registros_a_blocks(size_registros,array_registros);
 	free(array_registros);
 
-	char* path_tabla = string_from_format("%s/Tables/%s", path_montaje, tabla->nombre);
-
-	int num = proximo_archivo_temporal_para(path_tabla);
-	string_append(&path_tabla, string_from_format("/%i.temp", num));
-
-	log_info(logger_dump, "Se crea el temporal: [%d], en el path: [%s]", num, path_tabla);
-	crear_archivo(path_tabla, size_registros, bloques_ocupados);
-	free(path_tabla);
+	crear_archivo(path_archivo_nuevo, size_registros, bloques_ocupados);
 	list_destroy(bloques_ocupados);
 }
 

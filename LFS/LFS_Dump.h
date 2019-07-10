@@ -13,6 +13,7 @@
 void crear_hilo_dump();
 t_list* copiar_y_limpiar_memtable();
 void dump_por_tabla(t_cache_tabla* tabla);
+void escribir_registros_y_crear_archivo(t_list* registros, char* path_archivo_nuevo);
 t_list* bajo_registros_a_blocks(int size_registros, char* registros);
 void escribir_bloque(int bloque, char* datos);
 int tamanio_bloque(int bloque_por_escribir, int bloques_totales, int size_datos);
