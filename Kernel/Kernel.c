@@ -257,12 +257,18 @@ void resolver_describe(t_instruccion_lql instruccion){
 			guardar_consistencia_tabla(metadata->nombre_tabla->palabra, metadata->consistencia);
 		}
 	}else{
-		t_metadata* t_metadata = deserealizar_metadata(socket_memoria);
-		//aca se está mostrando pero deberia guardarselo no?
-		log_info(logger, "Metadata tabla: %s", t_metadata->nombre_tabla->palabra);
-		log_info(logger, "Consistencia: %s", tipo_consistencia(t_metadata->consistencia));
-		log_info(logger, "Numero de particiones: %d", t_metadata->n_particiones);
-		log_info(logger, "Tiempo de compactacion: %d", t_metadata->tiempo_compactacion);
+		t_status_solicitud* status = desearilizar_status_solicitud(socket_memoria);
+		if (status->es_valido){
+			t_metadata* t_metadata = deserealizar_metadata(socket_memoria);
+			//aca se está mostrando pero deberia guardarselo no?
+			log_info(logger, "Metadata tabla: %s", t_metadata->nombre_tabla->palabra);
+			log_info(logger, "Consistencia: %s", tipo_consistencia(t_metadata->consistencia));
+			log_info(logger, "Numero de particiones: %d", t_metadata->n_particiones);
+			log_info(logger, "Tiempo de compactacion: %d", t_metadata->tiempo_compactacion);
+		}else{
+			log_info(logger, "Error: %s", status->mensaje->palabra);
+		}
+
 	}
 	eliminar_paquete_drop_describe(paquete_describe);
 }

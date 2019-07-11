@@ -16,7 +16,7 @@ void *compactar(void* nombre_tabla){
 		log_info(logger_compactacion, "%i", tiempo_compactacion);
 		sleep(tiempo_compactacion/1000);
 
-		if (hay_temporales(path_tabla)) {
+		if (!hay_temporales(path_tabla)) {
 			log_info(logger_compactacion, "Compactacion- No hay datos para compactar en: %s.", path_tabla);
 		}else{
 			log_info(logger_compactacion, "Se realiza compactacion en: %s.", path_tabla);
@@ -49,14 +49,12 @@ void desbloquear_tabla(char* nombre_tabla){
 
 }
 
-void crear_hilo_compactacion(char* nombre_tabla){
+pthread_t crear_hilo_compactacion(char* nombre_tabla){
 	pthread_t hilo_compactacion;
 	if (pthread_create(&hilo_compactacion, 0, compactar, nombre_tabla) !=0){
 		log_error(logger_compactacion, "Error al crear el hilo para proceso de compactacion");
 	}
-	if (pthread_detach(hilo_compactacion) != 0){
-		log_error(logger_compactacion, "Error al frenar hilo de compactacion");
-	}
+	return hilo_compactacion;
 }
 
 long obtener_tiempo_compactacion(char* path_tabla){
@@ -70,8 +68,8 @@ long obtener_tiempo_compactacion(char* path_tabla){
 }
 
 bool hay_temporales(char* path_tabla){
-	int cant_temporales = cantidad_archivos_actuales(path_tabla, "temp");
-	return cant_temporales == 0 ? false : true;
+	return cantidad_archivos_actuales(path_tabla, "temp")>0;
+
 }
 
 int renombrar_archivos_para_compactar(char* path_tabla){
@@ -85,7 +83,7 @@ int renombrar_archivos_para_compactar(char* path_tabla){
 			char* temp = string_from_format("%s/%s", path_tabla, entry->d_name);
 
 			char ** nombre_y_extension = string_split(entry->d_name, ".");
-			char* tempc = string_from_format("%s/%s.temp", path_tabla, nombre_y_extension[0]);
+			char* tempc = string_from_format("%s/%s.tempc", path_tabla, nombre_y_extension[0]);
 			rename(temp, tempc);
 
 			//free a todos esos char?
@@ -125,7 +123,7 @@ t_list* leer_registros_particiones(char* path_tabla){
 
 	t_list* registros = list_create();
 
-	for(int i=0 ; i<=num_particiones; i++){
+	for(int i=0 ; i<num_particiones; i++){
 		char* path_archivo = string_from_format("%s/%d.bin", path_tabla, i);
 		list_add(registros, obtener_registros_de_archivo(path_archivo));
 	}
@@ -265,9 +263,21 @@ void actualizar_registro(t_list* registros, t_registro* un_registro){
 		}
 	}
 }
+void liberar_bloques_compactacion(char* path_tabla){
+
+	DIR * dir = opendir(path_tabla);
+	struct dirent * entry = readdir(dir);
+	while(entry != NULL){
+		if (( strcmp(entry->d_name, ".")!=0 && strcmp(entry->d_name, "..")!=0 ) && ( archivo_es_del_tipo(entry->d_name,"tempc") || archivo_es_del_tipo(entry->d_name,"bin"))) {
+			char* dir_archivo = string_from_format("%s/%s", path_tabla, entry->d_name);
+			liberar_bloques_archivo(dir_archivo);
+		}
+		entry = readdir(dir);
+	}
+}
 
 void realizar_compactacion(char* path_tabla, t_list* registros_filtrados){
-	liberar_bloques_tabla(path_tabla);
+	liberar_bloques_compactacion(path_tabla);
 
 	//borra todos tempc y .bin para una tabla
 	eliminar_temp_y_bin_tabla(path_tabla);
