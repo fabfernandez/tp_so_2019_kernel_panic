@@ -22,6 +22,7 @@ int main(void)
 	max_size_value = config_get_int_value(archivoconfig, "MAX_SIZE_VALUE");
 	tiempo_dump = config_get_int_value(archivoconfig,"TIEMPO_DUMP");
 	iniciarMutexMemtable();
+//	iniciarMutexCompactacion();
 
 	levantar_lfs(montaje);
 	crear_hilo_consola();
@@ -47,6 +48,14 @@ void iniciarMutexMemtable(){
 	};
 }
 
+//void iniciarMutexCompactacion(){
+//	if(pthread_mutex_init(&mutexCompactacion,NULL)==0){
+//		log_info(logger, "MutexCompactacion inicializado correctamente");
+//	} else {
+//		log_error(logger, "Fallo inicializacion de MutexCompactacion");
+//	};
+//}
+
 void *atender_pedido_memoria (void* memoria_fd){
 	int socket_memoria = *((int *) memoria_fd);
 	pthread_t id_hilo = pthread_self();
@@ -57,6 +66,14 @@ void *atender_pedido_memoria (void* memoria_fd){
 		}
 	}
 	    //free(i);
+}
+
+void finalizar_lfs(pthread_t id_hilo_consola){
+	log_info(logger, "Finalizando LFS...");
+	pthread_cancel(id_hilo_consola);
+	pthread_mutex_lock(&mutexDump);
+	dump_proceso();
+	pthread_mutex_unlock(&mutexDump);
 }
 
 void crear_hilo_memoria(int socket_memoria){
@@ -102,16 +119,25 @@ int resolver_operacion(int socket_memoria, t_operacion cod_op){
 		case SELECT:
 			log_info(logger, "memoria solicitó SELECT");
 			t_paquete_select* select = deserializar_select(socket_memoria);
-			status = resolver_select(select->nombre_tabla->palabra, select->key);
-			enviar_status_resultado(status, socket_memoria);
-			eliminar_paquete_select(select);
+			//Si esta en el diccionario, la tabla esta bloqueada
+			if (tabla_esta_bloqueada(select->nombre_tabla->palabra)){
+				agregar_instruccion_bloqueada(crear_instruccion_select_bloqueada(select, socket_memoria), select->nombre_tabla->palabra);
+			}else{
+				status = resolver_select(select->nombre_tabla->palabra, select->key);
+				enviar_status_resultado(status, socket_memoria);
+				eliminar_paquete_select(select);
+			}
 			break;
 		case INSERT:
 			log_info(logger, "memoria solicitó INSERT");
 			t_paquete_insert* consulta_insert = deserealizar_insert(socket_memoria);
-			status = resolver_insert(logger, consulta_insert->nombre_tabla->palabra, consulta_insert->key, consulta_insert->valor->palabra, consulta_insert->timestamp);
-			enviar_status_resultado(status, socket_memoria);
-			eliminar_paquete_insert(consulta_insert);
+			if (tabla_esta_bloqueada(consulta_insert->nombre_tabla->palabra)){
+				agregar_instruccion_bloqueada(crear_instruccion_insert_bloqueada(consulta_insert, socket_memoria), consulta_insert->nombre_tabla->palabra);
+			}else{
+				status = resolver_insert(logger, consulta_insert->nombre_tabla->palabra, consulta_insert->key, consulta_insert->valor->palabra, consulta_insert->timestamp);
+				enviar_status_resultado(status, socket_memoria);
+				eliminar_paquete_insert(consulta_insert);
+			}
 			break;
 		case CREATE:
 			log_info(logger, "memoria solicitó CREATE");
@@ -148,6 +174,60 @@ int resolver_operacion(int socket_memoria, t_operacion cod_op){
 			return EXIT_FAILURE;
 		}
 	return EXIT_SUCCESS;
+}
+
+t_instruccion_bloqueada* crear_instruccion_select_bloqueada(t_paquete_select* select, int socket_memoria){
+	t_instruccion_lql ret = {
+		.valido = true
+	};
+	ret.operacion=SELECT;
+	ret.parametros.SELECT.key = select->key;
+	ret.parametros.SELECT.tabla=select->nombre_tabla->palabra;
+	t_instruccion_bloqueada* bloqueada = malloc(sizeof(t_instruccion_bloqueada));
+
+	bloqueada->instruccion = ret;
+	bloqueada->socket_memoria=socket_memoria;
+	return bloqueada;
+}
+
+t_instruccion_bloqueada* crear_instruccion_insert_bloqueada(t_paquete_insert* insert, int socket_memoria){
+
+	t_instruccion_lql ret = {
+		.valido = true
+	};
+	ret.operacion=INSERT;
+	ret.parametros.INSERT.key = insert->key;
+	ret.parametros.INSERT.tabla=insert->nombre_tabla->palabra;
+	ret.parametros.INSERT.timestamp=insert->timestamp;
+	ret.parametros.INSERT.value = insert->valor->palabra;
+
+	t_instruccion_bloqueada* bloqueada = malloc(sizeof(t_instruccion_bloqueada));
+
+	bloqueada->instruccion = ret;
+	bloqueada->socket_memoria=socket_memoria;
+	return bloqueada;
+}
+
+void agregar_instruccion_bloqueada(t_instruccion_bloqueada* instruccion_bloqueada, char* tabla){
+	t_queue* instrucciones_bloqueadas ;
+	if( dictionary_has_key(instrucciones_bloqueadas_por_tabla, tabla)){
+		instrucciones_bloqueadas = dictionary_get(instrucciones_bloqueadas_por_tabla, tabla);
+
+	}else{
+		instrucciones_bloqueadas = queue_create();
+	}
+	queue_push(instrucciones_bloqueadas, instruccion_bloqueada);
+}
+
+bool tabla_esta_bloqueada(char* nombre_tabla){
+
+	bool _es_tabla_con_nombre(t_tabla_logica* tabla) {
+		return string_equals_ignore_case(tabla->nombre, nombre_tabla);
+	}
+
+	t_tabla_logica* tabla_logica = list_find(tablas_en_lfs, _es_tabla_con_nombre);
+	return (tabla_logica != NULL) && (tabla_logica->esta_bloqueado);
+
 }
 
 t_status_solicitud* resolver_drop(t_log* log_a_usar, char* nombre_tabla){
@@ -256,6 +336,7 @@ void levantar_lfs(char* montaje){
 	memcpy(path_montaje, montaje,string_size(montaje) );
 	fin_de_programa=false;
 	memtable = list_create();
+	instrucciones_bloqueadas_por_tabla = dictionary_create();
 	obtener_info_metadata();
 	obtener_bitmap();
 	obtener_tablas_en_lfs();
@@ -606,7 +687,9 @@ t_cache_tabla* obtener_tabla_memtable(char* nombre_tabla){
 	t_cache_tabla* tabla_cache = buscar_tabla_memtable(nombre_tabla);
 	if(tabla_cache == NULL){
 		tabla_cache = crear_tabla_cache(nombre_tabla);
+		pthread_mutex_lock(&mutexMemtable);
 		list_add(memtable, tabla_cache);
+		pthread_mutex_unlock(&mutexMemtable);
 	}
 	return tabla_cache;
 

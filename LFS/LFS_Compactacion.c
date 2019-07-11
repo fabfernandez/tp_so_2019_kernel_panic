@@ -42,10 +42,40 @@ void *compactar(void* nombre_tabla){
 }
 
 void bloquear_tabla(char* nombre_tabla){
+	int _es_tabla_con_nombre(t_cache_tabla* tabla) {
+		return string_equals_ignore_case(tabla->nombre, nombre_tabla);
+	}
 
+	t_tabla_logica* tabla_a_bloquear = list_find(tablas_en_lfs, _es_tabla_con_nombre);
+	tabla_a_bloquear->esta_bloqueado=true;
 }
 
 void desbloquear_tabla(char* nombre_tabla){
+	int _es_tabla_con_nombre(t_cache_tabla* tabla) {
+		return string_equals_ignore_case(tabla->nombre, nombre_tabla);
+	}
+
+	t_tabla_logica* tabla_a_bloquear = list_find(tablas_en_lfs, _es_tabla_con_nombre);
+	tabla_a_bloquear->esta_bloqueado=false;
+
+	if (dictionary_has_key(instrucciones_bloqueadas_por_tabla, nombre_tabla)){
+		t_queue* instrucciones_bloqueadas = dictionary_get(instrucciones_bloqueadas_por_tabla, nombre_tabla);
+		for(int i=0; i<queue_size(instrucciones_bloqueadas); i++){
+			t_instruccion_bloqueada* instruccion_bloqueada = queue_pop(instrucciones_bloqueadas);
+			t_status_solicitud* status;
+			if (instruccion_bloqueada->instruccion.operacion == SELECT){
+				status= resolver_select(nombre_tabla, instruccion_bloqueada->instruccion.parametros.SELECT.key);
+				enviar_status_resultado(status, instruccion_bloqueada->socket_memoria);
+			}else{
+				status = resolver_insert(logger, nombre_tabla, instruccion_bloqueada->instruccion.parametros.INSERT.key, instruccion_bloqueada->instruccion.parametros.INSERT.value, instruccion_bloqueada->instruccion.parametros.INSERT.timestamp);
+				enviar_status_resultado(status, instruccion_bloqueada->socket_memoria);
+			}
+			//eliminar_paquete_status(status);
+			free(instruccion_bloqueada);
+		}
+		free(dictionary_remove(instrucciones_bloqueadas_por_tabla, nombre_tabla));
+
+	}
 
 }
 
