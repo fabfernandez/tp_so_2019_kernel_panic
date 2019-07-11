@@ -12,7 +12,7 @@ int main(void)
 	char* puerto_lfs;
 	int socket_memoria;
 	char *montaje;
-	iniciar_loggers(); // creamos log
+	iniciar_loggers(); // creamos leer_bloques_de_archivoleer_bloques_de_archivoleer_bloques_de_archivoleer_bloques_de_archivoleer_bloques_de_archivoleer_bloques_de_archivoleer_bloques_de_archivoleer_bloques_de_archivoleer_bloques_de_archivolog
 	leer_config(); // abrimos config
 	ip_lfs = config_get_string_value(archivoconfig, "IP_LFS"); // asignamos IP de memoria a conectar desde CONFIG
 	log_info(logger, "La IP de la memoria es %s",ip_lfs );
@@ -158,6 +158,7 @@ t_status_solicitud* resolver_drop(t_log* log_a_usar, char* nombre_tabla){
 	char* dir_tabla = string_from_format("%s/Tables/%s", path_montaje, nombre_tabla);
 	if (existe_tabla_fisica(nombre_tabla)){
 		eliminar_tabla_memtable(nombre_tabla);
+		eliminar_tabla_logica(nombre_tabla);
 		liberar_bloques_tabla(dir_tabla);
 		eliminar_directorio(dir_tabla);
 		paquete_a_enviar = crear_paquete_status(true, "OK");
@@ -174,7 +175,7 @@ void liberar_bloques_tabla(char* path_tabla){
 	DIR * dir = opendir(path_tabla);
 	struct dirent * entry = readdir(dir);
 	while(entry != NULL){
-		if (( strcmp(entry->d_name, ".")!=0 && strcmp(entry->d_name, "..")!=0 ) && ( archivo_es_del_tipo(entry->d_name,"tempc") || archivo_es_del_tipo(entry->d_name,"bin"))) {
+		if (( strcmp(entry->d_name, ".")!=0 && strcmp(entry->d_name, "..")!=0 ) && ( archivo_es_del_tipo(entry->d_name,"temp") || archivo_es_del_tipo(entry->d_name,"tempc") || archivo_es_del_tipo(entry->d_name,"bin"))) {
 			char* dir_archivo = string_from_format("%s/%s", path_tabla, entry->d_name);
 			liberar_bloques_archivo(dir_archivo);
 		}
@@ -233,11 +234,10 @@ void eliminar_directorio(char* path_tabla){
 bool validar_datos_describe(char* nombre_tabla, int socket_memoria){
 	t_status_solicitud* status;
 	bool es_valido = true;
-	if(string_is_empty(nombre_tabla)){
+	if(!string_is_empty(nombre_tabla)){
 		if (existe_tabla_fisica(nombre_tabla)) {
 			status = crear_paquete_status(true, "OK");
 			enviar_status_resultado(status, socket_memoria);
-			enviar_tabla_para_describe(socket_memoria, nombre_tabla);
 		}else {
 			char * mje_error = string_from_format("La tabla %s no existe", nombre_tabla);
 			log_error(logger, mje_error);
@@ -258,7 +258,57 @@ void levantar_lfs(char* montaje){
 	memtable = list_create();
 	obtener_info_metadata();
 	obtener_bitmap();
-	//crear_hilos_compactacion_por_cada_tabla();
+	obtener_tablas_en_lfs();
+
+}
+void obtener_tablas_en_lfs(){
+	tablas_en_lfs = list_create();
+	char* path_tablas = string_from_format("%s/Tables", path_montaje);
+	DIR * dir = opendir(path_tablas);
+	struct dirent * entry = readdir(dir);
+	while(entry != NULL){
+		if (entry->d_type == DT_DIR &&  ( strcmp(entry->d_name, ".")!=0 && strcmp(entry->d_name, "..")!=0 )){
+			char* nombre_tabla = entry->d_name;
+			t_tabla_logica* tabla_fisica = crear_tabla_logica(nombre_tabla);
+			list_add(tablas_en_lfs, tabla_fisica);
+		}
+		entry = readdir(dir);
+	}
+
+}
+
+void agregar_tabla_logica(char* nombre_tabla){
+	t_tabla_logica* tabla_fisica = crear_tabla_logica(nombre_tabla);
+	list_add(tablas_en_lfs, tabla_fisica);
+}
+
+void eliminar_tabla_logica(char* nombre_tabla){
+	bool _es_tabla_con_nombre(t_tabla_logica* tabla) {
+		return string_equals_ignore_case(tabla->nombre, nombre_tabla);
+	}
+
+	t_tabla_logica* tabla_logica = list_remove_by_condition(tablas_en_lfs, _es_tabla_con_nombre);;
+	if (tabla_logica!=NULL){
+		log_info(logger_compactacion, "Se elimina la tabla %s. Se procede a frenar el hilo.", nombre_tabla);
+		if (pthread_detach(tabla_logica->id_hilo_compactacion) != 0){
+			log_error(logger_compactacion, "Error al frenar hilo de compactacion");
+		}
+		free(tabla_logica->nombre);
+		free(tabla_logica);
+	}
+
+}
+
+t_tabla_logica* crear_tabla_logica(char* nombre_tabla){
+
+	t_tabla_logica* tabla = malloc(sizeof(t_tabla_logica));
+	tabla->esta_bloqueado=false;
+	tabla->nombre=malloc(string_size(nombre_tabla));
+	memcpy(tabla->nombre, nombre_tabla, string_size(nombre_tabla));
+
+	pthread_t hilo = crear_hilo_compactacion(nombre_tabla);
+	tabla->id_hilo_compactacion = hilo;
+	return tabla;
 }
 
 void obtener_bitmap(){
@@ -330,11 +380,11 @@ t_status_solicitud* resolver_create (t_log* log_a_usar,char* nombre_tabla, t_con
 		log_error(log_a_usar, mje_error);
 		status = crear_paquete_status(false, mje_error);
 	}else{
-		crear_hilo_compactacion(nombre_tabla);
 		char* dir_tabla = string_from_format("%s/Tables/%s", path_montaje, nombre_tabla);
 		if (crear_directorio_tabla(dir_tabla)){
 			crear_archivo_metadata_tabla(dir_tabla, num_particiones, compactacion, consistencia);
 			crear_particiones(dir_tabla, num_particiones);
+			agregar_tabla_logica(nombre_tabla);
 			status = crear_paquete_status(true, "OK");
 		}else{
 			char * mje_error = string_from_format("No pudo crearse la tabla %s", nombre_tabla);
@@ -573,7 +623,7 @@ t_cache_tabla* crear_tabla_cache(char* nombre_tabla){
 
 
 t_cache_tabla* buscar_tabla_memtable(char* nombre_tabla){
-	int _es_tabla_con_nombre(t_cache_tabla* tabla) {
+	bool _es_tabla_con_nombre(t_cache_tabla* tabla) {
 		return string_equals_ignore_case(tabla->nombre, nombre_tabla);
 	}
 
@@ -581,11 +631,17 @@ t_cache_tabla* buscar_tabla_memtable(char* nombre_tabla){
 }
 
 bool existe_tabla_fisica(char* nombre_tabla){
-	char* path_tabla = string_from_format("%s/Tables/%s", path_montaje, nombre_tabla);
+//	char* path_tabla = string_from_format("%s/Tables/%s", path_montaje, nombre_tabla);
+//
+//	struct stat sb;
+//
+//	return (stat(path_tabla, &sb) == 0 && S_ISDIR(sb.st_mode));
+	bool _es_tabla_con_nombre(t_tabla_logica* tabla) {
+		return string_equals_ignore_case(tabla->nombre, nombre_tabla);
+	}
 
-	struct stat sb;
 
-	return (stat(path_tabla, &sb) == 0 && S_ISDIR(sb.st_mode));
+	return list_any_satisfy(tablas_en_lfs, _es_tabla_con_nombre);
 }
 
 
@@ -688,13 +744,18 @@ char* leer_bloques_de_archivo(char* path_archivo){
 			}else{
 				size_a_leer = resto_a_leer;
 			}
+
 			int num_bloque=atoi(bloques[ind_bloques]);
 
 			char* dir_bloque = string_from_format("%s/Bloques/%i.bin", path_montaje, num_bloque);
 			FILE* file = fopen(dir_bloque, "rb+");
-
+//			fseek(file, 0, SEEK_END);
+//			// int tamanioArchivo = sizeof(char) * ftell(fp);
+//			long tamanioArchivo = ftell(file);
+//			fseek(file, 0, SEEK_SET);
 			buffer = malloc(size_a_leer);
-			fread(buffer, sizeof(char), size_a_leer, file);
+			size_t read_count = fread(buffer, sizeof(char), size_a_leer, file);
+			buffer[read_count]='\0';
 			string_append(&buffer_bloques, buffer);
 			fclose(file);
 			free(buffer);
@@ -702,6 +763,7 @@ char* leer_bloques_de_archivo(char* path_archivo){
 			ind_bloques = ind_bloques+1;
 		}
 	}
+	//buffer_bloques[size_files]="\0";
 	config_destroy(archivo);
 	return buffer_bloques;
 

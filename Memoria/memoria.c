@@ -974,9 +974,14 @@ void resolver_describe_para_kernel(int socket_kernel_fd, int socket_conexion_lfs
 	else{
 		//Si es un DESCRIBE de una tabla especifica...
 		log_info(logger, "DESCRIBE de la tabla %s", consulta_describe->nombre_tabla->palabra);
-		enviar_paquete_drop_describe(socket_conexion_lfs, consulta_describe);
-		t_metadata* metadata = deserealizar_metadata(socket_conexion_lfs);
-		enviar_paquete_metadata(socket_kernel_fd, metadata);
+		t_status_solicitud* status = desearilizar_status_solicitud(socket_conexion_lfs);
+		enviar_status_resultado(status, socket_kernel_fd);
+		//eliminar_paquete_status(status);
+		if (status->es_valido){
+			enviar_paquete_drop_describe(socket_conexion_lfs, consulta_describe);
+			t_metadata* metadata = deserealizar_metadata(socket_conexion_lfs);
+			enviar_paquete_metadata(socket_kernel_fd, metadata);
+		}
 	}
 
 }
@@ -1012,14 +1017,21 @@ void resolver_describe_consola(t_instruccion_lql instruccion){
 		//Si es un DESCRIBE de una tabla especifica...
 		log_info(logger, "DESCRIBE de la tabla %s", consulta->nombre_tabla->palabra);
 		enviar_paquete_drop_describe(socket_conexion_lfs, consulta);
-		t_metadata* metadata = deserealizar_metadata(socket_conexion_lfs);
-		log_info(logger, "NOMBRE: %s",metadata->nombre_tabla->palabra);
-		log_info(logger, "CONSISTENCIA: %i",metadata->consistencia);
-		log_info(logger, "PARTICIONES: %i",metadata->n_particiones);
-		log_info(logger, "T. COMPACTACION: %i",metadata->tiempo_compactacion);
-		free(metadata->nombre_tabla->palabra);
-		free(metadata->nombre_tabla);
-		free(metadata);
+		t_status_solicitud* status = desearilizar_status_solicitud(socket_conexion_lfs);
+		//eliminar_paquete_status(status);
+		if (status->es_valido){
+			t_metadata* metadata = deserealizar_metadata(socket_conexion_lfs);
+			log_info(logger, "NOMBRE: %s",metadata->nombre_tabla->palabra);
+			log_info(logger, "CONSISTENCIA: %i",metadata->consistencia);
+			log_info(logger, "PARTICIONES: %i",metadata->n_particiones);
+			log_info(logger, "T. COMPACTACION: %i",metadata->tiempo_compactacion);
+			free(metadata->nombre_tabla->palabra);
+			free(metadata->nombre_tabla);
+			free(metadata);
+		}else{
+			log_info(logger, "Error: %s",status->mensaje->palabra);
+		}
+
 	}
 
 }

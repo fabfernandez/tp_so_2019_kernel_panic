@@ -26,13 +26,19 @@
 #include <sys/stat.h>
 #include <time.h>
 
-
+#include "LFS_Compactacion.h"
 #include "LFS_Consola.h"
 #include "LFS_Dump.h"
 t_list* memtable;
+t_list* tablas_en_lfs;
 char* bmap;
 t_bitarray* bitarray;
 
+typedef struct{
+	char* nombre;
+	pthread_t id_hilo_compactacion;
+	bool esta_bloqueado;
+}t_tabla_logica;
 
 // ******* DEFINICION DE FUNCIONES A UTILIZAR ******* //
 void chequearSocket(int socketin);
@@ -61,8 +67,6 @@ int crear_directorio_tabla (char* dir_tabla);
 void levantar_lfs(char* montaje);
 void obtener_bitmap();
 void obtener_info_metadata();
-int obtener_cantidad_tablas_LFS();
-void agregar_registro_memtable(t_registro* registro_a_insertar, char * nombre_tabla);
 typedef char* t_valor;	//valor que devuelve el select
 t_registro* buscar_registro_actual(t_list* registros_encontrados);
 t_list* buscar_registros_en_particion(char* nombre_tabla,uint16_t key);
@@ -78,8 +82,8 @@ void enviar_metadata_todas_tablas (int socket_memoria);
 int create(char* tabla, t_consistencia consistencia, int maximo_particiones, long tiempo_compactacion);
 t_status_solicitud* resolver_drop(t_log* log_a_usar,char* nombre_tabla);
 void resolver_describe(char* nombre_tabla, int socket_memoria);
-t_registro* buscar_registro_actual(t_list* registros_encontrados);
 t_registro* crear_registro(char* value, uint16_t key, long timestamp);
+t_tabla_logica* crear_tabla_logica(char* nombre_tabla);
 void agregar_registro_memtable(t_registro* registro_a_insertar, char * nombre_tabla);
 bool validar_datos_describe(char* nombre_tabla, int socket_memoria);
 t_cache_tabla* obtener_tabla_memtable(char* nombre_tabla);
