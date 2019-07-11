@@ -7,24 +7,35 @@
 #include "LFS_Dump.h"
 
 void *dump(){
+
 	log_info(logger_dump, "Tiempo retardo dump: [%d]", tiempo_dump);
 	while(1){
 		sleep(tiempo_dump/1000);
-		if (list_is_empty(memtable)) {
-			log_info(logger_dump, "DUMP- No hay datos para dumpear.");
-		}else{
-			log_info(logger_dump, "Se realiza dump");
-			t_list* datos = copiar_y_limpiar_memtable();
-
-			while(!list_is_empty(datos)){
-				t_cache_tabla* tabla = list_remove(datos, 0);
-				log_info(logger_dump, "Se realiza dump para tabla: [%s]",tabla->nombre);
-				dump_por_tabla(tabla);
-				eliminar_tabla(tabla);
-			}
-
-		}
+		//pthread_mutex_lock(&mutexDump);
+		dump_proceso(tiempo_dump);
+		//pthread_mutex_unlock(&mutexDump);
 	}
+
+}
+
+
+void dump_proceso(){
+
+	if (list_is_empty(memtable)) {
+		log_info(logger_dump, "DUMP- No hay datos para dumpear.");
+	}else{
+		log_info(logger_dump, "Se realiza dump");
+		t_list* datos = copiar_y_limpiar_memtable();
+
+		while(!list_is_empty(datos)){
+			t_cache_tabla* tabla = list_remove(datos, 0);
+			log_info(logger_dump, "Se realiza dump para tabla: [%s]",tabla->nombre);
+			dump_por_tabla(tabla);
+			eliminar_tabla(tabla);
+		}
+
+	}
+
 }
 
 void crear_hilo_dump(){
