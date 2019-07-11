@@ -22,6 +22,7 @@
 #include <time.h>
 #include <semaphore.h>
 #include <math.h>
+#include <sys/inotify.h>
 							// ******* TIPOS NECESARIOS ******* //
 t_log* logger;
 t_log* log_metrics;
@@ -35,6 +36,7 @@ pthread_mutex_t ready_queue_mutex;
 sem_t exec_queue_consumer;
 sem_t new_queue_consumer;
 sem_t ready_queue_consumer;
+char* ARCHIVO_CONFIG;
 
 
 typedef char* t_valor;					// VALOR QUE DEVUELVE EL SELECT(TODAVIA NO SABEMOS QUE ALMACENA EN TABLAS?)
@@ -101,6 +103,7 @@ void chequearSocket(int socketin);
 void iniciar_logger(void);
 t_log* crear_log(char* path);
 void leer_config(void);
+void leer_atributos_config();
 void terminar_programa(int conexion);
 int generarID();
 void asignar_consistencia(t_memoria* memoria, t_consistencia consistencia);
@@ -122,6 +125,8 @@ uint16_t convertir_string_a_int(char* string);
 void resolver_describe(t_instruccion_lql instruccion);
 void resolver_metrics();
 void resolver_journal();
+void iniciar_hilo_inotify();
+void iniciar_inotify();
 
 
 
