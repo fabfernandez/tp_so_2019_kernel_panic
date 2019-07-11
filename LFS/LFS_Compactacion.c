@@ -320,11 +320,11 @@ bool pertenece_a_lista_particiones(t_list* particiones_a_liberar,char* nombre_ar
 }
 
 void realizar_compactacion(char* path_tabla, t_list* registros_filtrados){
-	t_list* particiones_a_liberar = encontrar_particiones_a_liberar(registros_filtrados);
+	t_list* particiones_a_liberar = encontrar_particiones_tocadas(registros_filtrados);
 	liberar_bloques_compactacion(path_tabla, particiones_a_liberar);
 
 	//borra todos tempc y .bin para una tabla
-	eliminar_temp_y_bin_tabla(path_tabla);
+	eliminar_temp_y_bin_tabla(path_tabla, particiones_a_liberar);
 
 	for(int i=0 ; !list_is_empty(registros_filtrados); i++){
 		t_list* registros_de_particion = list_remove(registros_filtrados, 0);
@@ -340,31 +340,33 @@ void realizar_compactacion(char* path_tabla, t_list* registros_filtrados){
 	}
 }
 
-t_list* encontrar_particiones_a_liberar(t_list* registros_filtrados){
-	t_list* listas_vacias =  list_create();
+t_list* encontrar_particiones_tocadas(t_list* registros_filtrados){
+	t_list* listas_tocadas =  list_create();
 	int index= 0;
 
-	void es_vacia(t_list* elemento){
-		if(list_is_empty(elemento)){
-			list_add(listas_vacias, (int*) index);
+	void no_es_vacia(t_list* elemento){
+		if(!list_is_empty(elemento)){
+			list_add(listas_tocadas, (int*) index);
 		}
 		index++;
 	}
-	list_iterate(registros_filtrados, (void*) es_vacia);
+	list_iterate(registros_filtrados, (void*) no_es_vacia);
 
-	return listas_vacias;
+	return listas_tocadas;
 }
 
-void eliminar_temp_y_bin_tabla(char* path_tabla){
+void eliminar_temp_y_bin_tabla(char* path_tabla, t_list* particiones_a_liberar){
 	DIR * dir = opendir(path_tabla);
 	struct dirent * entry = readdir(dir);
 	while(entry != NULL){
 		if ( strcmp(entry->d_name, ".")!=0 && strcmp(entry->d_name, "..")!=0 && strcmp(entry->d_name, "Metadata")!=0  && !archivo_es_del_tipo(entry->d_name, "temp")) {
-			char* dir_archivo = string_from_format("%s/%s", path_tabla, entry->d_name);
-			if (unlink(dir_archivo) == 0)
-				log_info(logger, "Eliminado archivo: %s\n", entry->d_name);
-			else
-				log_info(logger, "No se puede eliminar archivo: %s\n", entry->d_name);
+			if(pertenece_a_lista_particiones(particiones_a_liberar,entry->d_name) ){
+				char* dir_archivo = string_from_format("%s/%s", path_tabla, entry->d_name);
+				if (unlink(dir_archivo) == 0)
+					log_info(logger, "Eliminado archivo: %s\n", entry->d_name);
+				else
+					log_info(logger, "No se puede eliminar archivo: %s\n", entry->d_name);
+			}
 		}
 		entry = readdir(dir);
 	}
