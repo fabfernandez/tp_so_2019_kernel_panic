@@ -113,6 +113,7 @@ t_list* leer_registros_temporales(char* path_tabla, int cantidad_temporales){
 //		//free(path_archivo)
 //		config_destroy(tempc);
 	}
+	log_info(logger_compactacion, "Se leen registros de %d archivos temporales en: %s.", cantidad_temporales ,path_tabla);
 	return registros;
 }
 
@@ -125,6 +126,7 @@ t_list* leer_registros_particiones(char* path_tabla){
 
 	for(int i=0 ; i<num_particiones; i++){
 		char* path_archivo = string_from_format("%s/%d.bin", path_tabla, i);
+
 		list_add(registros, obtener_registros_de_archivo(path_archivo));
 	}
 
@@ -132,6 +134,16 @@ t_list* leer_registros_particiones(char* path_tabla){
 	return registros;
 }
 
+t_registro* crear_t_registros_por_particion(char* value, uint16_t key, long timestamp){
+
+	t_registro* nuevo_registro = malloc(sizeof(t_registro));
+	nuevo_registro->key=key;
+	nuevo_registro->timestamp = timestamp;
+	nuevo_registro->value=malloc(string_size(value));
+	memcpy(nuevo_registro->value, value, string_size(value));
+
+	return nuevo_registro;
+}
 /*
  * t_list* chars_to_ints(char* bloques){
 	t_list* bloques_int = list_create();
@@ -232,15 +244,31 @@ t_list* filtrar_registros_duplicados_segun_particiones(char* path_tabla, t_list*
 	t_list* registros_particiones = leer_registros_particiones(path_tabla);
 	int num_particiones = list_size(registros_particiones);
 
+	t_dictionary* particiones_tocadas = dictionary_create();
+
 	while(!list_is_empty(registros_nuevos)){
 		t_registro* un_registro = list_remove(registros_nuevos, 0);
 
 		int particion = un_registro->key % num_particiones;
+
+		dictionary_put(particiones_tocadas, (char*)string_itoa(particion), (bool*) true);
 		actualizar_registro(list_get(registros_particiones,particion), un_registro); //PRECAUCION: Capaz list_get no funciona, necesitaria que trabaje con el puntero de la lista
 	}
 
+	vaciar_datos_de_listas_no_tocadas(registros_particiones, particiones_tocadas);
+
 	log_info(logger_compactacion, "Se obtienen registros filtrados para: %s.", path_tabla);
 	return registros_particiones;
+}
+
+void vaciar_datos_de_listas_no_tocadas(t_list* registros_particiones, t_dictionary* particiones_tocadas){
+	for(int i= 0; list_get(registros_particiones, i)!= NULL; i++ ){
+		if(dictionary_get(particiones_tocadas, string_itoa(i))){
+		}else{
+			t_list* registros_no_tocados = list_replace(registros_particiones, i, list_create());
+			list_destroy_and_destroy_elements(registros_no_tocados,(void*) eliminar_registro);
+		}
+	}
 }
 
 void actualizar_registro(t_list* registros, t_registro* un_registro){
@@ -263,12 +291,12 @@ void actualizar_registro(t_list* registros, t_registro* un_registro){
 		}
 	}
 }
-void liberar_bloques_compactacion(char* path_tabla){
+void liberar_bloques_compactacion(char* path_tabla, t_list* particiones_a_liberar){
 
 	DIR * dir = opendir(path_tabla);
 	struct dirent * entry = readdir(dir);
 	while(entry != NULL){
-		if (( strcmp(entry->d_name, ".")!=0 && strcmp(entry->d_name, "..")!=0 ) && ( archivo_es_del_tipo(entry->d_name,"tempc") || archivo_es_del_tipo(entry->d_name,"bin"))) {
+		if (( strcmp(entry->d_name, ".")!=0 && strcmp(entry->d_name, "..")!=0 ) && ( archivo_es_del_tipo(entry->d_name,"tempc") || (archivo_es_del_tipo(entry->d_name,"bin")&& pertenece_a_lista_particiones(particiones_a_liberar,entry->d_name) )) ) {
 			char* dir_archivo = string_from_format("%s/%s", path_tabla, entry->d_name);
 			liberar_bloques_archivo(dir_archivo);
 		}
@@ -276,32 +304,69 @@ void liberar_bloques_compactacion(char* path_tabla){
 	}
 }
 
+bool pertenece_a_lista_particiones(t_list* particiones_a_liberar,char* nombre_archivo){
+	char ** nombre_y_extension = string_split(nombre_archivo, ".");
+	if (nombre_y_extension[0]== NULL){
+		return false;
+	}else{
+		int particion = atoi(nombre_y_extension[0]);
+
+		bool _es_igual(int elemento_lista){
+			return particion == elemento_lista;
+		}
+
+		return list_any_satisfy(particiones_a_liberar, _es_igual);
+	}
+}
+
 void realizar_compactacion(char* path_tabla, t_list* registros_filtrados){
-	liberar_bloques_compactacion(path_tabla);
+	t_list* particiones_a_liberar = encontrar_particiones_tocadas(registros_filtrados);
+	liberar_bloques_compactacion(path_tabla, particiones_a_liberar);
 
 	//borra todos tempc y .bin para una tabla
-	eliminar_temp_y_bin_tabla(path_tabla);
+	eliminar_temp_y_bin_tabla(path_tabla, particiones_a_liberar);
 
 	for(int i=0 ; !list_is_empty(registros_filtrados); i++){
 		t_list* registros_de_particion = list_remove(registros_filtrados, 0);
+
+		if(!list_is_empty(registros_de_particion)){
 		char* path_archivo = string_from_format("%s/%d.bin", path_tabla, i);
 
 		escribir_registros_y_crear_archivo(registros_de_particion, path_archivo);
 		free(path_archivo);
+		}
+
 		list_destroy(registros_de_particion);
 	}
 }
 
-void eliminar_temp_y_bin_tabla(char* path_tabla){
+t_list* encontrar_particiones_tocadas(t_list* registros_filtrados){
+	t_list* listas_tocadas =  list_create();
+	int index= 0;
+
+	void no_es_vacia(t_list* elemento){
+		if(!list_is_empty(elemento)){
+			list_add(listas_tocadas, (int*) index);
+		}
+		index++;
+	}
+	list_iterate(registros_filtrados, (void*) no_es_vacia);
+
+	return listas_tocadas;
+}
+
+void eliminar_temp_y_bin_tabla(char* path_tabla, t_list* particiones_a_liberar){
 	DIR * dir = opendir(path_tabla);
 	struct dirent * entry = readdir(dir);
 	while(entry != NULL){
 		if ( strcmp(entry->d_name, ".")!=0 && strcmp(entry->d_name, "..")!=0 && strcmp(entry->d_name, "Metadata")!=0  && !archivo_es_del_tipo(entry->d_name, "temp")) {
-			char* dir_archivo = string_from_format("%s/%s", path_tabla, entry->d_name);
-			if (unlink(dir_archivo) == 0)
-				log_info(logger, "Eliminado archivo: %s\n", entry->d_name);
-			else
-				log_info(logger, "No se puede eliminar archivo: %s\n", entry->d_name);
+			if(pertenece_a_lista_particiones(particiones_a_liberar,entry->d_name) ){
+				char* dir_archivo = string_from_format("%s/%s", path_tabla, entry->d_name);
+				if (unlink(dir_archivo) == 0)
+					log_info(logger, "Eliminado archivo: %s\n", entry->d_name);
+				else
+					log_info(logger, "No se puede eliminar archivo: %s\n", entry->d_name);
+			}
 		}
 		entry = readdir(dir);
 	}
