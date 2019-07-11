@@ -15,6 +15,7 @@ int SLEEP_EJECUCION = 0;
 int CANT_EXEC = 0;
 int error = 0;
 int CANT_METRICS = 0;
+char* ARCHIVO_CONFIG = "/home/utnso/tp-2019-1c-Los-Dinosaurios-Del-Libro/Kernel/kernel.config";
 
 
 int main(void)
@@ -25,27 +26,11 @@ int main(void)
 	iniciar_logger(); // creamos log
 	leer_config(); // abrimos config
 	IP_MEMORIA = config_get_string_value(archivoconfig, "IP_MEMORIA"); // asignamos IP de memoria a conectar desde CONFIG
-	retardo_gossiping = config_get_int_value(archivoconfig, "RETARDO_GOSSIPING");
-
-	log_info(logger, "La IP de la memoria es %s", IP_MEMORIA);
 	PUERTO_MEMORIA = config_get_string_value(archivoconfig, "PUERTO_MEMORIA"); // asignamos puerto desde CONFIG
+	log_info(logger, "La IP de la memoria es %s", IP_MEMORIA);
 	log_info(logger, "El puerto de la memoria es %s", PUERTO_MEMORIA);
 
-	QUANTUM = config_get_int_value(archivoconfig, "QUANTUM");
-	SLEEP_EJECUCION = config_get_int_value(archivoconfig, "SLEEP_EJECUCION") / 1000;
-	CANT_EXEC = config_get_int_value(archivoconfig, "NIVEL_MULTIPROCESAMIENTO");
-
-//	// CREO SOCKET DESCRIPTOR KERNEL //
-//
-//	socketKernel = socket(AF_INET,SOCK_STREAM,0);
-//
-//	// SETEO SERVIDOR AL QUE ME VOY A CONECTAR
-//
-//	struct sockaddr_in destino_addr; // direccion a la que me voy a conectar(este caso memoria)
-//	 destino_addr.sin_family = AF_INET; // por defecto aca va siempre AF_INET(ver beej)
-//	 destino_addr.sin_port = htons(PUERTO_MEMORIA); // PUERTO EN EL QUE ESCUCHA LA MEMORIA -> PERO LO PASAMOS A ORDENACION DE RED
-//	 destino_addr.sin_addr.s_addr = inet_addr(IP_MEMORIA); // IP DE LA MEMORIA
-//	 memset(&(destino_addr.sin_zero), '\0', 8); // PONE EN CERO EL RESTO DE LA ESTRUCTURA(SIEMPRE, VER BEEJ)
+	leer_atributos_config();
 
 	// CONECTO!
 	socket_memoria = crear_conexion(IP_MEMORIA,PUERTO_MEMORIA); // conecto el socketKernel(ESTE PROCESO) con la memoria
@@ -84,6 +69,7 @@ int main(void)
 	iniciar_hilo_planificacion();
 	iniciar_hilo_metrics();
 	iniciarHiloGossiping(memorias_disponibles);
+	iniciar_hilo_inotify();
 
 	while(1){
 		char* linea = readline("Consola kernel>");
@@ -99,10 +85,10 @@ int main(void)
 void iniciarHiloGossiping(t_list* memorias_disponibles){ // @suppress("Type cannot be resolved")
 	pthread_t hiloGossiping;
 	if (pthread_create(&hiloGossiping, 0, iniciar_peticion_tablas, memorias_disponibles) !=0){
-			log_error(logger, "Error al crear el hilo");
+			log_error(logger, "Error al crear el hilo de Gossiping");
 		}
 	if (pthread_detach(hiloGossiping) != 0){
-			log_error(logger, "Error al crear el hilo");
+			log_error(logger, "Error al crear el hilo de Gossiping");
 		}
 }
 
@@ -123,9 +109,10 @@ void recibir_tabla_de_gossiping(int socket){
 	recv(socket,&numero_memorias,sizeof(int),MSG_WAITALL);
 	log_info(logger, "Memorias de tabla: %i",numero_memorias);
 
+	list_destroy(memorias_disponibles);
+	memorias_disponibles = list_create();
+
 	for(int i=0;i<numero_memorias;i++){
-		list_destroy(memorias_disponibles);
-		memorias_disponibles=list_create();
 		t_memoria* memoria=malloc(sizeof(t_memoria));
 
 		int tamanio_ip;
@@ -209,14 +196,6 @@ void ejecutar_instruccion(t_instruccion_lql instruccion){
 			break;
 		}
 }
-
-/*void chequearSocket(int socketin){
-	if(socketin == -1){ printf("Error creacion de socket"); }
-	else { print("Socket creado exitosamente: %i", socketin);
-			//exit(-1);
-	}
-};*/
-
 
 void resolver_describe_drop(t_instruccion_lql instruccion, t_operacion operacion){
 	//separar entre describe y drop
@@ -337,7 +316,7 @@ void resolver_select(t_instruccion_lql instruccion){
 			error = 0;
 		}else{
 			log_error(logger, "Error: %s", status->mensaje->palabra);
-			error = 1;
+			error = 0;
 		}
 		clock_gettime(CLOCK_REALTIME, &spec);
 		int timestamp_destino = spec.tv_sec;
@@ -590,7 +569,14 @@ t_log* crear_log(char* path){
 }
 
 void leer_config() {								// APERTURA DE CONFIG
-	archivoconfig = config_create("/home/utnso/tp-2019-1c-Los-Dinosaurios-Del-Libro/Kernel/kernel.config");
+	archivoconfig = config_create(ARCHIVO_CONFIG);
+}
+
+void leer_atributos_config(){
+	QUANTUM = config_get_int_value(archivoconfig, "QUANTUM");
+	CANT_EXEC = config_get_int_value(archivoconfig, "NIVEL_MULTIPROCESAMIENTO");
+	SLEEP_EJECUCION = config_get_int_value(archivoconfig, "SLEEP_EJECUCION") / 1000;
+	retardo_gossiping = config_get_int_value(archivoconfig, "RETARDO_GOSSIPING");
 }
 
 int generarID(){
@@ -611,3 +597,55 @@ void terminar_programa(int conexion)
 	//Y por ultimo, para cerrar, hay que liberar lo que utilizamos (conexion, log y config) con las funciones de las commons y del TP mencionadas en el enunciado
 }
 
+void iniciar_hilo_inotify(){
+	pthread_t hilo_inotify;
+	if (pthread_create(&hilo_inotify, 0, iniciar_inotify, NULL) !=0){
+			log_error(logger, "Error al crear el hilo de Inotify");
+		}
+	if (pthread_detach(hilo_inotify) != 0){
+			log_error(logger, "Error al crear el hilo de Inotify");
+		}
+}
+void iniciar_inotify(){
+	#define MAX_EVENTS 1024 /*Max. number of events to process at one go*/
+	#define LEN_NAME 64 /*Assuming that the length of the filename won't exceed 16 bytes*/
+	#define EVENT_SIZE  ( sizeof (struct inotify_event) ) /*size of one event*/
+	#define BUF_LEN     ( MAX_EVENTS * ( EVENT_SIZE + LEN_NAME )) /*buffer to store the data of events*/
+
+	char* path = ARCHIVO_CONFIG;
+	int length, i = 0, wd;
+	int fd;
+	char buffer[BUF_LEN];
+
+	fd = inotify_init();
+	if( fd < 0 ){
+		log_error(logger, "No se pudo inicializar Inotify");
+	}
+
+	/* add watch to starting directory */
+	wd = inotify_add_watch(fd, path, IN_MODIFY);
+
+	if(wd == -1){
+		log_error(logger, "No se pudo agregar una observador para el archivo: %s\n",path);
+	}else{
+		log_info(logger, "Inotify esta observando modificaciones al archivo: %s\n", path);
+	}
+
+	while(1){
+		length = read( fd, buffer, BUF_LEN );
+		if(length < 0){
+			perror("read");
+		}else{
+			struct inotify_event *event = ( struct inotify_event * ) buffer;
+			if(event->mask == IN_MODIFY){
+				log_info(logger, "Se modifico el archivo de configuración");
+				leer_config();
+				leer_atributos_config();
+
+				log_info(logger, "El Quantum es de %d", QUANTUM);
+			}
+		}
+	}
+	inotify_rm_watch( fd, wd );
+	close( fd );
+}

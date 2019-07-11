@@ -8,10 +8,10 @@ void iniciar_hilo_planificacion(){
 	pthread_t hilo_planificacion;
 
 	if(pthread_create(&hilo_planificacion, 0, planificador, NULL) !=0){
-		log_error(logger, "Error al crear el hilo");
+		log_error(logger, "Error al crear el hilo de Planificación");
 	}
 	if(pthread_detach(hilo_planificacion) != 0){
-		log_error(logger, "Error al crear el hilo");
+		log_error(logger, "Error al crear el hilo de Planificación");
 	}
 }
 
@@ -19,10 +19,10 @@ void iniciar_hilo_ready(){
 	pthread_t hilo_ready;
 
 	if(pthread_create(&hilo_ready, 0, revisa_ready_queue, NULL) !=0){
-		log_error(logger, "Error al crear el hilo");
+		log_error(logger, "Error al crear el hilo de Ready Queue");
 	}
 	if(pthread_detach(hilo_ready) != 0){
-		log_error(logger, "Error al crear el hilo");
+		log_error(logger, "Error al crear el hilo de Ready Queue");
 	}
 }
 
@@ -30,10 +30,10 @@ void iniciar_hilo_ejecucion(){
 	pthread_t hilo_ejecucion;
 
 	if(pthread_create(&hilo_ejecucion, 0, revisa_exec_queue, NULL) !=0){
-		log_error(logger, "Error al crear el hilo");
+		log_error(logger, "Error al crear el hilo de Exec Queue");
 	}
 	if(pthread_detach(hilo_ejecucion) != 0){
-		log_error(logger, "Error al crear el hilo");
+		log_error(logger, "Error al crear el hilo de Exec Queue");
 	}
 }
 

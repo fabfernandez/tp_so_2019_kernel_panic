@@ -11,10 +11,10 @@ void iniciar_hilo_metrics(){
 	pthread_t hilo_metrics;
 
 	if(pthread_create(&hilo_metrics, 0, loguear_y_borrar, NULL) !=0){
-		log_error(logger, "Error al crear el hilo");
+		log_error(logger, "Error al crear el hilo de Metricas");
 	}
 	if(pthread_detach(hilo_metrics) != 0){
-		log_error(logger, "Error al crear el hilo");
+		log_error(logger, "Error al crear el hilo de Metricas");
 	}
 }
 
