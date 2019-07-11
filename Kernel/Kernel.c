@@ -32,18 +32,6 @@ int main(void)
 
 	leer_atributos_config();
 
-//	// CREO SOCKET DESCRIPTOR KERNEL //
-//
-//	socketKernel = socket(AF_INET,SOCK_STREAM,0);
-//
-//	// SETEO SERVIDOR AL QUE ME VOY A CONECTAR
-//
-//	struct sockaddr_in destino_addr; // direccion a la que me voy a conectar(este caso memoria)
-//	 destino_addr.sin_family = AF_INET; // por defecto aca va siempre AF_INET(ver beej)
-//	 destino_addr.sin_port = htons(PUERTO_MEMORIA); // PUERTO EN EL QUE ESCUCHA LA MEMORIA -> PERO LO PASAMOS A ORDENACION DE RED
-//	 destino_addr.sin_addr.s_addr = inet_addr(IP_MEMORIA); // IP DE LA MEMORIA
-//	 memset(&(destino_addr.sin_zero), '\0', 8); // PONE EN CERO EL RESTO DE LA ESTRUCTURA(SIEMPRE, VER BEEJ)
-
 	// CONECTO!
 	socket_memoria = crear_conexion(IP_MEMORIA,PUERTO_MEMORIA); // conecto el socketKernel(ESTE PROCESO) con la memoria
 	log_info(logger,"Creada la conexion para la memoria");
@@ -121,9 +109,10 @@ void recibir_tabla_de_gossiping(int socket){
 	recv(socket,&numero_memorias,sizeof(int),MSG_WAITALL);
 	log_info(logger, "Memorias de tabla: %i",numero_memorias);
 
+	list_destroy(memorias_disponibles);
+	memorias_disponibles = list_create();
+
 	for(int i=0;i<numero_memorias;i++){
-		list_destroy(memorias_disponibles);
-		memorias_disponibles=list_create();
 		t_memoria* memoria=malloc(sizeof(t_memoria));
 
 		int tamanio_ip;
@@ -207,14 +196,6 @@ void ejecutar_instruccion(t_instruccion_lql instruccion){
 			break;
 		}
 }
-
-/*void chequearSocket(int socketin){
-	if(socketin == -1){ printf("Error creacion de socket"); }
-	else { print("Socket creado exitosamente: %i", socketin);
-			//exit(-1);
-	}
-};*/
-
 
 void resolver_describe_drop(t_instruccion_lql instruccion, t_operacion operacion){
 	//separar entre describe y drop
