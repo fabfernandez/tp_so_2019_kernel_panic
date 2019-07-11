@@ -290,9 +290,9 @@ void eliminar_tabla_logica(char* nombre_tabla){
 	t_tabla_logica* tabla_logica = list_remove_by_condition(tablas_en_lfs, _es_tabla_con_nombre);;
 	if (tabla_logica!=NULL){
 		log_info(logger_compactacion, "Se elimina la tabla %s. Se procede a frenar el hilo.", nombre_tabla);
-		if (pthread_detach(tabla_logica->id_hilo_compactacion) != 0){
-			log_error(logger_compactacion, "Error al frenar hilo de compactacion");
-		}
+//		if (pthread_detach(tabla_logica->id_hilo_compactacion) != 0){
+//			log_error(logger_compactacion, "Error al frenar hilo de compactacion");
+//		}
 		free(tabla_logica->nombre);
 		free(tabla_logica);
 	}
@@ -306,8 +306,8 @@ t_tabla_logica* crear_tabla_logica(char* nombre_tabla){
 	tabla->nombre=malloc(string_size(nombre_tabla));
 	memcpy(tabla->nombre, nombre_tabla, string_size(nombre_tabla));
 
-	pthread_t hilo = crear_hilo_compactacion(nombre_tabla);
-	tabla->id_hilo_compactacion = hilo;
+//	pthread_t hilo = crear_hilo_compactacion(nombre_tabla);
+//	tabla->id_hilo_compactacion = hilo;
 	return tabla;
 }
 
