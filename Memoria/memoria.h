@@ -19,6 +19,7 @@
 #include <time.h>
 #include <global/utils.h>
 #include <global/protocolos.h>
+#include <sys/inotify.h>
 
 
 							// ******* TIPOS NECESARIOS ******* //
@@ -75,6 +76,8 @@ char* nombre_memoria;
 size_t tamanio_memoria;
 int socketMemoriaSeed;
 void iniciarHiloGossiping(t_list* tablaGossiping);
+void iniciar_inotify(char **argv);
+void iniciarHiloInotify(char **argv);
 char* ip__lfs;
 char* path;
 char* puerto__lfs;

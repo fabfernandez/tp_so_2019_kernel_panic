@@ -18,6 +18,9 @@ int main(int argc, char **argv)
 
 	iniciar_logger();
 	leer_config();
+	iniciarHiloInotify(argv);
+
+
 	if(pthread_mutex_init(&mutexMemoria,NULL)==0){
 		log_info(logger, "MutexMemoria inicializado correctamente");
 	} else {
@@ -174,6 +177,180 @@ void enviar_mi_tabla_de_gossiping(int socket){
 
 	}
 }
+
+void iniciar_inotify(char **argv){
+	  /* EMPIEZA Inotify ###################################################*/
+
+		#define MAX_EVENTS 1024 /*Max. number of events to process at one go*/
+		#define LEN_NAME 64 /*Assuming that the length of the filename won't exceed 16 bytes*/
+		#define EVENT_SIZE  ( sizeof (struct inotify_event) ) /*size of one event*/
+		#define BUF_LEN     ( MAX_EVENTS * ( EVENT_SIZE + LEN_NAME )) /*buffer to store the data of events*/
+
+		int length, i = 0, wd;
+		int fd;
+		char buffer[BUF_LEN];
+
+		fd = inotify_init();
+		if ( fd < 0 ) {
+			perror( "Couldn't initialize inotify");
+		}
+
+		  /* add watch to starting directory */
+		wd = inotify_add_watch(fd, argv[1], IN_CREATE | IN_MODIFY | IN_DELETE_SELF | IN_DELETE);
+
+		if (wd == -1)
+		{
+			printf("Couldn't add inotify watch to %s\n",argv[1]);
+		}
+		else
+		{
+			printf("inotify Watching:: %s\n",argv[1]);
+		}
+
+		while(1){
+
+		    length = read( fd, buffer, BUF_LEN );
+		    if ( length < 0 ) {
+		        perror( "read" );
+		    }
+
+		    while ( i < length ) {
+		        struct inotify_event *event = ( struct inotify_event * ) &buffer[ i ];
+		        if ( event->len ) {
+		            if ( event->mask & IN_CREATE) {
+		                if (event->mask & IN_ISDIR)
+		                    printf( "The directory %s was Created.\n", event->name );
+		                else
+		                    printf( "The file %s was Created with WD %d\n", event->name, event->wd );
+		            }
+
+		            if ( event->mask & IN_MODIFY) {
+		                if (event->mask & IN_ISDIR)
+		                    printf( "The directory %s was modified.\n", event->name );
+		                else
+		                    printf( "The file %s was modified with WD %d\n", event->name, event->wd );
+		            }
+
+		            if ( event->mask & IN_DELETE) {
+		                if (event->mask & IN_ISDIR)
+		                    printf( "The directory %s was deleted.\n", event->name );
+		                else
+		                    printf( "The file %s was deleted with WD %d\n", event->name, event->wd );
+		            }
+		            i += EVENT_SIZE + event->len;
+		        }
+		    }
+		}
+		/*while(1) {
+		    char buffer[4096];
+		    struct inotify_event *event = NULL;
+		    int exec = 0;
+
+		    int len = read(fd, buffer, sizeof(buffer));
+		    if (len < 0) {
+		        printf("error del read");
+		    }
+
+		    event = (struct inotify_event *) buffer;
+		    while(event != NULL) {
+		        if ( (event->mask & IN_MODIFY) && event->len > 0) {
+		            printf("File Modified: %s\n", event->name);
+		            exec = 1;
+		        }
+				if (event->mask & IN_DELETE || event->mask & IN_DELETE_SELF){
+					printf("File Modified: %s\n", event->name);
+
+					exec = 1;
+				}
+		        else {
+		        	printf("Mask ")
+		            printf("Unknown Mask 0x%.8x\n", event->mask);
+		        }
+
+
+		        len -= sizeof(*event) + event->len;
+		        if (len > 0)
+		            event = ((void *) event) + sizeof(event) + event->len;
+		        else
+		            event = NULL;
+		    }
+
+		    if (exec){
+		        printf("Se encontro una modificacion en el archivo de config de esta memoria");
+		    	leer_config();
+		    }
+		}*/
+		  /* do it forever INOTIFY MAIN LOOP*/
+		/*
+		while(1)
+		{
+			printf("LOOP INOTIFY");
+			i = 0;
+			length = read( fd, buffer, BUF_LEN );
+
+			if ( length < 0 ) {
+				perror( "read" );
+			}
+
+
+
+			 while ( i < length ) {
+				printf("entra en el while");
+				struct inotify_event *event = ( struct inotify_event * ) &buffer[ i ];
+				if ( event->len )
+				{
+					printf("EVENTO DE INOTIFY");
+
+					if (event->mask & IN_DELETE){
+						wd = inotify_add_watch(fd, argv[1], IN_MODIFY | IN_DELETE_SELF |IN_DELETE);
+						if (wd == -1)
+						{
+							printf("Couldn't add inotify watch to %s\n",argv[1]);
+						}
+						printf( "EL ARCHIVO %s FUE MODIFICADO CON WD %d\n", event->name, event->wd );
+						printf("Se lee ejecuta nuevamente leer_config()");
+						leer_config();
+					}
+
+					if (event->mask & IN_DELETE_SELF){
+						wd = inotify_add_watch(fd, argv[1], IN_MODIFY | IN_DELETE_SELF |IN_DELETE);
+						if (wd == -1)
+						{
+							printf("Couldn't add inotify watch to %s\n",argv[1]);
+						}
+						printf( "EL ARCHIVO %s FUE MODIFICADO CON WD %d\n", event->name, event->wd );
+						printf("Se lee ejecuta nuevamente leer_config()");
+						leer_config();
+					}
+
+				    if ( event->mask & IN_MODIFY) {
+				    	printf( "EL ARCHIVO %s FUE MODIFICADO CON WD %d\n", event->name, event->wd );
+				    	printf("Se lee ejecuta nuevamente leer_config()");
+				    	leer_config();
+				    }
+
+				  i += EVENT_SIZE + event->len;
+				}
+			}
+		}*/
+
+
+		  /* Clean up*/
+
+		 inotify_rm_watch( fd, wd );
+		  close( fd );
+}
+
+void iniciarHiloInotify(char **argv){ // @suppress("Type cannot be resolved")
+	pthread_t hiloInotify;
+	if (pthread_create(&hiloInotify, 0, iniciar_inotify, argv) !=0){
+			log_error(logger, "Error al crear el hilo");
+		}
+	if (pthread_detach(hiloInotify) != 0){
+			log_error(logger, "Error al crear el hilo");
+		}
+}
+
 
 void iniciarHiloGossiping(t_list* tablaGossiping){ // @suppress("Type cannot be resolved")
 	pthread_t hiloGossiping;
