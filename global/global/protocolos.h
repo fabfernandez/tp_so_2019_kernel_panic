@@ -142,7 +142,7 @@ typedef struct {
 			char* tabla;
 			t_consistencia consistencia;
 			uint16_t num_particiones;
-			uint16_t compactacion_time;
+			long compactacion_time;
 		} CREATE;
 		struct {
 			char* tabla;
