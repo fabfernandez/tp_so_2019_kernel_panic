@@ -19,6 +19,7 @@
 #include <time.h>
 #include <global/utils.h>
 #include <global/protocolos.h>
+#include <sys/inotify.h>
 
 
 							// ******* TIPOS NECESARIOS ******* //

@@ -19,7 +19,7 @@ int main(int argc, char **argv)
 	iniciar_logger();
 	leer_config();
 	if(pthread_mutex_init(&mutexMemoria,NULL)==0){
-		log_info(logger, "MutexMemoria inicializado correctamente");
+		//log_info(logger, "MutexMemoria inicializado correctamente");
 	} else {
 		log_error(logger, "Fallo inicializacion de MutexMemoria");
 	};
@@ -1476,3 +1476,60 @@ void resolver_describe_consola(t_instruccion_lql instruccion){
 
 	            		return list_find(memorias, (void*) _es_la_Memoria);
 	    }
+
+
+		void iniciar_inotify(char **argv){
+			#define MAX_EVENTS 1024 /*Max. number of events to process at one go*/
+			#define LEN_NAME 64 /*Assuming that the length of the filename won't exceed 16 bytes*/
+			#define EVENT_SIZE  ( sizeof (struct inotify_event) ) /*size of one event*/
+			#define BUF_LEN     ( MAX_EVENTS * ( EVENT_SIZE + LEN_NAME )) /*buffer to store the data of events*/
+
+			char* path = argv[1];
+			int length, wd;
+			int fd;
+			char buffer[BUF_LEN];
+
+			fd = inotify_init();
+			if( fd < 0 ){
+				log_error(logger, "No se pudo inicializar Inotify");
+			}
+
+			/* add watch to starting directory */
+			wd = inotify_add_watch(fd, path, IN_MODIFY);
+
+			if(wd == -1){
+				log_error(logger, "No se pudo agregar una observador para el archivo: %s\n",path);
+			}else{
+				log_info(logger, "Inotify esta observando modificaciones al archivo: %s\n", path);
+			}
+
+			while(1){
+				length = read( fd, buffer, BUF_LEN );
+				if(length < 0){
+					perror("read");
+				}else{
+					struct inotify_event *event = ( struct inotify_event * ) buffer;
+					if(event->mask == IN_MODIFY){
+						log_info(logger, "Se modifico el archivo de configuración");
+						leer_config();
+						retardo_journaling = config_get_int_value(archivoconfig, "RETARDO_JOURNAL");
+						log_info(logger, "El retardo del journaling automatico es: %i",retardo_journaling);
+						retardo_gossiping = config_get_int_value(archivoconfig, "RETARDO_GOSSIPING");
+						log_info(logger, "El retardo de gossiping automatico es: %i",retardo_gossiping);
+
+					}
+				}
+			}
+			inotify_rm_watch( fd, wd );
+			close( fd );
+		}
+
+		void iniciar_hilo_inotify(char **argv){
+			pthread_t hilo_inotify;
+			if (pthread_create(&hilo_inotify, 0, iniciar_inotify, argv) !=0){
+					log_error(logger, "Error al crear el hilo de Inotify");
+				}
+			if (pthread_detach(hilo_inotify) != 0){
+					log_error(logger, "Error al crear el hilo de Inotify");
+				}
+		}
