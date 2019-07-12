@@ -17,7 +17,7 @@ int main(void)
 	log_info(logger, "El puerto del LFS es %s",puerto_lfs);
 	montaje = config_get_string_value(archivoconfig, "PUNTO_MONTAJE");
 	max_size_value = config_get_int_value(archivoconfig, "MAX_SIZE_VALUE");
-	leer_tiempo_dump_del_config();
+	leer_tiempo_dump_y_retardo_del_config();
 	log_info(logger, "La IP de la memoria es %s",ip_lfs );
 	log_info(logger, "El puerto de la memoria es %s",puerto_lfs);
 	iniciarMutexMemtable();
@@ -965,8 +965,9 @@ void leer_config() {				// APERTURA DE CONFIG
 	archivoconfig = config_create("/home/utnso/tp-2019-1c-Los-Dinosaurios-Del-Libro/LFS/lfs.config");
 }
 
-void leer_tiempo_dump_del_config(){
+void leer_tiempo_dump_y_retardo_del_config(){
 	tiempo_dump = config_get_int_value(archivoconfig,"TIEMPO_DUMP");
+	retardo = config_get_string_value(archivoconfig, "RETARDO");
 }
 
 void terminar_programa(){

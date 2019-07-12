@@ -56,7 +56,7 @@ t_dictionary* instrucciones_bloqueadas_por_tabla;
 void chequearSocket(int socketin);
 void iniciar_loggers();
 void leer_config();
-void leer_tiempo_dump_del_config();
+void leer_tiempo_dump_y_retardo_del_config();
 void terminar_programa();
 					// ******* TIPOS NECESARIOS ******* //
 t_log* logger;
@@ -69,6 +69,7 @@ int  max_size_value, block_size, blocks;
 char* ip_lfs;
 char* puerto_lfs;
 int tiempo_dump;
+char* retardo;
 pthread_mutex_t mutexMemtable, mutexDump;
 bool fin_de_programa;
 pthread_t hilo_consola;
