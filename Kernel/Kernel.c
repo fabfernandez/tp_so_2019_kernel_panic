@@ -164,7 +164,6 @@ void revisa_y_cambia_si_encuentra(t_memoria* nodo_viejo, t_list* lista, int indi
 	t_memoria* nuevo_nodo_memoria = list_find(memorias_disponibles, (void*) es_la_memoria);
 	if(nuevo_nodo_memoria != NULL){
 		list_replace(lista, indice, nuevo_nodo_memoria);
-		printf("Se reemplazo el nodo viejo\n");
 	}else{
 		list_remove_and_destroy_element(lista, indice, free);
 	}
@@ -562,7 +561,7 @@ int funcion_hash_magica(uint16_t ki){
 }
 
 int get_random(int maximo){
-	return rand() % maximo + 1;
+	return rand() % maximo;
 }
 
 char leer_archivo(FILE* archivo){
