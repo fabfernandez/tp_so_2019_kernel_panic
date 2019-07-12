@@ -938,6 +938,10 @@ void resolver_describe_drop(int socket_kernel_fd, int socket_conexion_lfs, char*
 		consulta_describe_drop->codigo_operacion=DESCRIBE;
 	}
 	enviar_paquete_drop_describe(socket_conexion_lfs, consulta_describe_drop);
+
+	t_status_solicitud* status = desearilizar_status_solicitud(socket_conexion_lfs);
+	enviar_status_resultado(status, socket_kernel_fd);
+
 	eliminar_paquete_drop_describe(consulta_describe_drop);
 }
 void resolver_drop_consola(t_instruccion_lql instruccion){

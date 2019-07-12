@@ -231,14 +231,17 @@ void resolver_describe_drop(t_instruccion_lql instruccion, t_operacion operacion
 	paquete_describe->codigo_operacion=operacion;
 
 	char* nombre_tabla = paquete_describe->nombre_tabla;
-	int socket_memoria_a_usar = socket_memoria//conseguir_memoria(nombre_tabla, -1);
+	int socket_memoria_a_usar = socket_memoria;//conseguir_memoria(nombre_tabla, -1);
 
 	enviar_paquete_drop_describe(socket_memoria_a_usar, paquete_describe);
-	//esperar numero de tblas si fue DESCRIBE
-	//deserealizar_metadata(socket_memoria) en un for
 
+	t_status_solicitud* status = desearilizar_status_solicitud(socket_memoria_a_usar);
+	if(status->es_valido){
+		log_info(logger, "Resultado: %s", status->mensaje->palabra);
+	}else{
+		log_error(logger, "Error: %s", status->mensaje->palabra);
+	}
 	eliminar_paquete_drop_describe(paquete_describe);
-
 }
 
 void resolver_describe(t_instruccion_lql instruccion){
@@ -542,8 +545,14 @@ t_memoria* obtener_memoria_segun_consistencia(t_consistencia consistencia, uint1
 		case EVENTUAL:
 		default:
 			maximo_indice = list_size(eventual_consistency);
-			indice_random = get_random(maximo_indice);
-			return list_get(eventual_consistency, indice_random);
+			if(maximo_indice == 0){
+				return NULL;
+			}else if(maximo_indice == 1){
+				list_get(eventual_consistency, 0);
+			}else{
+				indice_random = get_random(maximo_indice);
+				return list_get(eventual_consistency, indice_random);
+			}
 	}
 }
 
@@ -561,7 +570,7 @@ int funcion_hash_magica(uint16_t ki){
 }
 
 int get_random(int maximo){
-	return rand() % maximo;
+	return rand() % maximo + 1;
 }
 
 char leer_archivo(FILE* archivo){
