@@ -28,6 +28,7 @@
 #include <time.h>
 #include <sys/inotify.h>
 #include <semaphore.h>
+#include <sys/inotify.h>
 
 #include "LFS_Compactacion.h"
 #include "LFS_Consola.h"
@@ -112,6 +113,7 @@ t_cache_tabla* buscar_tabla_memtable(char* nombre_tabla);
 t_list* buscar_registros_memtable(char* nombre_tabla, uint16_t key);
 bool existe_tabla_fisica(char* nombre_tabla);
 void crear_hilo_memoria(int socket_memoria);
+void crear_hilo_inotify();
 int resolver_operacion(int socket_memoria, t_operacion cod_op);
 char* string_block();
 char* array_int_to_array_char(t_list* array_int);

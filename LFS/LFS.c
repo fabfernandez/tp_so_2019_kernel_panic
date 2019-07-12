@@ -18,8 +18,10 @@ int main(void)
 	montaje = config_get_string_value(archivoconfig, "PUNTO_MONTAJE");
 	max_size_value = config_get_int_value(archivoconfig, "MAX_SIZE_VALUE");
 	leer_tiempo_dump_y_retardo_del_config();
+
 	log_info(logger, "La IP de la memoria es %s",ip_lfs );
 	log_info(logger, "El puerto de la memoria es %s",puerto_lfs);
+
 	iniciarMutexMemtable();
 	iniciarMutexDump();
 	levantar_lfs(montaje);
@@ -1012,7 +1014,7 @@ void* iniciar_inotify_lfs(){
 			if(event->mask == IN_MODIFY){
 				log_info(logger, "Se modifico el archivo de configuración");
 				leer_config();
-				leer_tiempo_dump_del_config();
+				leer_tiempo_dump_y_retardo_del_config();
 
 				log_info(logger, "El dump es de %d", tiempo_dump);
 			}
