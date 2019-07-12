@@ -18,6 +18,7 @@ int main(int argc, char **argv)
 
 	iniciar_logger();
 	leer_config();
+	iniciar_hilo_inotify(argv);
 	if(pthread_mutex_init(&mutexMemoria,NULL)==0){
 		//log_info(logger, "MutexMemoria inicializado correctamente");
 	} else {
@@ -1482,13 +1483,13 @@ void resolver_describe_consola(t_instruccion_lql instruccion){
 	    }
 
 
-		void iniciar_inotify(char **argv){
+		void iniciar_inotify(char ** argv){
 			#define MAX_EVENTS 1024 /*Max. number of events to process at one go*/
 			#define LEN_NAME 64 /*Assuming that the length of the filename won't exceed 16 bytes*/
 			#define EVENT_SIZE  ( sizeof (struct inotify_event) ) /*size of one event*/
 			#define BUF_LEN     ( MAX_EVENTS * ( EVENT_SIZE + LEN_NAME )) /*buffer to store the data of events*/
 
-			char* path = argv[1];
+			char * path = argv[1];
 			int length, wd;
 			int fd;
 			char buffer[BUF_LEN];
