@@ -11,6 +11,7 @@
 #include <commons/config.h>
 #include <commons/log.h>
 #include <commons/string.h>
+#include <commons/collections/queue.h>
 #include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -40,6 +41,14 @@ typedef struct{
 	bool esta_bloqueado;
 }t_tabla_logica;
 
+typedef struct{
+	t_instruccion_lql instruccion;
+	int socket_memoria;
+}t_instruccion_bloqueada;
+
+t_dictionary* instrucciones_bloqueadas_por_tabla;
+
+
 // ******* DEFINICION DE FUNCIONES A UTILIZAR ******* //
 void chequearSocket(int socketin);
 void iniciar_loggers();
@@ -54,11 +63,14 @@ t_config* archivoconfig;
 char* path_montaje;
 int  max_size_value, block_size, blocks;
 int tiempo_dump;
-pthread_mutex_t mutexMemtable;
+pthread_mutex_t mutexMemtable, mutexDump;
 bool fin_de_programa;
 pthread_t hilo_consola;
 pthread_t hilo_dump;
 
+bool tabla_esta_bloqueada(char* nombre_tabla);
+t_instruccion_bloqueada* crear_instruccion_select_bloqueada(t_paquete_select* select, int socket_memoria);
+t_instruccion_bloqueada* crear_instruccion_insert_bloqueada(t_paquete_insert* insert, int socket_memoria);
 t_list* filtrar_registros_con_key(t_list* registros, uint16_t key);
 char* leer_bloques_de_archivo(char* path_archivo);
 t_list* obtener_registros_de_archivo(char* path_archivo_temporal);

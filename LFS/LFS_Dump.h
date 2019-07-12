@@ -11,6 +11,7 @@
 #include "LFS.h"
 
 void crear_hilo_dump();
+void dump_proceso();
 t_list* copiar_y_limpiar_memtable();
 void dump_por_tabla(t_cache_tabla* tabla);
 void escribir_registros_y_crear_archivo(t_list* registros, char* path_archivo_nuevo);

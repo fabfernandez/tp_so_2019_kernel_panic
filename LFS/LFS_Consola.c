@@ -16,8 +16,8 @@ void crear_hilo_consola(){
 }
 
 void *levantar_consola(){
-	finalizo = false;
-	while(!finalizo){
+
+	while(1){
 
 		printf("Ingrese las operaciones que desea realizar. Para finalizar: EXIT \n");
 		char* linea = readline("Consola LFS >");
@@ -68,7 +68,9 @@ int resolver_operacion_por_consola(t_instruccion_lql instruccion){
 			//aca debería enviarse el mensaje a LFS con DROP
 			break;
 		case EXIT:
-			finalizo=true;
+//			pthread_t         self_thread;
+//			self_thread = pthread_self();
+//			finalizar_lfs(self_thread);
 			break;
 
 		default:
