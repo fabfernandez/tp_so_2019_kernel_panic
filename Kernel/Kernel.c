@@ -164,8 +164,10 @@ void revisa_y_cambia_si_encuentra(t_memoria* nodo_viejo, t_list* lista, int indi
 	t_memoria* nuevo_nodo_memoria = list_find(memorias_disponibles, (void*) es_la_memoria);
 	if(nuevo_nodo_memoria != NULL){
 		list_replace(lista, indice, nuevo_nodo_memoria);
-		free(nodo_viejo);
+	}else{
+		list_remove(lista, indice);
 	}
+	free(nodo_viejo);
 }
 
 void parsear_y_ejecutar(char* linea, int flag_de_consola){

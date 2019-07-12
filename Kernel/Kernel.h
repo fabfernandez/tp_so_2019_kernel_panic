@@ -127,7 +127,9 @@ void resolver_metrics();
 void resolver_journal();
 void iniciar_hilo_inotify();
 void iniciar_inotify();
-
+void cambiar_nodos_viejos_por_nuevos();
+void revisar_y_cambiar_en(t_list* lista);
+void revisa_y_cambia_si_encuentra(t_memoria* nodo_viejo, t_list* lista, int indice);
 
 
 //				***** REVISAR COMO CREAR LAS CONEXIONES *****					//
