@@ -17,13 +17,14 @@ int main(void)
 	log_info(logger, "El puerto del LFS es %s",puerto_lfs);
 	montaje = config_get_string_value(archivoconfig, "PUNTO_MONTAJE");
 	max_size_value = config_get_int_value(archivoconfig, "MAX_SIZE_VALUE");
-	tiempo_dump = config_get_int_value(archivoconfig,"TIEMPO_DUMP");
+	leer_tiempo_dump_y_retardo_del_config();
 	iniciarMutexMemtable();
 	iniciarMutexDump();
 	levantar_lfs(montaje);
 	crear_hilo_server();
 	crear_hilo_consola();
 	crear_hilo_dump();
+	crear_hilo_inotify();
 	void *ret;
 	if (pthread_join(hilo_consola, &ret) != 0){
 		log_error(logger_consola, "Error al frenar hilo");
@@ -960,6 +961,12 @@ t_registro* buscar_registro_actual(t_list* registros_encontrados){
 void leer_config() {				// APERTURA DE CONFIG
 	archivoconfig = config_create("/home/utnso/tp-2019-1c-Los-Dinosaurios-Del-Libro/LFS/lfs.config");
 }
+
+void leer_tiempo_dump_y_retardo_del_config(){
+	tiempo_dump = config_get_int_value(archivoconfig,"TIEMPO_DUMP");
+	retardo = config_get_string_value(archivoconfig, "RETARDO");
+}
+
 void terminar_programa(){
 	log_destroy(logger);
 	log_destroy(logger_dump);
@@ -967,6 +974,62 @@ void terminar_programa(){
 	log_destroy(logger_consola);
 	config_destroy(archivoconfig);
 }
+
+
+void* iniciar_inotify_lfs(){
+	#define MAX_EVENTS 1024 /*Max. number of events to process at one go*/
+	#define LEN_NAME 64 /*Assuming that the length of the filename won't exceed 16 bytes*/
+	#define EVENT_SIZE  ( sizeof (struct inotify_event) ) /*size of one event*/
+	#define BUF_LEN     ( MAX_EVENTS * ( EVENT_SIZE + LEN_NAME )) /*buffer to store the data of events*/
+
+	char* path = "/home/utnso/tp-2019-1c-Los-Dinosaurios-Del-Libro/LFS/lfs.config";
+	int length, i = 0, wd;
+	int fd;
+	char buffer[BUF_LEN];
+
+	fd = inotify_init();
+	if( fd < 0 ){
+		log_error(logger, "No se pudo inicializar Inotify");
+	}
+
+	/* add watch to starting directory */
+	wd = inotify_add_watch(fd, path, IN_MODIFY);
+
+	if(wd == -1){
+		log_error(logger, "No se pudo agregar una observador para el archivo: %s\n",path);
+	}else{
+		log_info(logger, "Inotify esta observando modificaciones al archivo: %s\n", path);
+	}
+
+	while(1){
+		length = read( fd, buffer, BUF_LEN );
+		if(length < 0){
+			perror("read");
+		}else{
+			struct inotify_event *event = ( struct inotify_event * ) buffer;
+			if(event->mask == IN_MODIFY){
+				log_info(logger, "Se modifico el archivo de configuración");
+				leer_config();
+				leer_tiempo_dump_y_retardo_del_config();
+
+				log_info(logger, "El dump es de %d", tiempo_dump);
+			}
+		}
+	}
+	inotify_rm_watch( fd, wd );
+	close( fd );
+}
+
+void crear_hilo_inotify(){
+	pthread_t hilo_inotify;
+	if (pthread_create(&hilo_inotify, 0, iniciar_inotify_lfs, NULL) !=0){
+			log_error(logger, "Error al crear el hilo de Inotify");
+		}
+	if (pthread_detach(hilo_inotify) != 0){
+			log_error(logger, "Error al crear el hilo de Inotify");
+		}
+}
+
 /*void terminar_programa(int conexionKernel, int conexionALFS)
 {
 	liberar_conexion(conexionKernel);
