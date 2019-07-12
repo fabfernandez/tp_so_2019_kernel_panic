@@ -64,11 +64,18 @@ void desbloquear_tabla(char* nombre_tabla){
 			t_instruccion_bloqueada* instruccion_bloqueada = queue_pop(instrucciones_bloqueadas);
 			t_status_solicitud* status;
 			if (instruccion_bloqueada->instruccion.operacion == SELECT){
-				status= resolver_select(nombre_tabla, instruccion_bloqueada->instruccion.parametros.SELECT.key);
-				enviar_status_resultado(status, instruccion_bloqueada->socket_memoria);
+				if (instruccion_bloqueada->socket_memoria==NULL){
+					resolver_select_consola(nombre_tabla, instruccion_bloqueada->instruccion.parametros.SELECT.key);
+				}else{
+					status= resolver_select(nombre_tabla, instruccion_bloqueada->instruccion.parametros.SELECT.key);
+					enviar_status_resultado(status, instruccion_bloqueada->socket_memoria);
+				}
+
 			}else{
 				status = resolver_insert(logger, nombre_tabla, instruccion_bloqueada->instruccion.parametros.INSERT.key, instruccion_bloqueada->instruccion.parametros.INSERT.value, instruccion_bloqueada->instruccion.parametros.INSERT.timestamp);
-				enviar_status_resultado(status, instruccion_bloqueada->socket_memoria);
+				if (instruccion_bloqueada->socket_memoria!=NULL){
+					enviar_status_resultado(status, instruccion_bloqueada->socket_memoria);
+				}
 			}
 			//eliminar_paquete_status(status);
 			free(instruccion_bloqueada);
