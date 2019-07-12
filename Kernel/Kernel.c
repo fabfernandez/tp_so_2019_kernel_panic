@@ -329,13 +329,13 @@ void resolver_select(t_instruccion_lql instruccion){
 
 	char* nombre_tabla = paquete_select->nombre_tabla->palabra;
 	t_memoria* memoria_a_usar = conseguir_memoria(nombre_tabla, paquete_select->key);
-	int socket_memoria_a_usar = crear_conexion(memoria_a_usar->ip, memoria_a_usar->puerto);
 
-	if(socket_memoria_a_usar == -1){
+	if(memoria_a_usar == -1){
 		log_error(logger, "No se pudo realizar el SELECT ya que no se ha encontrado la tabla.");
-	}else if(socket_memoria_a_usar == -2){
+	}else if(memoria_a_usar == -2){
 		log_error(logger, "No se pudo realizar el SELECT ya que no se ha encontrado Memoria");
 	}else{
+		int socket_memoria_a_usar = crear_conexion(memoria_a_usar->ip, memoria_a_usar->puerto);
 		struct timespec spec;
 		clock_gettime(CLOCK_REALTIME, &spec);
 		int timestamp_origen = spec.tv_sec;
@@ -367,13 +367,13 @@ void resolver_insert (t_instruccion_lql instruccion){
 
 	char* nombre_tabla = paquete_insert->nombre_tabla->palabra;
 	t_memoria* memoria_a_usar = conseguir_memoria(nombre_tabla, paquete_insert->key);
-	int socket_memoria_a_usar = crear_conexion(memoria_a_usar->ip, memoria_a_usar->puerto);
 
-	if(socket_memoria_a_usar == -1){
+	if(memoria_a_usar == -1){
 		log_error(logger, "No se pudo realizar el INSERT ya que no se ha encontrado la tabla.");
-	}else if(socket_memoria_a_usar == -2){
+	}else if(memoria_a_usar == -2){
 		log_error(logger, "No se pudo realizar el INSERT ya que no se ha encontrado Memoria");
 	}else{
+		int socket_memoria_a_usar = crear_conexion(memoria_a_usar->ip, memoria_a_usar->puerto);
 		struct timespec spec;
 		clock_gettime(CLOCK_REALTIME, &spec);
 		int timestamp_origen = spec.tv_sec;
@@ -548,7 +548,7 @@ t_memoria* obtener_memoria_segun_consistencia(t_consistencia consistencia, uint1
 			if(maximo_indice == 0){
 				return NULL;
 			}else if(maximo_indice == 1){
-				list_get(eventual_consistency, 0);
+				return list_get(eventual_consistency, 0);
 			}else{
 				indice_random = get_random(maximo_indice);
 				return list_get(eventual_consistency, indice_random);
