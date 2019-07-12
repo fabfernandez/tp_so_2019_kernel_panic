@@ -328,7 +328,8 @@ void resolver_select(t_instruccion_lql instruccion){
 	t_paquete_select* paquete_select = crear_paquete_select(instruccion);
 
 	char* nombre_tabla = paquete_select->nombre_tabla->palabra;
-	int socket_memoria_a_usar = conseguir_memoria(nombre_tabla, paquete_select->key);
+	t_memoria* memoria_a_usar = conseguir_memoria(nombre_tabla, paquete_select->key);
+	int socket_memoria_a_usar = crear_conexion(memoria_a_usar->ip, memoria_a_usar->puerto);
 
 	if(socket_memoria_a_usar == -1){
 		log_error(logger, "No se pudo realizar el SELECT ya que no se ha encontrado la tabla.");
@@ -353,7 +354,7 @@ void resolver_select(t_instruccion_lql instruccion){
 		int timestamp_destino = spec.tv_sec;
 		int diferencia_timestamp = timestamp_destino - timestamp_origen;
 
-		registrar_metricas(1, diferencia_timestamp); //Ahora es 1 porque es la única memoria que conocemos, pero cambia a nombre_memoria
+		registrar_metricas(memoria_a_usar->numero_memoria, diferencia_timestamp); //Ahora es 1 porque es la única memoria que conocemos, pero cambia a nombre_memoria
 
 		liberar_conexion(socket_memoria_a_usar);
 		eliminar_paquete_status(status);
@@ -365,7 +366,8 @@ void resolver_insert (t_instruccion_lql instruccion){
 	t_paquete_insert* paquete_insert = crear_paquete_insert(instruccion);
 
 	char* nombre_tabla = paquete_insert->nombre_tabla->palabra;
-	int socket_memoria_a_usar = conseguir_memoria(nombre_tabla, paquete_insert->key);
+	t_memoria* memoria_a_usar = conseguir_memoria(nombre_tabla, paquete_insert->key);
+	int socket_memoria_a_usar = crear_conexion(memoria_a_usar->ip, memoria_a_usar->puerto);
 
 	if(socket_memoria_a_usar == -1){
 		log_error(logger, "No se pudo realizar el INSERT ya que no se ha encontrado la tabla.");
@@ -382,7 +384,7 @@ void resolver_insert (t_instruccion_lql instruccion){
 		int timestamp_destino = spec.tv_sec;
 		int diferencia_timestamp = timestamp_destino - timestamp_origen;
 
-		registrar_metricas_insert(1, diferencia_timestamp);
+		registrar_metricas_insert(memoria_a_usar->numero_memoria, diferencia_timestamp);
 		liberar_conexion(socket_memoria_a_usar);
 		eliminar_paquete_insert(paquete_insert);
 	}
@@ -510,7 +512,7 @@ char* tipo_consistencia(t_consistencia consistencia){
 	}
 }
 
-int conseguir_memoria(char *nombre_tabla, uint16_t key){
+t_memoria* conseguir_memoria(char *nombre_tabla, uint16_t key){
 	t_memoria* memoria;
 	t_consistencia_tabla* tabla_en_uso;
 
@@ -524,9 +526,7 @@ int conseguir_memoria(char *nombre_tabla, uint16_t key){
 			log_error(logger, "Si no agregas la memoria a la consistencia no te puedo ejecutar nada, crack");
 			return -2;
 		} else {
-			int socket_memoria_a_utilizar = crear_conexion(memoria->ip, memoria->puerto);
-
-			return socket_memoria_a_utilizar;
+			return memoria;
 		}
 	}
 

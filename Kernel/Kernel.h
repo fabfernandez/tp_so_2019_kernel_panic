@@ -114,7 +114,7 @@ void parsear_y_ejecutar(char* linea, int flag_de_consola);
 void* iniciar_peticion_tablas(void* tablaGossiping);
 void iniciarHiloGossiping(t_list* tablaGossiping);
 void ejecutar_script(t_script* script_a_ejecutar);
-int conseguir_memoria(char* nombre_tabla, uint16_t key);
+t_memoria* conseguir_memoria(char* nombre_tabla, uint16_t key);
 void recibir_tabla_de_gossiping(int socket);
 void guardar_consistencia_tabla(char* nombre_tabla, t_consistencia consistencia);
 t_consistencia_tabla* conseguir_tabla(char* nombre_tabla);
