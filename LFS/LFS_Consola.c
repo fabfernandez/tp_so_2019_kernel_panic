@@ -60,7 +60,7 @@ int resolver_operacion_por_consola(t_instruccion_lql instruccion){
 			break;
 		case CREATE:
 			log_info(logger_consola, "Se solicitó CREATE por consola");
-			status = resolver_create(logger_consola, instruccion.parametros.CREATE.tabla,
+			t_status_solicitud* status = resolver_create(logger_consola, instruccion.parametros.CREATE.tabla,
 					instruccion.parametros.CREATE.consistencia,
 					instruccion.parametros.CREATE.num_particiones,
 					instruccion.parametros.CREATE.compactacion_time);
