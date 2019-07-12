@@ -234,11 +234,14 @@ void resolver_describe_drop(t_instruccion_lql instruccion, t_operacion operacion
 	int socket_memoria_a_usar = socket_memoria;//conseguir_memoria(nombre_tabla, -1);
 
 	enviar_paquete_drop_describe(socket_memoria_a_usar, paquete_describe);
-	//esperar numero de tblas si fue DESCRIBE
-	//deserealizar_metadata(socket_memoria) en un for
 
+	t_status_solicitud* status = desearilizar_status_solicitud(socket_memoria_a_usar);
+	if(status->es_valido){
+		log_info(logger, "Resultado: %s", status->mensaje->palabra);
+	}else{
+		log_error(logger, "Error: %s", status->mensaje->palabra);
+	}
 	eliminar_paquete_drop_describe(paquete_describe);
-
 }
 
 void resolver_describe(t_instruccion_lql instruccion){
@@ -325,13 +328,14 @@ void resolver_select(t_instruccion_lql instruccion){
 	t_paquete_select* paquete_select = crear_paquete_select(instruccion);
 
 	char* nombre_tabla = paquete_select->nombre_tabla->palabra;
-	int socket_memoria_a_usar = conseguir_memoria(nombre_tabla, paquete_select->key);
+	t_memoria* memoria_a_usar = conseguir_memoria(nombre_tabla, paquete_select->key);
 
-	if(socket_memoria_a_usar == -1){
+	if(memoria_a_usar == -1){
 		log_error(logger, "No se pudo realizar el SELECT ya que no se ha encontrado la tabla.");
-	}else if(socket_memoria_a_usar == -2){
+	}else if(memoria_a_usar == -2){
 		log_error(logger, "No se pudo realizar el SELECT ya que no se ha encontrado Memoria");
 	}else{
+		int socket_memoria_a_usar = crear_conexion(memoria_a_usar->ip, memoria_a_usar->puerto);
 		struct timespec spec;
 		clock_gettime(CLOCK_REALTIME, &spec);
 		int timestamp_origen = spec.tv_sec;
@@ -350,7 +354,7 @@ void resolver_select(t_instruccion_lql instruccion){
 		int timestamp_destino = spec.tv_sec;
 		int diferencia_timestamp = timestamp_destino - timestamp_origen;
 
-		registrar_metricas(1, diferencia_timestamp); //Ahora es 1 porque es la única memoria que conocemos, pero cambia a nombre_memoria
+		registrar_metricas(memoria_a_usar->numero_memoria, diferencia_timestamp); //Ahora es 1 porque es la única memoria que conocemos, pero cambia a nombre_memoria
 
 		liberar_conexion(socket_memoria_a_usar);
 		eliminar_paquete_status(status);
@@ -362,13 +366,14 @@ void resolver_insert (t_instruccion_lql instruccion){
 	t_paquete_insert* paquete_insert = crear_paquete_insert(instruccion);
 
 	char* nombre_tabla = paquete_insert->nombre_tabla->palabra;
-	int socket_memoria_a_usar = conseguir_memoria(nombre_tabla, paquete_insert->key);
+	t_memoria* memoria_a_usar = conseguir_memoria(nombre_tabla, paquete_insert->key);
 
-	if(socket_memoria_a_usar == -1){
+	if(memoria_a_usar == -1){
 		log_error(logger, "No se pudo realizar el INSERT ya que no se ha encontrado la tabla.");
-	}else if(socket_memoria_a_usar == -2){
+	}else if(memoria_a_usar == -2){
 		log_error(logger, "No se pudo realizar el INSERT ya que no se ha encontrado Memoria");
 	}else{
+		int socket_memoria_a_usar = crear_conexion(memoria_a_usar->ip, memoria_a_usar->puerto);
 		struct timespec spec;
 		clock_gettime(CLOCK_REALTIME, &spec);
 		int timestamp_origen = spec.tv_sec;
@@ -379,7 +384,7 @@ void resolver_insert (t_instruccion_lql instruccion){
 		int timestamp_destino = spec.tv_sec;
 		int diferencia_timestamp = timestamp_destino - timestamp_origen;
 
-		registrar_metricas_insert(1, diferencia_timestamp);
+		registrar_metricas_insert(memoria_a_usar->numero_memoria, diferencia_timestamp);
 		liberar_conexion(socket_memoria_a_usar);
 		eliminar_paquete_insert(paquete_insert);
 	}
@@ -507,7 +512,7 @@ char* tipo_consistencia(t_consistencia consistencia){
 	}
 }
 
-int conseguir_memoria(char *nombre_tabla, uint16_t key){
+t_memoria* conseguir_memoria(char *nombre_tabla, uint16_t key){
 	t_memoria* memoria;
 	t_consistencia_tabla* tabla_en_uso;
 
@@ -521,9 +526,7 @@ int conseguir_memoria(char *nombre_tabla, uint16_t key){
 			log_error(logger, "Si no agregas la memoria a la consistencia no te puedo ejecutar nada, crack");
 			return -2;
 		} else {
-			int socket_memoria_a_utilizar = crear_conexion(memoria->ip, memoria->puerto);
-
-			return socket_memoria_a_utilizar;
+			return memoria;
 		}
 	}
 
@@ -542,8 +545,14 @@ t_memoria* obtener_memoria_segun_consistencia(t_consistencia consistencia, uint1
 		case EVENTUAL:
 		default:
 			maximo_indice = list_size(eventual_consistency);
-			indice_random = get_random(maximo_indice);
-			return list_get(eventual_consistency, indice_random);
+			if(maximo_indice == 0){
+				return NULL;
+			}else if(maximo_indice == 1){
+				return list_get(eventual_consistency, 0);
+			}else{
+				indice_random = get_random(maximo_indice);
+				return list_get(eventual_consistency, indice_random);
+			}
 	}
 }
 
@@ -561,7 +570,7 @@ int funcion_hash_magica(uint16_t ki){
 }
 
 int get_random(int maximo){
-	return rand() % maximo;
+	return rand() % maximo + 1;
 }
 
 char leer_archivo(FILE* archivo){
