@@ -36,15 +36,27 @@ int resolver_operacion_por_consola(t_instruccion_lql instruccion){
 		{
 		case SELECT:
 			log_info(logger_consola, "Se solicito SELECT por consola");
-			resolver_select_consola(instruccion.parametros.SELECT.tabla, instruccion.parametros.SELECT.key);
+			if (tabla_esta_bloqueada(instruccion.parametros.SELECT.tabla)){
+
+				agregar_instruccion_bloqueada(crear_instruccion_select_bloqueada(
+				crear_paquete_select(instruccion), NULL), instruccion.parametros.SELECT.tabla);
+			}
+			else{
+				resolver_select_consola(instruccion.parametros.SELECT.tabla, instruccion.parametros.SELECT.key);
+			}
 			break;
 		case INSERT:
 			log_info(logger_consola, "Se solicitó INSERT por consola");
-			t_status_solicitud* status = resolver_insert(logger_consola,instruccion.parametros.INSERT.tabla,
-													instruccion.parametros.INSERT.key,
-													instruccion.parametros.INSERT.value,
-													instruccion.parametros.INSERT.timestamp);
-			eliminar_paquete_status(status);
+			if (tabla_esta_bloqueada(instruccion.parametros.SELECT.tabla)){
+				agregar_instruccion_bloqueada(crear_instruccion_insert_bloqueada(
+						crear_paquete_insert(instruccion), NULL), instruccion.parametros.INSERT.tabla);
+			}else{
+				t_status_solicitud* status = resolver_insert(logger_consola,instruccion.parametros.INSERT.tabla,
+																	instruccion.parametros.INSERT.key,
+																	instruccion.parametros.INSERT.value,
+																	instruccion.parametros.INSERT.timestamp);
+				eliminar_paquete_status(status);
+			}
 			break;
 		case CREATE:
 			log_info(logger_consola, "Se solicitó CREATE por consola");
