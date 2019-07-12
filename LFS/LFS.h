@@ -26,6 +26,7 @@
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <time.h>
+#include <semaphore.h>
 
 #include "LFS_Compactacion.h"
 #include "LFS_Consola.h"
@@ -63,11 +64,14 @@ t_log* logger_consola;
 t_config* archivoconfig;
 char* path_montaje;
 int  max_size_value, block_size, blocks;
+char* ip_lfs;
+char* puerto_lfs;
 int tiempo_dump;
 pthread_mutex_t mutexMemtable, mutexDump;
 bool fin_de_programa;
 pthread_t hilo_consola;
 pthread_t hilo_dump;
+pthread_t hilo_server;
 
 bool tabla_esta_bloqueada(char* nombre_tabla);
 t_instruccion_bloqueada* crear_instruccion_select_bloqueada(t_paquete_select* select, int socket_memoria);
