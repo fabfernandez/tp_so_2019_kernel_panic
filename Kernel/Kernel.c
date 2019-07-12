@@ -138,7 +138,36 @@ void recibir_tabla_de_gossiping(int socket){
 		log_info(logger, "IP: %s , PUERTO: %s , NOMBRE: %d",memoria->ip,memoria->puerto,memoria->numero_memoria);
 
 		list_add(memorias_disponibles,memoria);
+		cambiar_nodos_viejos_por_nuevos();
 	}
+}
+
+void cambiar_nodos_viejos_por_nuevos(){
+	revisar_y_cambiar_en(strong_consistency);
+	revisar_y_cambiar_en(strong_hash_consistency);
+	revisar_y_cambiar_en(eventual_consistency);
+}
+
+void revisar_y_cambiar_en(t_list* lista){
+	for(int indice = 0; indice < list_size(lista) ; indice++){
+		t_memoria* nodo_viejo = list_get(lista, indice);
+
+		revisa_y_cambia_si_encuentra(nodo_viejo, lista, indice);
+	}
+}
+
+void revisa_y_cambia_si_encuentra(t_memoria* nodo_viejo, t_list* lista, int indice){
+	int es_la_memoria(t_memoria* memoria){
+		return memoria->numero_memoria == nodo_viejo->numero_memoria;
+	}
+
+	t_memoria* nuevo_nodo_memoria = list_find(memorias_disponibles, (void*) es_la_memoria);
+	if(nuevo_nodo_memoria != NULL){
+		list_replace(lista, indice, nuevo_nodo_memoria);
+	}else{
+		list_remove(lista, indice);
+	}
+	free(nodo_viejo);
 }
 
 void parsear_y_ejecutar(char* linea, int flag_de_consola){
