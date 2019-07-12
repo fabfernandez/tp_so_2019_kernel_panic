@@ -11,9 +11,9 @@ void *dump(){
 	log_info(logger_dump, "Tiempo retardo dump: [%d]", tiempo_dump);
 	while(1){
 		sleep(tiempo_dump/1000);
-		//pthread_mutex_lock(&mutexDump);
+		pthread_mutex_lock(&mutexDump);
 		dump_proceso(tiempo_dump);
-		//pthread_mutex_unlock(&mutexDump);
+		pthread_mutex_unlock(&mutexDump);
 	}
 
 }

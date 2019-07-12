@@ -32,12 +32,14 @@
 #include "LFS_Dump.h"
 t_list* memtable;
 t_list* tablas_en_lfs;
+t_list* hilos_memorias;
 char* bmap;
 t_bitarray* bitarray;
 
 typedef struct{
 	char* nombre;
 	pthread_t id_hilo_compactacion;
+	pthread_mutex_t mutex_compactacion;
 	bool esta_bloqueado;
 }t_tabla_logica;
 
@@ -47,7 +49,6 @@ typedef struct{
 }t_instruccion_bloqueada;
 
 t_dictionary* instrucciones_bloqueadas_por_tabla;
-
 
 // ******* DEFINICION DE FUNCIONES A UTILIZAR ******* //
 void chequearSocket(int socketin);
@@ -114,6 +115,8 @@ void crear_archivo(char* dir_archivo, int size, t_list* array_bloques);
 void guardar_datos_particion_o_temp(char* dir_archivo , int size, t_list* array_bloques);
 void crear_archivo_metadata_tabla(char* dir_tabla, int num_particiones,long compactacion,t_consistencia consistencia);
 void iniciarMutexMemtable();
+void liberar_tabla_logica(t_tabla_logica* tabla);
+t_tabla_logica* buscar_tabla_logica_con_nombre(char* nombre_tabla);
 
 //t_metadata describe(char* tabla);
 

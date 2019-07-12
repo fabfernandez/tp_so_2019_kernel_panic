@@ -80,9 +80,7 @@ int resolver_operacion_por_consola(t_instruccion_lql instruccion){
 			//aca debería enviarse el mensaje a LFS con DROP
 			break;
 		case EXIT:
-//			pthread_t         self_thread;
-//			self_thread = pthread_self();
-//			finalizar_lfs(self_thread);
+			finalizar_consola_lfs(hilo_consola);
 			break;
 
 		default:

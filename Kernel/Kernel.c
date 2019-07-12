@@ -231,7 +231,7 @@ void resolver_describe_drop(t_instruccion_lql instruccion, t_operacion operacion
 	paquete_describe->codigo_operacion=operacion;
 
 	char* nombre_tabla = paquete_describe->nombre_tabla;
-	int socket_memoria_a_usar = socket_memoria//conseguir_memoria(nombre_tabla, -1);
+	int socket_memoria_a_usar = socket_memoria;//conseguir_memoria(nombre_tabla, -1);
 
 	enviar_paquete_drop_describe(socket_memoria_a_usar, paquete_describe);
 	//esperar numero de tblas si fue DESCRIBE
