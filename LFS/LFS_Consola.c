@@ -7,10 +7,11 @@
 #include "LFS_Consola.h"
 
 void crear_hilo_consola(){
+	void* ret;
 	if (pthread_create(&hilo_consola, 0, levantar_consola, NULL) !=0){
 		log_error(logger_consola, "Error al crear el hilo");
 	}
-	if (pthread_detach(hilo_consola) != 0){
+	if (pthread_join(hilo_consola, &ret) != 0){
 		log_error(logger_consola, "Error al frenar hilo");
 	}
 }

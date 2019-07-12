@@ -15,9 +15,9 @@ int main(void)
 	iniciar_loggers(); // creamos leer_bloques_de_archivoleer_bloques_de_archivoleer_bloques_de_archivoleer_bloques_de_archivoleer_bloques_de_archivoleer_bloques_de_archivoleer_bloques_de_archivoleer_bloques_de_archivoleer_bloques_de_archivolog
 	leer_config(); // abrimos config
 	ip_lfs = config_get_string_value(archivoconfig, "IP_LFS"); // asignamos IP de memoria a conectar desde CONFIG
-	log_info(logger, "La IP de la memoria es %s",ip_lfs );
+	log_info(logger, "La IP del LFS es %s",ip_lfs );
 	puerto_lfs = config_get_string_value(archivoconfig, "PUERTO_LFS"); // asignamos puerto desde CONFIG
-	log_info(logger, "El puerto de la memoria es %s",puerto_lfs);
+	log_info(logger, "El puerto del LFS es %s",puerto_lfs);
 	montaje = config_get_string_value(archivoconfig, "PUNTO_MONTAJE");
 	max_size_value = config_get_int_value(archivoconfig, "MAX_SIZE_VALUE");
 	tiempo_dump = config_get_int_value(archivoconfig,"TIEMPO_DUMP");
@@ -27,7 +27,9 @@ int main(void)
 	crear_hilo_consola();
 	crear_hilo_dump();
 
+	log_info(logger, "Iniciando conexion");
 	int server_LFS = iniciar_servidor(ip_lfs, puerto_lfs);
+	log_info(logger, "Server iniciado. A espera de clientes");
 	while (!fin_de_programa){
 		if ((socket_memoria = esperar_cliente(server_LFS)) == -1) {
 			log_error(logger, "No pudo aceptarse la conexion del cliente");
@@ -46,7 +48,6 @@ void desconectar_lfs(){
 	pthread_cancel(hilo_dump);
 	dump_proceso();
 	log_info(logger_dump,"Finaliza LFS. Finalizado Dump");
-	pthread_mutex_unlock(&mutexDump);
 	eliminar_tablas_logicas();
 	list_destroy(memtable);
 	int pagesize = sysconf(_SC_PAGESIZE);
@@ -110,8 +111,9 @@ void *atender_pedido_memoria (void* memoria_fd){
 void finalizar_consola_lfs(pthread_t id_hilo_consola){
 	pthread_t hilo_consola = pthread_self();
 	log_info(logger_consola, "Finalizando LFS...");
-	pthread_cancel(id_hilo_consola);
 	fin_de_programa=true;
+	pthread_exit(id_hilo_consola);
+
 }
 
 void crear_hilo_memoria(int socket_memoria){
