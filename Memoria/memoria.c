@@ -1332,208 +1332,208 @@ void resolver_describe_consola(t_instruccion_lql instruccion){
 	}
 	}
 
-	/**
-		* @NAME: journaling
-		* @DESC:
-		*  envia todos los datos modificados de la memoria al lfs
-		*
-		*
-		*/
-	void journaling(char* memoria_principal,t_list* tablas){
-		log_info(logger,"EmpiezoJournaling");
-		for(int i=0;i<tablas->elements_count;i++){
-			segmento* unSegmento=list_get(tablas,i);
-			log_info(logger,"TABLA %i : %s ",i,unSegmento->nombreTabla);
-
-			for(int j=0;j<unSegmento->paginas->elements_count;j++) {
-				pagina* unaPagina = list_get(unSegmento->paginas,j);
-				pagina_concreta* datosPagina = traerPaginaDeMemoria(unaPagina->posicionEnMemoria,memoria_principal);
-				/* envio todo */
-				t_paquete_insert* paquete_insert = malloc(sizeof(t_paquete_insert));
-				paquete_insert->codigo_operacion=INSERT;
-				memcpy(&(paquete_insert->key),&(datosPagina->key),sizeof(uint16_t));
-				memcpy(&(paquete_insert->timestamp),&(datosPagina->timestamp),sizeof(long));
-				char* nombre = datosPagina->value;
-				char* tablan = unSegmento->nombreTabla;
-				paquete_insert->valor = malloc(sizeof(int)+string_size(nombre));
-				paquete_insert->nombre_tabla=malloc(sizeof(int)+string_size(tablan));
-				paquete_insert->valor->palabra= malloc(string_size(nombre));
-				paquete_insert->valor->size=string_size(nombre);
-				memcpy(paquete_insert->valor->palabra,nombre,string_size(nombre));
-				paquete_insert->nombre_tabla->palabra = malloc(string_size(tablan));
-				memcpy(paquete_insert->nombre_tabla->palabra,tablan,string_size(tablan));
-				paquete_insert->nombre_tabla->size=string_size(tablan);
-				log_info(logger,"Key %i",paquete_insert->key);
-				log_info(logger,"Ts %i",paquete_insert->timestamp);
-				log_info(logger,"Valor %s",paquete_insert->valor->palabra);
-				log_info(logger,"Tabla %s",paquete_insert->nombre_tabla->palabra);
-				enviar_paquete_insert(socket_conexion_lfs,paquete_insert);
-				t_status_solicitud* status =  desearilizar_status_solicitud(socket_conexion_lfs);
-				//esto se puede mostrar o no, pero hay qe recibirlo si o si
-				log_info(logger, "Resultado: %s", status->mensaje->palabra);
-				free(paquete_insert->valor->palabra);
-				free(paquete_insert->nombre_tabla->palabra);
-				free(paquete_insert->valor);
-				free(paquete_insert->nombre_tabla);
-				free(paquete_insert);
-				free(datosPagina->value);
-				free(datosPagina);
-				free(unaPagina);
-			}
-			list_clean(unSegmento->paginas);
-			log_info(logger, "[Paginas en segmento %s : %i]", unSegmento->nombreTabla, unSegmento->paginas->elements_count);
-
-		} 	posicionProximaLibre=0;
-			//log_info(logger,"CANTIDAD DE TABLAS: %",tablas->elements_count);
-			log_info(logger,"FinJournaling");
-	}
-
-	/**
-		* @NAME: lru
-		* @DESC: Se ejecuta el algoritmo de sustitucion, recorre todas las paginas, si encuentra
-		*  paginas sin modificar las compara y devuelve la que tenga el ts mas antiguo, si no
-		*  devuelve -1, lo que significa que estan todas las paginas modificadas y hay que hacer un journal.
-		*
-		*/
-		int lru(char* memoria_principal, t_list* tablas){
-				unsigned int posicionMemo=-1;
-				long ultimaLectura=-1;
-				int segment=0;
-				int pagg=0;
-				log_info(logger, "[TABLAS= %i ]",tablas->elements_count);
-				for(int i=0; i<(tablas->elements_count); i++){	// recorro segmentos
-						segmento* segmente = list_get(tablas, i);
-						log_info(logger, "[Ciclo segmento %i , cant pags= %i ]",i, segmente->paginas->elements_count);
-						for(int j=0; j<segmente->paginas->elements_count; j++) {// en un segmento i, recorro sus paginas
-							pagina* pag = list_get(segmente->paginas, j);		// traigo pagina
-							if(ultimaLectura==-1 && pag->modificado==0)
-							{			// si es la primer pagina que leo sin modificar
-								posicionMemo=pag->posicionEnMemoria;			// asigno la posicion de memoria para retornarla
-								ultimaLectura=pag->ultimaLectura;				// guardo su ultima lectura para seguir comparando.
-								log_info(logger, "[PM=-1 // PRIMER VUELTA J=%i]Ultima lectura %i",j,ultimaLectura);
-								log_info(logger, "[PM=-1 // PRIMER VUELTA J=%i]Posicion memo %i",j,posicionMemo);
-								segment=i;										// determino el segmento y
-								pagg=j;											// la pagina para despues poder eliminarla de mis tablas
-
-							} else if(pag->modificado==0)
-							{// si no es la primer pagina que leo sin modificar y aparte hace mas tiempo que no se lee
-								if(pag->ultimaLectura<ultimaLectura){
-								posicionMemo=pag->posicionEnMemoria;							// asigo la posicion de memoria para retornarla
-								ultimaLectura=pag->ultimaLectura;								// guardo su ultima lectura para seguir comparando
-								log_info(logger, "[CICLO PAG J=%i]Ultima lectura %i",j,ultimaLectura);
-								log_info(logger, "[CICLO PAG J=%i]Posicion memo %i",j,posicionMemo);
-								segment=i;														// determino el segmento y
-								pagg=j;
-								}// la pagina para despues poder eliminarla de mis tablas
-							} else log_info(logger, "NO CUMPLE");
-						}
-					}
-															// termino de recorrer las tablas
-			if(ultimaLectura==-1) { return ultimaLectura; }	// si la posicion es -1 significa que no encontro ni una pagina que no estuviera modificada, devuevlo -1, hay que hacer journal
-			//segmento* segm = list_get(tablas,segment);		// si sigue la ejecucion, es que encontro paginas, procedo a eliminar esa pagina que va a ser sustituda, traigo el segmento
-			//list_remove(segm->paginas, pagg);				// elimino de la lista de paginas del segmento a la pagina indicada
-			log_info(logger, "TERMINE CICLOS? %i",posicionMemo);
-			return posicionMemo;							// retorno la direccion en memoria sobre el que voy a escribir mi nuevo registro dato.
-		}
-
-
-
-
-
-	/**
-	* @NAME: traerRegistroDeMemoria
-	* @DESC: Retorna una pagina desde memoria conociendo su posicion.
+/**
+	* @NAME: journaling
+	* @DESC:
+	*  envia todos los datos modificados de la memoria al lfs
+	*
 	*
 	*/
-	pagina_concreta* traerRegistroDeMemoria(int posicion){
-				pagina_concreta* pagina = malloc(sizeof(uint16_t)+(sizeof(char)*max_value)+sizeof(long));
-				unsigned int desplazamiento=0;
-				memcpy(pagina->key,&memoria_principal[posicion*tamanio_pagina],sizeof(uint16_t));					// agrego primero KEY
-				desplazamiento+=sizeof(uint16_t);
-				memcpy(pagina->timestamp,&memoria_principal[posicion*tamanio_pagina+desplazamiento],sizeof(long));	// agrego luego TIMESTAMP
-				desplazamiento+=sizeof(long);
-				strcpy(pagina->value,&memoria_principal[posicion*tamanio_pagina+desplazamiento]);					// agrego por ultimo VALUE(tamaño variable)
-				return pagina;
-	}
+void journaling(char* memoria_principal,t_list* tablas){
+	log_info(logger,"EmpiezoJournaling");
+	for(int i=0;i<tablas->elements_count;i++){
+		segmento* unSegmento=list_get(tablas,i);
+		log_info(logger,"TABLA %i : %s ",i,unSegmento->nombreTabla);
+
+		for(int j=0;j<unSegmento->paginas->elements_count;j++) {
+			pagina* unaPagina = list_get(unSegmento->paginas,j);
+			pagina_concreta* datosPagina = traerPaginaDeMemoria(unaPagina->posicionEnMemoria,memoria_principal);
+			/* envio todo */
+			t_paquete_insert* paquete_insert = malloc(sizeof(t_paquete_insert));
+			paquete_insert->codigo_operacion=INSERT;
+			memcpy(&(paquete_insert->key),&(datosPagina->key),sizeof(uint16_t));
+			memcpy(&(paquete_insert->timestamp),&(datosPagina->timestamp),sizeof(long));
+			char* nombre = datosPagina->value;
+			char* tablan = unSegmento->nombreTabla;
+			paquete_insert->valor = malloc(sizeof(int)+string_size(nombre));
+			paquete_insert->nombre_tabla=malloc(sizeof(int)+string_size(tablan));
+			paquete_insert->valor->palabra= malloc(string_size(nombre));
+			paquete_insert->valor->size=string_size(nombre);
+			memcpy(paquete_insert->valor->palabra,nombre,string_size(nombre));
+			paquete_insert->nombre_tabla->palabra = malloc(string_size(tablan));
+			memcpy(paquete_insert->nombre_tabla->palabra,tablan,string_size(tablan));
+			paquete_insert->nombre_tabla->size=string_size(tablan);
+			log_info(logger,"Key %i",paquete_insert->key);
+			log_info(logger,"Ts %i",paquete_insert->timestamp);
+			log_info(logger,"Valor %s",paquete_insert->valor->palabra);
+			log_info(logger,"Tabla %s",paquete_insert->nombre_tabla->palabra);
+			enviar_paquete_insert(socket_conexion_lfs,paquete_insert);
+			t_status_solicitud* status =  desearilizar_status_solicitud(socket_conexion_lfs);
+			//esto se puede mostrar o no, pero hay qe recibirlo si o si
+			log_info(logger, "Resultado: %s", status->mensaje->palabra);
+			free(paquete_insert->valor->palabra);
+			free(paquete_insert->nombre_tabla->palabra);
+			free(paquete_insert->valor);
+			free(paquete_insert->nombre_tabla);
+			free(paquete_insert);
+			free(datosPagina->value);
+			free(datosPagina);
+			free(unaPagina);
+		}
+		list_clean(unSegmento->paginas);
+		log_info(logger, "[Paginas en segmento %s : %i]", unSegmento->nombreTabla, unSegmento->paginas->elements_count);
+
+	} 	posicionProximaLibre=0;
+		//log_info(logger,"CANTIDAD DE TABLAS: %",tablas->elements_count);
+		log_info(logger,"FinJournaling");
+}
 
 /**
-	* @NAME: encontrarSegmento
-	* @DESC: Retorna el segmento buscado en la lista si este tiene el mismo nombre que el que buscamos.
+	* @NAME: lru
+	* @DESC: Se ejecuta el algoritmo de sustitucion, recorre todas las paginas, si encuentra
+	*  paginas sin modificar las compara y devuelve la que tenga el ts mas antiguo, si no
+	*  devuelve -1, lo que significa que estan todas las paginas modificadas y hay que hacer un journal.
 	*
 	*/
-	segmento* encontrarSegmento(char* nombredTabla, t_list* tablas) {
-            		int _es_el_Segmento(segmento* segmento) {
-            			return string_equals_ignore_case(segmento->nombreTabla, nombredTabla);
-            		}
+	int lru(char* memoria_principal, t_list* tablas){
+			unsigned int posicionMemo=-1;
+			long ultimaLectura=-1;
+			int segment=0;
+			int pagg=0;
+			log_info(logger, "[TABLAS= %i ]",tablas->elements_count);
+			for(int i=0; i<(tablas->elements_count); i++){	// recorro segmentos
+					segmento* segmente = list_get(tablas, i);
+					log_info(logger, "[Ciclo segmento %i , cant pags= %i ]",i, segmente->paginas->elements_count);
+					for(int j=0; j<segmente->paginas->elements_count; j++) {// en un segmento i, recorro sus paginas
+						pagina* pag = list_get(segmente->paginas, j);		// traigo pagina
+						if(ultimaLectura==-1 && pag->modificado==0)
+						{			// si es la primer pagina que leo sin modificar
+							posicionMemo=pag->posicionEnMemoria;			// asigno la posicion de memoria para retornarla
+							ultimaLectura=pag->ultimaLectura;				// guardo su ultima lectura para seguir comparando.
+							log_info(logger, "[PM=-1 // PRIMER VUELTA J=%i]Ultima lectura %i",j,ultimaLectura);
+							log_info(logger, "[PM=-1 // PRIMER VUELTA J=%i]Posicion memo %i",j,posicionMemo);
+							segment=i;										// determino el segmento y
+							pagg=j;											// la pagina para despues poder eliminarla de mis tablas
 
-            		return list_find(tablas, (void*) _es_el_Segmento);
-    }
-	/**
-		* @NAME: encontrarTabla
-		* @DESC: Retorna ela tabla buscada en la lista si este tiene el mismo nombre que el que buscamos.
-		*
-		*/
-		t_gossip* encontrarMemoria(char* nombredMemoria, t_list* memorias) {
-	            		int _es_la_Memoria(t_gossip* memoria) {
-	            			return string_equals_ignore_case(memoria->nombre_memoria, nombredMemoria);
-	            		}
-
-	            		return list_find(memorias, (void*) _es_la_Memoria);
-	    }
-
-
-		void iniciar_inotify(char **argv){
-			#define MAX_EVENTS 1024 /*Max. number of events to process at one go*/
-			#define LEN_NAME 64 /*Assuming that the length of the filename won't exceed 16 bytes*/
-			#define EVENT_SIZE  ( sizeof (struct inotify_event) ) /*size of one event*/
-			#define BUF_LEN     ( MAX_EVENTS * ( EVENT_SIZE + LEN_NAME )) /*buffer to store the data of events*/
-
-			char* path = argv[1];
-			int length, wd;
-			int fd;
-			char buffer[BUF_LEN];
-
-			fd = inotify_init();
-			if( fd < 0 ){
-				log_error(logger, "No se pudo inicializar Inotify");
-			}
-
-			/* add watch to starting directory */
-			wd = inotify_add_watch(fd, path, IN_MODIFY);
-
-			if(wd == -1){
-				log_error(logger, "No se pudo agregar una observador para el archivo: %s\n",path);
-			}else{
-				log_info(logger, "Inotify esta observando modificaciones al archivo: %s\n", path);
-			}
-
-			while(1){
-				length = read( fd, buffer, BUF_LEN );
-				if(length < 0){
-					perror("read");
-				}else{
-					struct inotify_event *event = ( struct inotify_event * ) buffer;
-					if(event->mask == IN_MODIFY){
-						log_info(logger, "Se modifico el archivo de configuración");
-						leer_config();
-						retardo_journaling = config_get_int_value(archivoconfig, "RETARDO_JOURNAL");
-						log_info(logger, "El retardo del journaling automatico es: %i",retardo_journaling);
-						retardo_gossiping = config_get_int_value(archivoconfig, "RETARDO_GOSSIPING");
-						log_info(logger, "El retardo de gossiping automatico es: %i",retardo_gossiping);
-
+						} else if(pag->modificado==0)
+						{// si no es la primer pagina que leo sin modificar y aparte hace mas tiempo que no se lee
+							if(pag->ultimaLectura<ultimaLectura){
+							posicionMemo=pag->posicionEnMemoria;							// asigo la posicion de memoria para retornarla
+							ultimaLectura=pag->ultimaLectura;								// guardo su ultima lectura para seguir comparando
+							log_info(logger, "[CICLO PAG J=%i]Ultima lectura %i",j,ultimaLectura);
+							log_info(logger, "[CICLO PAG J=%i]Posicion memo %i",j,posicionMemo);
+							segment=i;														// determino el segmento y
+							pagg=j;
+							}// la pagina para despues poder eliminarla de mis tablas
+						} else log_info(logger, "NO CUMPLE");
 					}
 				}
-			}
-			inotify_rm_watch( fd, wd );
-			close( fd );
-		}
+														// termino de recorrer las tablas
+		if(ultimaLectura==-1) { return ultimaLectura; }	// si la posicion es -1 significa que no encontro ni una pagina que no estuviera modificada, devuevlo -1, hay que hacer journal
+		//segmento* segm = list_get(tablas,segment);		// si sigue la ejecucion, es que encontro paginas, procedo a eliminar esa pagina que va a ser sustituda, traigo el segmento
+		//list_remove(segm->paginas, pagg);				// elimino de la lista de paginas del segmento a la pagina indicada
+		log_info(logger, "TERMINE CICLOS? %i",posicionMemo);
+		return posicionMemo;							// retorno la direccion en memoria sobre el que voy a escribir mi nuevo registro dato.
+	}
 
-		void iniciar_hilo_inotify(char **argv){
-			pthread_t hilo_inotify;
-			if (pthread_create(&hilo_inotify, 0, iniciar_inotify, argv) !=0){
-					log_error(logger, "Error al crear el hilo de Inotify");
+
+
+
+
+/**
+* @NAME: traerRegistroDeMemoria
+* @DESC: Retorna una pagina desde memoria conociendo su posicion.
+*
+*/
+pagina_concreta* traerRegistroDeMemoria(int posicion){
+			pagina_concreta* pagina = malloc(sizeof(uint16_t)+(sizeof(char)*max_value)+sizeof(long));
+			unsigned int desplazamiento=0;
+			memcpy(pagina->key,&memoria_principal[posicion*tamanio_pagina],sizeof(uint16_t));					// agrego primero KEY
+			desplazamiento+=sizeof(uint16_t);
+			memcpy(pagina->timestamp,&memoria_principal[posicion*tamanio_pagina+desplazamiento],sizeof(long));	// agrego luego TIMESTAMP
+			desplazamiento+=sizeof(long);
+			strcpy(pagina->value,&memoria_principal[posicion*tamanio_pagina+desplazamiento]);					// agrego por ultimo VALUE(tamaño variable)
+			return pagina;
+}
+
+/**
+* @NAME: encontrarSegmento
+* @DESC: Retorna el segmento buscado en la lista si este tiene el mismo nombre que el que buscamos.
+*
+*/
+segmento* encontrarSegmento(char* nombredTabla, t_list* tablas) {
+				int _es_el_Segmento(segmento* segmento) {
+					return string_equals_ignore_case(segmento->nombreTabla, nombredTabla);
 				}
-			if (pthread_detach(hilo_inotify) != 0){
-					log_error(logger, "Error al crear el hilo de Inotify");
+
+				return list_find(tablas, (void*) _es_el_Segmento);
+}
+/**
+	* @NAME: encontrarTabla
+	* @DESC: Retorna ela tabla buscada en la lista si este tiene el mismo nombre que el que buscamos.
+	*
+	*/
+t_gossip* encontrarMemoria(char* nombredMemoria, t_list* memorias) {
+				int _es_la_Memoria(t_gossip* memoria) {
+					return string_equals_ignore_case(memoria->nombre_memoria, nombredMemoria);
 				}
+
+				return list_find(memorias, (void*) _es_la_Memoria);
+}
+
+
+void* iniciar_inotify(char **argv){
+	#define MAX_EVENTS 1024 /*Max. number of events to process at one go*/
+	#define LEN_NAME 64 /*Assuming that the length of the filename won't exceed 16 bytes*/
+	#define EVENT_SIZE  ( sizeof (struct inotify_event) ) /*size of one event*/
+	#define BUF_LEN     ( MAX_EVENTS * ( EVENT_SIZE + LEN_NAME )) /*buffer to store the data of events*/
+
+	char* path = argv[1];
+	int length, wd;
+	int fd;
+	char buffer[BUF_LEN];
+
+	fd = inotify_init();
+	if( fd < 0 ){
+		log_error(logger, "No se pudo inicializar Inotify");
+	}
+
+	/* add watch to starting directory */
+	wd = inotify_add_watch(fd, path, IN_MODIFY);
+
+	if(wd == -1){
+		log_error(logger, "No se pudo agregar una observador para el archivo: %s\n",path);
+	}else{
+		log_info(logger, "Inotify esta observando modificaciones al archivo: %s\n", path);
+	}
+
+	while(1){
+		length = read( fd, buffer, BUF_LEN );
+		if(length < 0){
+			perror("read");
+		}else{
+			struct inotify_event *event = ( struct inotify_event * ) buffer;
+			if(event->mask == IN_MODIFY){
+				log_info(logger, "Se modifico el archivo de configuración");
+				leer_config();
+				retardo_journaling = config_get_int_value(archivoconfig, "RETARDO_JOURNAL");
+				log_info(logger, "El retardo del journaling automatico es: %i",retardo_journaling);
+				retardo_gossiping = config_get_int_value(archivoconfig, "RETARDO_GOSSIPING");
+				log_info(logger, "El retardo de gossiping automatico es: %i",retardo_gossiping);
+
+			}
 		}
+	}
+	inotify_rm_watch( fd, wd );
+	close( fd );
+}
+
+void iniciar_hilo_inotify(char **argv){
+	pthread_t hilo_inotify;
+	if (pthread_create(&hilo_inotify, 0, iniciar_inotify, argv) !=0){
+			log_error(logger, "Error al crear el hilo de Inotify");
+		}
+	if (pthread_detach(hilo_inotify) != 0){
+			log_error(logger, "Error al crear el hilo de Inotify");
+		}
+}

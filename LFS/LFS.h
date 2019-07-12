@@ -26,6 +26,7 @@
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <time.h>
+#include <sys/inotify.h>
 
 #include "LFS_Compactacion.h"
 #include "LFS_Consola.h"
@@ -53,6 +54,7 @@ t_dictionary* instrucciones_bloqueadas_por_tabla;
 void chequearSocket(int socketin);
 void iniciar_loggers();
 void leer_config();
+void leer_tiempo_dump_del_config();
 void terminar_programa();
 					// ******* TIPOS NECESARIOS ******* //
 t_log* logger;
@@ -114,6 +116,7 @@ void crear_archivo(char* dir_archivo, int size, t_list* array_bloques);
 void guardar_datos_particion_o_temp(char* dir_archivo , int size, t_list* array_bloques);
 void crear_archivo_metadata_tabla(char* dir_tabla, int num_particiones,long compactacion,t_consistencia consistencia);
 void iniciarMutexMemtable();
+void crear_hilo_inotify();
 
 //t_metadata describe(char* tabla);
 
