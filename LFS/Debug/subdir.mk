@@ -7,19 +7,22 @@ C_SRCS += \
 ../LFS.c \
 ../LFS_Compactacion.c \
 ../LFS_Consola.c \
-../LFS_Dump.c 
+../LFS_Dump.c \
+../LFS_Server.c 
 
 OBJS += \
 ./LFS.o \
 ./LFS_Compactacion.o \
 ./LFS_Consola.o \
-./LFS_Dump.o 
+./LFS_Dump.o \
+./LFS_Server.o 
 
 C_DEPS += \
 ./LFS.d \
 ./LFS_Compactacion.d \
 ./LFS_Consola.d \
-./LFS_Dump.d 
+./LFS_Dump.d \
+./LFS_Server.d 
 
 
 # Each subdirectory must supply rules for building sources it contributes

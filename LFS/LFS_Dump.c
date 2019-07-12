@@ -10,10 +10,13 @@ void *dump(){
 
 	log_info(logger_dump, "Tiempo retardo dump: [%d]", tiempo_dump);
 	while(1){
+		log_info(logger_dump, "Valor sem: %d", mutexDump);
 		sleep(tiempo_dump/1000);
-		//pthread_mutex_lock(&mutexDump);
+		pthread_mutex_lock(&mutexDump);
+		log_info(logger_dump, "Valor sem: %d", mutexDump);
 		dump_proceso(tiempo_dump);
-		//pthread_mutex_unlock(&mutexDump);
+		pthread_mutex_unlock(&mutexDump);
+		log_info(logger_dump, "Valor sem: %d", mutexDump);
 	}
 
 }
@@ -39,6 +42,7 @@ void dump_proceso(){
 }
 
 void crear_hilo_dump(){
+	log_info(logger_dump, "Inicia hilo de dump");
 	if (pthread_create(&hilo_dump, 0, dump, NULL) !=0){
 		log_error(logger_dump, "Error al crear el hilo para proceso de dump");
 	}

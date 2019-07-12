@@ -18,6 +18,7 @@ int main(int argc, char **argv)
 
 	iniciar_logger();
 	leer_config();
+	iniciar_hilo_inotify(argv);
 	if(pthread_mutex_init(&mutexMemoria,NULL)==0){
 		//log_info(logger, "MutexMemoria inicializado correctamente");
 	} else {
@@ -1462,23 +1463,24 @@ pagina_concreta* traerRegistroDeMemoria(int posicion){
 *
 */
 segmento* encontrarSegmento(char* nombredTabla, t_list* tablas) {
-				int _es_el_Segmento(segmento* segmento) {
-					return string_equals_ignore_case(segmento->nombreTabla, nombredTabla);
-				}
+	int _es_el_Segmento(segmento* segmento) {
+		return string_equals_ignore_case(segmento->nombreTabla, nombredTabla);
+	}
 
-				return list_find(tablas, (void*) _es_el_Segmento);
+	return list_find(tablas, (void*) _es_el_Segmento);
 }
 /**
 	* @NAME: encontrarTabla
 	* @DESC: Retorna ela tabla buscada en la lista si este tiene el mismo nombre que el que buscamos.
 	*
 	*/
-t_gossip* encontrarMemoria(char* nombredMemoria, t_list* memorias) {
-				int _es_la_Memoria(t_gossip* memoria) {
-					return string_equals_ignore_case(memoria->nombre_memoria, nombredMemoria);
-				}
 
-				return list_find(memorias, (void*) _es_la_Memoria);
+t_gossip* encontrarMemoria(char* nombredMemoria, t_list* memorias) {
+	int _es_la_Memoria(t_gossip* memoria) {
+		return string_equals_ignore_case(memoria->nombre_memoria, nombredMemoria);
+	}
+
+	return list_find(memorias, (void*) _es_la_Memoria);
 }
 
 

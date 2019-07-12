@@ -8,37 +8,83 @@
 #include "LFS.h"
 int main(void)
 {
-	char* ip_lfs;
-	char* puerto_lfs;
-	int socket_memoria;
 	char *montaje;
 	iniciar_loggers(); // creamos leer_bloques_de_archivoleer_bloques_de_archivoleer_bloques_de_archivoleer_bloques_de_archivoleer_bloques_de_archivoleer_bloques_de_archivoleer_bloques_de_archivoleer_bloques_de_archivoleer_bloques_de_archivolog
 	leer_config(); // abrimos config
 	ip_lfs = config_get_string_value(archivoconfig, "IP_LFS"); // asignamos IP de memoria a conectar desde CONFIG
+	log_info(logger, "La IP del LFS es %s",ip_lfs );
 	puerto_lfs = config_get_string_value(archivoconfig, "PUERTO_LFS"); // asignamos puerto desde CONFIG
+	log_info(logger, "El puerto del LFS es %s",puerto_lfs);
 	montaje = config_get_string_value(archivoconfig, "PUNTO_MONTAJE");
 	max_size_value = config_get_int_value(archivoconfig, "MAX_SIZE_VALUE");
 	leer_tiempo_dump_del_config();
 	log_info(logger, "La IP de la memoria es %s",ip_lfs );
 	log_info(logger, "El puerto de la memoria es %s",puerto_lfs);
 	iniciarMutexMemtable();
-//	iniciarMutexCompactacion();
-
+	iniciarMutexDump();
 	levantar_lfs(montaje);
+	crear_hilo_server();
 	crear_hilo_consola();
 	crear_hilo_dump();
 	crear_hilo_inotify();
 
-	int server_LFS = iniciar_servidor(ip_lfs, puerto_lfs);
-	while (!fin_de_programa){
-		if ((socket_memoria = esperar_cliente(server_LFS)) == -1) {
-			//log_error(logger, "No pudo aceptarse la conexion del cliente");
-		} else {
-			crear_hilo_memoria(socket_memoria);
-		}
+	void *ret;
+	if (pthread_join(hilo_consola, &ret) != 0){
+		log_error(logger_consola, "Error al frenar hilo");
 	}
-	terminar_programa(); // termina conexion, destroy log y destroy config. ???
+	log_info(logger_consola,"Desconectando..");
+	desconectar_lfs();
 	return EXIT_SUCCESS;
+}
+
+void desconectar_lfs(){
+
+	desconectar_clientes();
+	log_info(logger, "Valor sem: %d", mutexDump);
+	pthread_mutex_lock(&mutexDump);
+	log_info(logger,"Comenzando dump forzado");
+	pthread_cancel(hilo_dump);
+	dump_proceso();
+	log_info(logger_dump,"Finaliza LFS. Finalizado Dump");
+	eliminar_tablas_logicas();
+	list_destroy(memtable);
+	int pagesize = sysconf(_SC_PAGESIZE);
+	munmap(bmap, pagesize);
+	bitarray_destroy(bitarray);
+	dictionary_destroy(instrucciones_bloqueadas_por_tabla);
+	config_destroy(archivoconfig);
+	log_destroy(logger_dump);
+	log_destroy(logger_compactacion);
+	log_info(logger,"Fin LFS.");
+	log_destroy(logger);
+	log_info(logger_consola,"Fin LFS.");
+	log_destroy(logger_consola);
+}
+
+void eliminar_tablas_logicas(){
+	for(int i = 0; i< list_size(tablas_en_lfs); i++){
+		t_tabla_logica* tabla_logica = list_get(tablas_en_lfs, i);
+		pthread_mutex_lock(&(tabla_logica->mutex_compactacion));
+		pthread_cancel(tabla_logica->id_hilo_compactacion);
+		log_info(logger_compactacion,"Finaliza LFS. Finalizado Compactacion para tabla %s", tabla_logica->nombre);
+		pthread_mutex_unlock(&(tabla_logica->mutex_compactacion));
+	}
+	list_destroy_and_destroy_elements(tablas_en_lfs, (void*)liberar_tabla_logica);
+}
+
+void liberar_tabla_logica(t_tabla_logica* tabla){
+	free(tabla->nombre);
+	free(tabla);
+}
+
+void desconectar_clientes(){
+	for (int i=0 ; i<list_size(hilos_memorias); i++){
+		pthread_t hilo_memoria = list_get(hilos_memorias, i);
+		pthread_cancel(hilo_memoria);
+	}
+	list_destroy(hilos_memorias);
+	log_info(logger,"Finaliza Hilo Server");
+	pthread_exit(hilo_server);
 }
 
 void iniciarMutexMemtable(){
@@ -49,13 +95,13 @@ void iniciarMutexMemtable(){
 	};
 }
 
-//void iniciarMutexCompactacion(){
-//	if(pthread_mutex_init(&mutexCompactacion,NULL)==0){
-//		log_info(logger, "MutexCompactacion inicializado correctamente");
-//	} else {
-//		log_error(logger, "Fallo inicializacion de MutexCompactacion");
-//	};
-//}
+void iniciarMutexDump(){
+	if(pthread_mutex_init(&mutexDump,NULL)==0){
+		log_info(logger, "MutexDump inicializado correctamente");
+	} else {
+		log_error(logger, "Fallo inicializacion de MutexDump");
+	};
+}
 
 void *atender_pedido_memoria (void* memoria_fd){
 	int socket_memoria = *((int *) memoria_fd);
@@ -63,31 +109,24 @@ void *atender_pedido_memoria (void* memoria_fd){
 	while(1){
 		int cod_op = recibir_operacion(socket_memoria);
 		if (resolver_operacion(socket_memoria, cod_op)!=0){
+			list_remove(hilos_memorias, id_hilo);
 			pthread_cancel(id_hilo);
 		}
 	}
 	    //free(i);
 }
 
-void finalizar_lfs(pthread_t id_hilo_consola){
-	log_info(logger, "Finalizando LFS...");
-	pthread_cancel(id_hilo_consola);
-	pthread_mutex_lock(&mutexDump);
-	dump_proceso();
-	pthread_mutex_unlock(&mutexDump);
-}
-
 void crear_hilo_memoria(int socket_memoria){
 	pthread_t hilo_memoria;
 	int *memoria_fd = malloc(sizeof(*memoria_fd));
 	*memoria_fd = socket_memoria;
+	list_add(hilos_memorias, hilo_memoria);
 	if (pthread_create(&hilo_memoria, 0, atender_pedido_memoria, memoria_fd) !=0){
 		log_error(logger, "Error al crear el hilo");
 	}
 	if (pthread_detach(hilo_memoria) != 0){
 		log_error(logger, "Error al frenar hilo");
 	}
-	//liberar memoria_f
 
 }
 
@@ -220,13 +259,17 @@ void agregar_instruccion_bloqueada(t_instruccion_bloqueada* instruccion_bloquead
 	queue_push(instrucciones_bloqueadas, instruccion_bloqueada);
 }
 
-bool tabla_esta_bloqueada(char* nombre_tabla){
-
+t_tabla_logica* buscar_tabla_logica_con_nombre(char*nombre_tabla){
 	bool _es_tabla_con_nombre(t_tabla_logica* tabla) {
 		return string_equals_ignore_case(tabla->nombre, nombre_tabla);
 	}
 
-	t_tabla_logica* tabla_logica = list_find(tablas_en_lfs, _es_tabla_con_nombre);
+	return list_find(tablas_en_lfs, _es_tabla_con_nombre);
+}
+
+bool tabla_esta_bloqueada(char* nombre_tabla){
+
+	t_tabla_logica* tabla_logica = buscar_tabla_logica_con_nombre(nombre_tabla);
 	return (tabla_logica != NULL) && (tabla_logica->esta_bloqueado);
 
 }
@@ -337,6 +380,7 @@ void levantar_lfs(char* montaje){
 	memcpy(path_montaje, montaje,string_size(montaje) );
 	fin_de_programa=false;
 	memtable = list_create();
+	hilos_memorias=list_create();
 	instrucciones_bloqueadas_por_tabla = dictionary_create();
 	obtener_info_metadata();
 	obtener_bitmap();
@@ -369,12 +413,13 @@ void eliminar_tabla_logica(char* nombre_tabla){
 		return string_equals_ignore_case(tabla->nombre, nombre_tabla);
 	}
 
-	t_tabla_logica* tabla_logica = list_remove_by_condition(tablas_en_lfs, _es_tabla_con_nombre);;
+	t_tabla_logica* tabla_logica = list_remove_by_condition(tablas_en_lfs, _es_tabla_con_nombre);
+	pthread_mutex_lock(&(tabla_logica->mutex_compactacion));
 	if (tabla_logica!=NULL){
 		log_info(logger_compactacion, "Se elimina la tabla %s. Se procede a frenar el hilo.", nombre_tabla);
-//		if (pthread_detach(tabla_logica->id_hilo_compactacion) != 0){
-//			log_error(logger_compactacion, "Error al frenar hilo de compactacion");
-//		}
+		if (pthread_cancel(tabla_logica->id_hilo_compactacion) != 0){
+			log_error(logger_compactacion, "Error al cancelar hilo de compactacion");
+		}
 		free(tabla_logica->nombre);
 		free(tabla_logica);
 	}
@@ -387,9 +432,16 @@ t_tabla_logica* crear_tabla_logica(char* nombre_tabla){
 	tabla->esta_bloqueado=false;
 	tabla->nombre=malloc(string_size(nombre_tabla));
 	memcpy(tabla->nombre, nombre_tabla, string_size(nombre_tabla));
-
-//	pthread_t hilo = crear_hilo_compactacion(nombre_tabla);
-//	tabla->id_hilo_compactacion = hilo;
+	pthread_mutex_t mutex_compactacion_tabla;
+	if(pthread_mutex_init(&mutex_compactacion_tabla,NULL)==0){
+		log_info(logger, "MutexCompactacion para tabla %s se inicializo correctamente", nombre_tabla);
+	} else {
+		log_error(logger, "Fallo inicializacion de MutexCompactacion para tabla %s", nombre_tabla);
+	}
+	tabla->mutex_compactacion = mutex_compactacion_tabla;
+	pthread_t hilo = crear_hilo_compactacion(nombre_tabla);
+	tabla->id_hilo_compactacion = hilo;
+	log_info(logger, "Hilo %d de compactacion de tabla %s esta iniciado", hilo, nombre_tabla);
 	return tabla;
 }
 

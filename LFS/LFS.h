@@ -27,18 +27,21 @@
 #include <sys/stat.h>
 #include <time.h>
 #include <sys/inotify.h>
+#include <semaphore.h>
 
 #include "LFS_Compactacion.h"
 #include "LFS_Consola.h"
 #include "LFS_Dump.h"
 t_list* memtable;
 t_list* tablas_en_lfs;
+t_list* hilos_memorias;
 char* bmap;
 t_bitarray* bitarray;
 
 typedef struct{
 	char* nombre;
 	pthread_t id_hilo_compactacion;
+	pthread_mutex_t mutex_compactacion;
 	bool esta_bloqueado;
 }t_tabla_logica;
 
@@ -48,7 +51,6 @@ typedef struct{
 }t_instruccion_bloqueada;
 
 t_dictionary* instrucciones_bloqueadas_por_tabla;
-
 
 // ******* DEFINICION DE FUNCIONES A UTILIZAR ******* //
 void chequearSocket(int socketin);
@@ -64,11 +66,14 @@ t_log* logger_consola;
 t_config* archivoconfig;
 char* path_montaje;
 int  max_size_value, block_size, blocks;
+char* ip_lfs;
+char* puerto_lfs;
 int tiempo_dump;
 pthread_mutex_t mutexMemtable, mutexDump;
 bool fin_de_programa;
 pthread_t hilo_consola;
 pthread_t hilo_dump;
+pthread_t hilo_server;
 
 bool tabla_esta_bloqueada(char* nombre_tabla);
 t_instruccion_bloqueada* crear_instruccion_select_bloqueada(t_paquete_select* select, int socket_memoria);
@@ -117,6 +122,8 @@ void guardar_datos_particion_o_temp(char* dir_archivo , int size, t_list* array_
 void crear_archivo_metadata_tabla(char* dir_tabla, int num_particiones,long compactacion,t_consistencia consistencia);
 void iniciarMutexMemtable();
 void crear_hilo_inotify();
+void liberar_tabla_logica(t_tabla_logica* tabla);
+t_tabla_logica* buscar_tabla_logica_con_nombre(char* nombre_tabla);
 
 //t_metadata describe(char* tabla);
 

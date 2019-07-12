@@ -7,11 +7,9 @@
 #include "LFS_Consola.h"
 
 void crear_hilo_consola(){
+
 	if (pthread_create(&hilo_consola, 0, levantar_consola, NULL) !=0){
 		log_error(logger_consola, "Error al crear el hilo");
-	}
-	if (pthread_detach(hilo_consola) != 0){
-		log_error(logger_consola, "Error al frenar hilo");
 	}
 }
 
@@ -80,9 +78,8 @@ int resolver_operacion_por_consola(t_instruccion_lql instruccion){
 			//aca debería enviarse el mensaje a LFS con DROP
 			break;
 		case EXIT:
-//			pthread_t         self_thread;
-//			self_thread = pthread_self();
-//			finalizar_lfs(self_thread);
+			log_info(logger_consola, "Finalizando LFS..");
+			pthread_cancel(hilo_consola);
 			break;
 
 		default:

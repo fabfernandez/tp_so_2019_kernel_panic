@@ -10,12 +10,13 @@ void *compactar(void* nombre_tabla){
 	//char* tabla = (char*) nombre_tabla; Agregar linea comentada si descubro que void* rompe en ejecucion y necesito castera char*
 	char* path_tabla = string_from_format("%s/Tables/%s", path_montaje, nombre_tabla);
 	long tiempo_compactacion = obtener_tiempo_compactacion(path_tabla);
-
+	t_tabla_logica* tabla_logica = buscar_tabla_logica_con_nombre(nombre_tabla);
 	log_info(logger_compactacion, "Tiempo retardo compactacion: [%i]", tiempo_compactacion);
 	while(1){
 		log_info(logger_compactacion, "%i", tiempo_compactacion);
 		sleep(tiempo_compactacion/1000);
 
+		pthread_mutex_lock(&(tabla_logica->mutex_compactacion));
 		if (!hay_temporales(path_tabla)) {
 			log_info(logger_compactacion, "Compactacion- No hay datos para compactar en: %s.", path_tabla);
 		}else{
@@ -37,6 +38,7 @@ void *compactar(void* nombre_tabla){
 			log_info(logger_compactacion, "La tabla: %s estuvo bloqueada %d milisegundos por compactacion.", nombre_tabla, tiempo_operatoria);
 
 		}
+		pthread_mutex_unlock(&(tabla_logica->mutex_compactacion));
 	}
 	//free path_tabla
 }
@@ -90,6 +92,9 @@ pthread_t crear_hilo_compactacion(char* nombre_tabla){
 	pthread_t hilo_compactacion;
 	if (pthread_create(&hilo_compactacion, 0, compactar, nombre_tabla) !=0){
 		log_error(logger_compactacion, "Error al crear el hilo para proceso de compactacion");
+	}
+	if (pthread_detach(hilo_compactacion) != 0){
+		log_error(logger_consola, "Error al frenar hilo");
 	}
 	return hilo_compactacion;
 }
