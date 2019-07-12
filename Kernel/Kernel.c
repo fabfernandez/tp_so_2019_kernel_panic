@@ -165,9 +165,8 @@ void revisa_y_cambia_si_encuentra(t_memoria* nodo_viejo, t_list* lista, int indi
 	if(nuevo_nodo_memoria != NULL){
 		list_replace(lista, indice, nuevo_nodo_memoria);
 	}else{
-		list_remove(lista, indice);
+		list_remove_and_destroy_element(lista, indice, free);
 	}
-	free(nodo_viejo);
 }
 
 void parsear_y_ejecutar(char* linea, int flag_de_consola){
@@ -232,7 +231,7 @@ void resolver_describe_drop(t_instruccion_lql instruccion, t_operacion operacion
 	paquete_describe->codigo_operacion=operacion;
 
 	char* nombre_tabla = paquete_describe->nombre_tabla;
-	int socket_memoria_a_usar = conseguir_memoria(nombre_tabla, -1);
+	int socket_memoria_a_usar = socket_memoria//conseguir_memoria(nombre_tabla, -1);
 
 	enviar_paquete_drop_describe(socket_memoria_a_usar, paquete_describe);
 	//esperar numero de tblas si fue DESCRIBE
@@ -562,7 +561,7 @@ int funcion_hash_magica(uint16_t ki){
 }
 
 int get_random(int maximo){
-	return rand() % maximo + 1;
+	return rand() % maximo;
 }
 
 char leer_archivo(FILE* archivo){
