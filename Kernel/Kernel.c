@@ -285,7 +285,9 @@ void resolver_describe(t_instruccion_lql instruccion){
 
 void guardar_consistencia_tabla(char* nombre_tabla, t_consistencia consistencia){
 	t_consistencia_tabla* consistencia_tabla = malloc(sizeof(t_consistencia_tabla));
+
 	consistencia_tabla->nombre_tabla = nombre_tabla;
+	memcpy(consistencia_tabla->nombre_tabla, nombre_tabla, string_size(nombre_tabla));
 	consistencia_tabla->consistencia = consistencia;
 
 	t_consistencia_tabla* tabla = conseguir_tabla(nombre_tabla);
