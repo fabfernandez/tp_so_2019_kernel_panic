@@ -235,14 +235,18 @@ t_instruccion_bloqueada* crear_instruccion_select_bloqueada(t_paquete_select* se
 
 t_instruccion_bloqueada* crear_instruccion_insert_bloqueada(t_paquete_insert* insert, int socket_memoria){
 
+	char* nombre_tabla = malloc(string_size(insert->nombre_tabla->palabra));
+	char* value = malloc(string_size(insert->valor->palabra));
+	memcpy(nombre_tabla, insert->nombre_tabla->palabra,string_size(insert->nombre_tabla->palabra) );
+	memcpy(value, insert->valor->palabra,string_size(insert->valor->palabra) );
 	t_instruccion_lql ret = {
 		.valido = true
 	};
 	ret.operacion=INSERT;
 	ret.parametros.INSERT.key = insert->key;
-	ret.parametros.INSERT.tabla=insert->nombre_tabla->palabra;
+	ret.parametros.INSERT.tabla=nombre_tabla;
 	ret.parametros.INSERT.timestamp=insert->timestamp;
-	ret.parametros.INSERT.value = insert->valor->palabra;
+	ret.parametros.INSERT.value = value;
 
 	t_instruccion_bloqueada* bloqueada = malloc(sizeof(t_instruccion_bloqueada));
 
@@ -442,7 +446,7 @@ t_tabla_logica* crear_tabla_logica(char* nombre_tabla){
 		log_error(logger, "Fallo inicializacion de MutexCompactacion para tabla %s", nombre_tabla);
 	}
 	tabla->mutex_compactacion = mutex_compactacion_tabla;
-	pthread_t hilo = crear_hilo_compactacion(nombre_tabla);
+	pthread_t hilo = crear_hilo_compactacion(tabla->nombre);
 	tabla->id_hilo_compactacion = hilo;
 	log_info(logger, "Hilo %d de compactacion de tabla %s esta iniciado", hilo, nombre_tabla);
 	return tabla;

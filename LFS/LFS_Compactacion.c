@@ -29,11 +29,13 @@ void *compactar(void* nombre_tabla){
 			list_destroy(registros);
 
 			bloquear_tabla(nombre_tabla);
+			log_info(logger_compactacion, "Comienza bloqueo de tabla: %s por compactacion.", nombre_tabla);
 			int comienzo = time(NULL);
 
 			realizar_compactacion(path_tabla, registros_filtrados);
 
 			desbloquear_tabla(nombre_tabla);
+			log_info(logger_compactacion, "Fin bloqueo de tabla: %s por compactacion.", nombre_tabla);
 			int tiempo_operatoria = comienzo - time(NULL);
 			log_info(logger_compactacion, "La tabla: %s estuvo bloqueada %d milisegundos por compactacion.", nombre_tabla, tiempo_operatoria);
 
@@ -63,21 +65,29 @@ void desbloquear_tabla(char* nombre_tabla){
 	if (dictionary_has_key(instrucciones_bloqueadas_por_tabla, nombre_tabla)){
 		t_queue* instrucciones_bloqueadas = dictionary_get(instrucciones_bloqueadas_por_tabla, nombre_tabla);
 		for(int i=0; i<queue_size(instrucciones_bloqueadas); i++){
+			log_info(logger_compactacion, "Comienza ejecucion de instrucciones bloqueadas en tabla %s.", nombre_tabla);
 			t_instruccion_bloqueada* instruccion_bloqueada = queue_pop(instrucciones_bloqueadas);
 			t_status_solicitud* status;
 			if (instruccion_bloqueada->instruccion.operacion == SELECT){
 				if (instruccion_bloqueada->socket_memoria==NULL){
+					log_info(logger_compactacion, "Comienza select bloqueado en tabla %s solicitado por consola.", nombre_tabla);
 					resolver_select_consola(nombre_tabla, instruccion_bloqueada->instruccion.parametros.SELECT.key);
+					log_info(logger_compactacion, "Fin select bloqueado en tabla %s solicitado por c.", nombre_tabla);
 				}else{
+					log_info(logger_compactacion, "Comienza select bloqueado en tabla %s solicitado por memoria.", nombre_tabla);
 					status= resolver_select(nombre_tabla, instruccion_bloqueada->instruccion.parametros.SELECT.key);
 					enviar_status_resultado(status, instruccion_bloqueada->socket_memoria);
+					log_info(logger_compactacion, "Fin select bloqueado en tabla %s solicitado por memoria.", nombre_tabla);
 				}
 
 			}else{
+				log_info(logger_compactacion, "Comienza insert bloqueado en tabla %s solicitado.", nombre_tabla);
 				status = resolver_insert(logger, nombre_tabla, instruccion_bloqueada->instruccion.parametros.INSERT.key, instruccion_bloqueada->instruccion.parametros.INSERT.value, instruccion_bloqueada->instruccion.parametros.INSERT.timestamp);
 				if (instruccion_bloqueada->socket_memoria!=NULL){
 					enviar_status_resultado(status, instruccion_bloqueada->socket_memoria);
+					log_info(logger_compactacion, "Se envia status de insert bloqueado en tabla %s solicitado.", nombre_tabla);
 				}
+				log_info(logger_compactacion, "Fin insert bloqueado en tabla %s solicitado.", nombre_tabla);
 			}
 			//eliminar_paquete_status(status);
 			free(instruccion_bloqueada);
