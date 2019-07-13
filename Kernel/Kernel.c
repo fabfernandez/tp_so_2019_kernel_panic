@@ -482,6 +482,7 @@ void asignar_consistencia(t_memoria* memoria, t_consistencia consistencia){
 			break;
 		case EVENTUAL:
 			list_add(eventual_consistency, memoria);
+			printf("size %d\n",list_size(eventual_consistency));
 			break;
 		default:
 			break;
@@ -557,20 +558,28 @@ t_memoria* obtener_memoria_segun_consistencia(t_consistencia consistencia, uint1
 }
 
 int funcion_hash_magica(uint16_t ki){
-	int resto, suma, tamanio= 0;
-	float magia;
+	int tamanio= 0, indice = ki;
 	tamanio = list_size(strong_hash_consistency);
 
-	while(ki >= tamanio ){
-		ki = ki - tamanio;
+	while(indice >= tamanio ){
+		indice = ki - tamanio;
 	}
 
-	return ki;
+	return indice;
 
 }
 
 int get_random(int maximo){
-	return rand() % maximo + 1;
+	int indice = maximo, cant = 0;
+
+	while(indice >= maximo){
+		indice = rand();
+		cant++;
+		if(cant > 2){
+			indice /= cant;
+		}
+	}
+	return indice;
 }
 
 char leer_archivo(FILE* archivo){
