@@ -285,9 +285,10 @@ void resolver_describe(t_instruccion_lql instruccion){
 
 void guardar_consistencia_tabla(char* nombre_tabla, t_consistencia consistencia){
 	t_consistencia_tabla* consistencia_tabla = malloc(sizeof(t_consistencia_tabla));
-
-	consistencia_tabla->nombre_tabla = nombre_tabla;
-	memcpy(consistencia_tabla->nombre_tabla, nombre_tabla, string_size(nombre_tabla));
+	char* nombre_tabla_a_cargar = malloc(string_size(nombre_tabla));
+	consistencia_tabla->nombre_tabla = malloc(string_size(nombre_tabla));
+	memcpy(nombre_tabla_a_cargar, nombre_tabla, string_size(nombre_tabla));
+	memcpy(consistencia_tabla->nombre_tabla, nombre_tabla_a_cargar, string_size(nombre_tabla));
 	consistencia_tabla->consistencia = consistencia;
 
 	t_consistencia_tabla* tabla = conseguir_tabla(nombre_tabla);
@@ -495,7 +496,8 @@ void resolver_journal_hash(){
 	for(int i=0; i<list_size(strong_hash_consistency); i++){
 			t_memoria* memoria = list_get(strong_hash_consistency, i);
 			int socket_conexion = crear_conexion(memoria->ip, memoria->puerto);
-			send(socket_conexion, JOURNAL, sizeof(int), MSG_WAITALL);
+			t_operacion operacion_a_enviar = JOURNAL;
+			send(socket_conexion, &operacion_a_enviar, sizeof(t_operacion), MSG_WAITALL);
 			liberar_conexion(socket_conexion);
 			log_info(logger, "Se ha realizado el JOURNAL a la memoria: %d", memoria->numero_memoria);
 		}
@@ -564,7 +566,7 @@ int funcion_hash_magica(uint16_t ki){
 	tamanio = list_size(strong_hash_consistency);
 
 	while(indice >= tamanio ){
-		indice = ki - tamanio;
+		indice = indice - tamanio;
 	}
 
 	return indice;
