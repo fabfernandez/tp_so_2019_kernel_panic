@@ -10,13 +10,13 @@ void *dump(){
 
 	log_info(logger_dump, "Tiempo retardo dump: [%d]", tiempo_dump);
 	while(1){
-		log_info(logger_dump, "Valor sem: %d", mutexDump);
+		log_info(logger_dump, "Valor sem en hilo dump antes sleep: %d", mutexDump);
 		sleep(tiempo_dump/1000);
 		pthread_mutex_lock(&mutexDump);
-		log_info(logger_dump, "Valor sem: %d", mutexDump);
+		log_info(logger_dump, "Valor sem  en hilo dump previo dump, despues lock: %d", mutexDump);
 		dump_proceso(tiempo_dump);
 		pthread_mutex_unlock(&mutexDump);
-		log_info(logger_dump, "Valor sem: %d", mutexDump);
+		log_info(logger_dump, "Valor sem  en hilo dump despues unlock: %d", mutexDump);
 	}
 
 }

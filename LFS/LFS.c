@@ -36,7 +36,7 @@ int main(void)
 void desconectar_lfs(){
 
 	desconectar_clientes();
-	log_info(logger, "Valor sem: %d", mutexDump);
+	log_info(logger, "Valor sem en hilo principal: %d", mutexDump);
 	pthread_mutex_lock(&mutexDump);
 	log_info(logger,"Comenzando dump forzado");
 	pthread_cancel(hilo_dump);
@@ -80,7 +80,7 @@ void desconectar_clientes(){
 	}
 	list_destroy(hilos_memorias);
 	log_info(logger,"Finaliza Hilo Server");
-	pthread_exit(hilo_server);
+	pthread_cancel(hilo_server);
 }
 
 void iniciarMutexMemtable(){
@@ -94,6 +94,7 @@ void iniciarMutexMemtable(){
 void iniciarMutexDump(){
 	if(pthread_mutex_init(&mutexDump,NULL)==0){
 		log_info(logger, "MutexDump inicializado correctamente");
+
 	} else {
 		log_error(logger, "Fallo inicializacion de MutexDump");
 	};
