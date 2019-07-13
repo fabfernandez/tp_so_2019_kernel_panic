@@ -980,7 +980,7 @@ void leer_config() {				// APERTURA DE CONFIG
 
 void leer_tiempo_dump_y_retardo_del_config(){
 	tiempo_dump = config_get_int_value(archivoconfig,"TIEMPO_DUMP");
-	retardo = config_get_string_value(archivoconfig, "RETARDO");
+	retardo = config_get_long_value(archivoconfig, "RETARDO");
 }
 
 void terminar_programa(){

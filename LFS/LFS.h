@@ -70,7 +70,7 @@ int  max_size_value, block_size, blocks;
 char* ip_lfs;
 char* puerto_lfs;
 int tiempo_dump;
-char* retardo;
+long retardo;
 pthread_mutex_t mutexMemtable, mutexDump;
 bool fin_de_programa;
 pthread_t hilo_consola;
