@@ -107,12 +107,16 @@ void iniciarMutexDump(){
 }
 
 void *atender_pedido_memoria (void* memoria_fd){
+
 	int socket_memoria = *((int *) memoria_fd);
 	pthread_t id_hilo = pthread_self();
+	bool _es_hilo_memoria(pthread_t hilo) {
+		return hilo==id_hilo;
+	}
 	while(1){
 		int cod_op = recibir_operacion(socket_memoria);
 		if (resolver_operacion(socket_memoria, cod_op)!=0){
-			list_remove(hilos_memorias, id_hilo);
+			list_remove_by_condition(hilos_memorias,_es_hilo_memoria);
 			pthread_cancel(id_hilo);
 		}
 	}
@@ -123,13 +127,14 @@ void crear_hilo_memoria(int socket_memoria){
 	pthread_t hilo_memoria;
 	int *memoria_fd = malloc(sizeof(*memoria_fd));
 	*memoria_fd = socket_memoria;
-	list_add(hilos_memorias, hilo_memoria);
+
 	if (pthread_create(&hilo_memoria, 0, atender_pedido_memoria, memoria_fd) !=0){
 		log_error(logger, "Error al crear el hilo");
 	}
 	if (pthread_detach(hilo_memoria) != 0){
 		log_error(logger, "Error al frenar hilo");
 	}
+	list_add(hilos_memorias, hilo_memoria);
 
 }
 
