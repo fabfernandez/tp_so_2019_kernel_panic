@@ -41,7 +41,7 @@ int main(void)
 		log_info(logger, "Se envió el mensaje %s", mensaje);
 
 		recibir_handshake(logger, socket_memoria);
-		log_info(logger,"Conexion exitosa con Memoria");
+		//log_info(logger,"Conexion exitosa con Memoria");
 	}
 
 	t_memoria* memoria_principal = malloc(sizeof(t_memoria));
