@@ -282,6 +282,7 @@ bool tabla_esta_bloqueada(char* nombre_tabla){
 }
 
 t_status_solicitud* resolver_drop(t_log* log_a_usar, char* nombre_tabla){
+	sleep(retardo);
 
 	t_status_solicitud* paquete_a_enviar;
 	log_info(log_a_usar, "Se realiza DROP");
@@ -497,6 +498,7 @@ void obtener_info_metadata(){
 }
 
 t_status_solicitud* resolver_create (t_log* log_a_usar,char* nombre_tabla, t_consistencia consistencia, int num_particiones, long compactacion){
+	sleep(retardo);
 
 	/*
 	 * Verificar que la tabla no exista en el file system. Por convención, una tabla existe si ya hay
@@ -639,6 +641,7 @@ int crear_directorio_tabla (char* dir_tabla){
 }
 
 void resolver_describe(char* nombre_tabla, int socket_memoria){
+	sleep(retardo);
 	log_info(logger, "Se realiza DESCRIBE");
 	if(string_is_empty(nombre_tabla)){
 		int cant_tablas = obtener_cantidad_tablas_LFS();
@@ -699,6 +702,7 @@ void resolver_describe_drop (int socket_memoria, char* operacion){
 }
 
 t_status_solicitud*  resolver_insert(t_log* log_a_usar, char* nombre_tabla, uint16_t key, char* value, long timestamp){
+	sleep(retardo);
 
 	t_status_solicitud* paquete_a_enviar;
 	log_info(log_a_usar, "Se realiza INSERT");
@@ -789,6 +793,8 @@ bool existe_tabla_fisica(char* nombre_tabla){
 
 
 t_status_solicitud* resolver_select (char* nombre_tabla, uint16_t key){
+	sleep(retardo);
+
 	t_status_solicitud* status;
 	log_info(logger, "Se realiza SELECT");
 	log_info(logger, "Consulta en la tabla: %s", nombre_tabla);
