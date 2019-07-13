@@ -17,9 +17,11 @@ int main(void)
 	log_info(logger, "El puerto del LFS es %s",puerto_lfs);
 	montaje = config_get_string_value(archivoconfig, "PUNTO_MONTAJE");
 	max_size_value = config_get_int_value(archivoconfig, "MAX_SIZE_VALUE");
-	leer_tiempo_dump_del_config();
+	leer_tiempo_dump_y_retardo_del_config();
+
 	log_info(logger, "La IP de la memoria es %s",ip_lfs );
 	log_info(logger, "El puerto de la memoria es %s",puerto_lfs);
+
 	iniciarMutexMemtable();
 	iniciarMutexDump();
 	levantar_lfs(montaje);
@@ -40,7 +42,7 @@ int main(void)
 void desconectar_lfs(){
 
 	desconectar_clientes();
-	log_info(logger, "Valor sem: %d", mutexDump);
+	log_info(logger, "Valor sem en hilo principal: %d", mutexDump);
 	pthread_mutex_lock(&mutexDump);
 	log_info(logger,"Comenzando dump forzado");
 	pthread_cancel(hilo_dump);
@@ -84,7 +86,7 @@ void desconectar_clientes(){
 	}
 	list_destroy(hilos_memorias);
 	log_info(logger,"Finaliza Hilo Server");
-	pthread_exit(hilo_server);
+	pthread_cancel(hilo_server);
 }
 
 void iniciarMutexMemtable(){
@@ -98,6 +100,7 @@ void iniciarMutexMemtable(){
 void iniciarMutexDump(){
 	if(pthread_mutex_init(&mutexDump,NULL)==0){
 		log_info(logger, "MutexDump inicializado correctamente");
+
 	} else {
 		log_error(logger, "Fallo inicializacion de MutexDump");
 	};
@@ -965,8 +968,9 @@ void leer_config() {				// APERTURA DE CONFIG
 	archivoconfig = config_create("/home/utnso/tp-2019-1c-Los-Dinosaurios-Del-Libro/LFS/lfs.config");
 }
 
-void leer_tiempo_dump_del_config(){
+void leer_tiempo_dump_y_retardo_del_config(){
 	tiempo_dump = config_get_int_value(archivoconfig,"TIEMPO_DUMP");
+	retardo = config_get_string_value(archivoconfig, "RETARDO");
 }
 
 void terminar_programa(){
@@ -1011,7 +1015,7 @@ void* iniciar_inotify_lfs(){
 			if(event->mask == IN_MODIFY){
 				log_info(logger, "Se modifico el archivo de configuración");
 				leer_config();
-				leer_tiempo_dump_del_config();
+				leer_tiempo_dump_y_retardo_del_config();
 
 				log_info(logger, "El dump es de %d", tiempo_dump);
 			}

@@ -28,6 +28,7 @@
 #include <time.h>
 #include <sys/inotify.h>
 #include <semaphore.h>
+#include <sys/inotify.h>
 
 #include "LFS_Compactacion.h"
 #include "LFS_Consola.h"
@@ -56,7 +57,7 @@ t_dictionary* instrucciones_bloqueadas_por_tabla;
 void chequearSocket(int socketin);
 void iniciar_loggers();
 void leer_config();
-void leer_tiempo_dump_del_config();
+void leer_tiempo_dump_y_retardo_del_config();
 void terminar_programa();
 					// ******* TIPOS NECESARIOS ******* //
 t_log* logger;
@@ -69,6 +70,7 @@ int  max_size_value, block_size, blocks;
 char* ip_lfs;
 char* puerto_lfs;
 int tiempo_dump;
+char* retardo;
 pthread_mutex_t mutexMemtable, mutexDump;
 bool fin_de_programa;
 pthread_t hilo_consola;
@@ -111,6 +113,7 @@ t_cache_tabla* buscar_tabla_memtable(char* nombre_tabla);
 t_list* buscar_registros_memtable(char* nombre_tabla, uint16_t key);
 bool existe_tabla_fisica(char* nombre_tabla);
 void crear_hilo_memoria(int socket_memoria);
+void crear_hilo_inotify();
 int resolver_operacion(int socket_memoria, t_operacion cod_op);
 char* string_block();
 char* array_int_to_array_char(t_list* array_int);
