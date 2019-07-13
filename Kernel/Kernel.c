@@ -41,7 +41,7 @@ int main(void)
 		log_info(logger, "Se envió el mensaje %s", mensaje);
 
 		recibir_handshake(logger, socket_memoria);
-		log_info(logger,"Conexion exitosa con Memoria");
+		//log_info(logger,"Conexion exitosa con Memoria");
 	}
 
 	t_memoria* memoria_principal = malloc(sizeof(t_memoria));
@@ -312,9 +312,10 @@ void resolver_describe(t_instruccion_lql instruccion){
 
 void guardar_consistencia_tabla(char* nombre_tabla, t_consistencia consistencia){
 	t_consistencia_tabla* consistencia_tabla = malloc(sizeof(t_consistencia_tabla));
-
-	consistencia_tabla->nombre_tabla = nombre_tabla;
-	memcpy(consistencia_tabla->nombre_tabla, nombre_tabla, string_size(nombre_tabla));
+	char* nombre_tabla_a_cargar = malloc(string_size(nombre_tabla));
+	consistencia_tabla->nombre_tabla = malloc(string_size(nombre_tabla));
+	memcpy(nombre_tabla_a_cargar, nombre_tabla, string_size(nombre_tabla));
+	memcpy(consistencia_tabla->nombre_tabla, nombre_tabla_a_cargar, string_size(nombre_tabla));
 	consistencia_tabla->consistencia = consistencia;
 
 	t_consistencia_tabla* tabla = conseguir_tabla(nombre_tabla);
@@ -534,12 +535,13 @@ void resolver_journal_hash(){
 		pthread_mutex_unlock(&strong_hash_consistency_mutex);
 
 		int socket_conexion = crear_conexion(memoria->ip, memoria->puerto);
-		send(socket_conexion, JOURNAL, sizeof(int), MSG_WAITALL);
+		t_operacion operacion_a_enviar = JOURNAL;
+		send(socket_conexion, &operacion_a_enviar, sizeof(t_operacion), MSG_WAITALL);
 		liberar_conexion(socket_conexion);
 		log_info(logger, "Se ha realizado el JOURNAL a la memoria: %d", memoria->numero_memoria);
 	}
-	log_info(logger, "Se ha realizado el JOURNAL a todas las memorias del criterio STRONG HASH");
 
+	log_info(logger, "Se ha realizado el JOURNAL a todas las memorias del criterio STRONG HASH");
 }
 
 char* tipo_consistencia(t_consistencia consistencia){
@@ -620,7 +622,7 @@ int funcion_hash_magica(uint16_t ki){
 	tamanio = list_size(strong_hash_consistency);
 
 	while(indice >= tamanio ){
-		indice = ki - tamanio;
+		indice = indice - tamanio;
 	}
 
 	return indice;
