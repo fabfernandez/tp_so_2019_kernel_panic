@@ -119,6 +119,7 @@ void paginaNuevaInsert(uint16_t key, char* value, long ts, char* tabla, char* me
 void agregarPaginaASegmento(char* tabla, pagina* pagina, t_list* tablas);
 int drop(char* tabla);
 void resolver_describe_consola(t_instruccion_lql instruccion);
+void iniciar_hilo_inotify_memoria(char **argv);
 
 int create(char* tabla, t_consistencia consistencia, int maximo_particiones, long tiempo_compactacion);
 

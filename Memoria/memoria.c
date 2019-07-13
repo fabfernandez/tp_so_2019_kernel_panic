@@ -18,7 +18,7 @@ int main(int argc, char **argv)
 
 	iniciar_logger();
 	leer_config();
-	iniciar_hilo_inotify(argv);
+	iniciar_hilo_inotify_memoria(argv);
 	if(pthread_mutex_init(&mutexMemoria,NULL)==0){
 		//log_info(logger, "MutexMemoria inicializado correctamente");
 	} else {
@@ -1530,7 +1530,7 @@ void* iniciar_inotify(char **argv){
 	close( fd );
 }
 
-void iniciar_hilo_inotify(char **argv){
+void iniciar_hilo_inotify_memoria(char **argv){
 	pthread_t hilo_inotify;
 	if (pthread_create(&hilo_inotify, 0, iniciar_inotify, argv) !=0){
 			log_error(logger, "Error al crear el hilo de Inotify");
