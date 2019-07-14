@@ -47,8 +47,8 @@ void loguear(){
 }
 
 void borrar(){
-	for(int i= 0; i < list_size(metricas); i++){
-		free(list_remove(metricas, i));
+	while(list_size(metricas) > 0){
+		free(list_remove(metricas, 0));
 	}
 
 	CANT_METRICS = 0;
@@ -80,7 +80,7 @@ void registrar_metricas(int nombre_memoria, int diferencia_timestamp){
 	metrica->cant_operaciones_totales++;
 	metrica->cant_reads++;
 	metrica->read_latency += diferencia_timestamp;
-	CANT_METRICS ++;
+	CANT_METRICS++;
 
 }
 
@@ -90,7 +90,7 @@ void registrar_metricas_insert(int nombre_memoria, int diferencia_timestamp){
 	metrica->cant_operaciones_totales++;
 	metrica->cant_writes++;
 	metrica->write_latency += diferencia_timestamp;
-	CANT_METRICS ++;
+	CANT_METRICS++;
 }
 
 
