@@ -179,11 +179,13 @@ bool archivo_es_del_tipo(char* archivo, char* extension_archivo){
 	if (extension == NULL){
 		free(nombre_y_extension[0]);
 		free(nombre_y_extension[1]);
+		free(nombre_y_extension);
 		return false;
 	}
 	bool result = strcmp(extension, extension_archivo) == 0;
 	free(nombre_y_extension[0]);
 	free(nombre_y_extension[1]);
+	free(nombre_y_extension);
 	return result;
 }
 

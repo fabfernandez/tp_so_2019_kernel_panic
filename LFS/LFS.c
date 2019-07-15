@@ -355,7 +355,7 @@ void liberar_bloques_archivo(char* path_archivo){
 		ind_bloques = ind_bloques + 1;
 		free(bloques[ind_bloques]);
 	}
-
+	free(bloques);
 	config_destroy(archivo);
 
 }
@@ -422,8 +422,7 @@ void obtener_tablas_en_lfs(){
 	while(entry != NULL){
 		if (entry->d_type == DT_DIR &&  ( strcmp(entry->d_name, ".")!=0 && strcmp(entry->d_name, "..")!=0 )){
 			char* nombre_tabla = entry->d_name;
-			t_tabla_logica* tabla_fisica = crear_tabla_logica(nombre_tabla);
-			list_add(tablas_en_lfs, tabla_fisica);
+			crear_tabla_logica(nombre_tabla);
 		}
 		entry = readdir(dir);
 	}
@@ -445,6 +444,7 @@ void eliminar_tabla_logica(char* nombre_tabla){
 	pthread_mutex_lock(&(tabla_logica->mutex_compactacion));
 	if (tabla_logica!=NULL){
 		log_info(logger_compactacion, "Se elimina la tabla %s. Se procede a frenar el hilo.", nombre_tabla);
+		eliminar_parametros_compactacion(tabla_logica->parametros);
 		if (pthread_cancel(tabla_logica->id_hilo_compactacion) != 0){
 			log_error(logger_compactacion, "Error al cancelar hilo de compactacion");
 		}
@@ -452,6 +452,12 @@ void eliminar_tabla_logica(char* nombre_tabla){
 		free(tabla_logica);
 	}
 
+}
+
+void eliminar_parametros_compactacion (t_parametros_compactacion* parametros){
+	free(parametros->nombre);
+	free(parametros->path_tabla);
+	free(parametros);
 }
 
 t_tabla_logica* crear_tabla_logica(char* nombre_tabla){
@@ -467,8 +473,11 @@ t_tabla_logica* crear_tabla_logica(char* nombre_tabla){
 		log_error(logger, "Fallo inicializacion de MutexCompactacion para tabla %s", nombre_tabla);
 	}
 	tabla->mutex_compactacion = mutex_compactacion_tabla;
-	pthread_t hilo = crear_hilo_compactacion(tabla->nombre);
+	list_add(tablas_en_lfs, tabla);
+	t_parametros_compactacion* parametros = crear_parametros_compactacion(tabla->nombre);
+	pthread_t hilo = crear_hilo_compactacion(parametros);
 	tabla->id_hilo_compactacion = hilo;
+	tabla->parametros = parametros;
 	log_info(logger, "Hilo %d de compactacion de tabla %s esta iniciado", hilo, nombre_tabla);
 	return tabla;
 }
@@ -551,7 +560,7 @@ t_status_solicitud* resolver_create (t_log* log_a_usar,char* nombre_tabla, t_con
 		if (crear_directorio_tabla(dir_tabla)){
 			crear_archivo_metadata_tabla(dir_tabla, num_particiones, compactacion, consistencia);
 			crear_particiones(dir_tabla, num_particiones);
-			agregar_tabla_logica(nombre_tabla);
+			crear_tabla_logica(nombre_tabla);
 			status = crear_paquete_status(true, "OK");
 		}else{
 			char * mje_error = string_from_format("No pudo crearse la tabla %s", nombre_tabla);
@@ -884,6 +893,8 @@ t_list* buscar_registros_en_particion(char* nombre_tabla,uint16_t key){
 	t_list* registros_en_particion = obtener_registros_de_archivo(path_particion);
 	t_list* registros_con_key=	filtrar_registros_con_key(registros_en_particion, key);
 	list_add_all(registros_encontrados, registros_con_key);
+	list_destroy(registros_en_particion);
+	list_destroy(registros_con_key);
 	config_destroy(metadata);
 	//TODO:ver
 	free(path_metadata);
@@ -957,17 +968,19 @@ char* leer_bloques_de_archivo(char* path_archivo){
 //			// int tamanioArchivo = sizeof(char) * ftell(fp);
 //			long tamanioArchivo = ftell(file);
 //			fseek(file, 0, SEEK_SET);
-			buffer = malloc(size_a_leer);
+			buffer = malloc(size_a_leer+1);
 			size_t read_count = fread(buffer, sizeof(char), size_a_leer, file);
 			buffer[read_count]='\0';
 			string_append(&buffer_bloques, buffer);
 			fclose(file);
 			free(buffer);
 			free(dir_bloque);
+			free(bloques[ind_bloques]);
 			ind_bloques = ind_bloques+1;
 		}
 	}
 	//buffer_bloques[size_files]="\0";
+	free(bloques);
 	config_destroy(archivo);
 	return buffer_bloques;
 
@@ -984,9 +997,16 @@ t_list* obtener_registros_de_buffer(char* buffer){
 		long timestamp = (long)atol(string_registro[0]);
 		t_registro* registro= crear_registro(string_registro[2], key, timestamp);
 		list_add(registros_de_bloques, registro);
-
+		free(string_registro[0]);
+		free(string_registro[1]);
+		free(string_registro[2]);
+		free(string_registro);
+		free(array_buffer_registro[ind_registros]);
 		ind_registros = ind_registros+1;
+
+
 	}
+	free(array_buffer_registro);
 	free(buffer);
 	//TODO: ver qe hacer con ese array_buffer_registro
 	return registros_de_bloques;

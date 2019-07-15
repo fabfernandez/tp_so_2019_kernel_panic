@@ -42,10 +42,19 @@ t_bitarray* bitarray;
 
 typedef struct{
 	char* nombre;
+	char* path_tabla;
+}t_parametros_compactacion;
+
+
+typedef struct{
+	char* nombre;
 	pthread_t id_hilo_compactacion;
 	pthread_mutex_t mutex_compactacion;
 	bool esta_bloqueado;
+	t_parametros_compactacion* parametros;
 }t_tabla_logica;
+
+
 
 typedef struct{
 	t_instruccion_lql instruccion;
