@@ -1,0 +1,14 @@
+[INFO] 01:22:36:762 Memoria/(21276:21276): La IP de la memoria es 127.0.0.7
+[INFO] 01:22:36:762 Memoria/(21276:21277): Inotify OK
+[INFO] 01:22:36:762 Memoria/(21276:21276): El puerto de la memoria es 8001
+[INFO] 01:22:36:762 Memoria/(21276:21276): El nombre de la memoria es 2
+[INFO] 01:22:36:762 Memoria/(21276:21276): El tamaño de la memoria es: 1280
+[INFO] 01:22:36:762 Memoria/(21276:21276): El retardo del journaling automatico es: 60
+[INFO] 01:22:36:762 Memoria/(21276:21276): El retardo de gossiping automatico es: 10
+[INFO] 01:22:36:762 Memoria/(21276:21276): Se reservaron 1280 bytes para la memoria
+[INFO] 01:22:36:762 Memoria/(21276:21276): Tabla de segmentos creada, cantidad actual: 0 
+[INFO] 01:22:36:762 Memoria/(21276:21276): La IP del LFS es 127.0.0.3
+[INFO] 01:22:36:762 Memoria/(21276:21276): El puerto del LFS es 5003
+[INFO] 01:22:36:762 Memoria/(21276:21276): Se obtuvieron 0 seeds correctamente.
+[INFO] 01:22:36:763 Memoria/(21276:21276): No se pudo realizar la conexion con LFS. Abortando.
+[INFO] 01:22:36:763 Memoria/(21276:21276): Se liberaran 1280 bytes de la memoria

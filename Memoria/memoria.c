@@ -9,6 +9,7 @@ int main(int argc, char **argv)
 
 {
 	path = argv[1];
+	pathlog = argv[2];
 	FD_ZERO(&master);    // borra los conjuntos maestro y temporal
 	FD_ZERO(&read_fds);
 	/*
@@ -1042,8 +1043,8 @@ void resolver_describe_consola(t_instruccion_lql instruccion){
 }
 
  void iniciar_logger() {
-	logger_mostrado = log_create("/home/utnso/tp-2019-1c-Los-Dinosaurios-Del-Libro/Memoria/memoria.log", "Memoria", 1, LOG_LEVEL_INFO);
-	logger = log_create("/home/utnso/tp-2019-1c-Los-Dinosaurios-Del-Libro/Memoria/memoria.log", "Memoria", 0, LOG_LEVEL_INFO);
+	logger_mostrado = log_create(pathlog, "Memoria", 1, LOG_LEVEL_INFO);
+	logger = log_create(pathlog, "Memoria", 0, LOG_LEVEL_INFO);
  }
  /**
  	* @NAME: leer_config

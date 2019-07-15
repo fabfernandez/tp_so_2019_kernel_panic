@@ -79,6 +79,7 @@ int socketMemoriaSeed;
 void iniciarHiloGossiping(t_list* tablaGossiping);
 char* ip__lfs;
 char* path;
+char* pathlog;
 char* puerto__lfs;
 char** puertosSeeds;
 char** seeds;
