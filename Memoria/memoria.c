@@ -1077,9 +1077,7 @@ void resolver_describe_consola(t_instruccion_lql instruccion){
 					log_info(logger, "Inicia handshake con %i", socket_memoria);
 					recibir_mensaje(logger, socket_memoria);
 					enviar_handshake(socket_memoria, "OK");
-					log_info(logger, "Conexion exitosa con con %i", socket_memoria);
-
-
+					log_info(logger_mostrado, "Conexion exitosa con KERNEL stocket %i OK", socket_memoria);
 					break;
 				case SELECT:
 					log_info(logger, "%i solicitó SELECT", socket_memoria);
@@ -1087,6 +1085,7 @@ void resolver_describe_consola(t_instruccion_lql instruccion){
 					pthread_mutex_lock(&mutexMemoria);
 					if(resolver_select_para_kernel(socket_memoria, socket_conexion_lfs,memoria_principal,tablas)==-1){resolver_despues_de_journaling(socket_memoria,consulta_select_a_usar,socket_conexion_lfs,memoria_principal, tablas);}
 					pthread_mutex_unlock(&mutexMemoria);
+					log_info(logger_mostrado, "SELECT Desde KERNEL OK");
 					//aca debería enviarse el mensaje a LFS con SELECT
 					break;
 				case INSERT:
@@ -1094,42 +1093,48 @@ void resolver_describe_consola(t_instruccion_lql instruccion){
 					pthread_mutex_lock(&mutexMemoria);
 					if(resolver_insert_para_kernel(socket_memoria, socket_conexion_lfs,memoria_principal, tablas)==-1) {resolver_insert_despues_de_journaling(consulta_insert_a_usar, socket_conexion_lfs,memoria_principal,tablas);}
 					pthread_mutex_unlock(&mutexMemoria);
+					log_info(logger_mostrado, "INSERT Desde KERNEL OK");
 					//aca debería enviarse el mensaje a LFS con INSERT
 					break;
 				case CREATE:
 					log_info(logger, "%i solicitó CREATE", socket_memoria);
 					resolver_create(socket_memoria, socket_conexion_lfs);
+					log_info(logger_mostrado, "CREATE Desde KERNEL OK");
 					//aca debería enviarse el mensaje a LFS con CREATE
 					break;
 				case DESCRIBE:
 					log_info(logger, "%i solicitó DESCRIBE", socket_memoria);
 					resolver_describe_para_kernel(socket_memoria, socket_conexion_lfs, "DESCRIBE");
+					log_info(logger_mostrado, "DESCRIBE Desde KERNEL OK");
 					//aca debería enviarse el mensaje a LFS con DESCRIBE
 					break;
 				case DROP:
 					log_info(logger, "%i solicitó DROP", socket_memoria);
 					resolver_describe_drop(socket_memoria, socket_conexion_lfs, "DROP");
+					log_info(logger_mostrado, "DROP Desde KERNEL OK");
 					//aca debería enviarse el mensaje a LFS con DROP
 					break;
 				case SOLICITUD_TABLA_GOSSIPING:
 					enviar_mi_tabla_de_gossiping(socket_memoria);
-					log_info(logger,"Tablas enviadas a KERNEL");
+					log_info(logger_mostrado, "Tablas de GOSSIPING enviadas a KERNEL OK");
 					break;
 				case GOSSPING:
 					log_info(logger, "La memoria %i solicitó GOSSIPING", socket_memoria);
 					resolver_gossiping(socket_memoria);
+					log_info(logger_mostrado, "GOSSIPING de %i OK", socket_memoria);
 					break;
 				case JOURNAL:
 					log_info(logger, "Se soilicito Journaling");
 					pthread_mutex_lock(&mutexMemoria);
 					journaling(memoria_principal,tablas);
 					pthread_mutex_unlock(&mutexMemoria);
+					log_info(logger_mostrado, "JOURNAL Desde KERNEL OK");
 					break;
 				case -1:
 					log_error(logger, "el cliente se desconecto. Terminando conexion con %i", socket_memoria);
 					break;
 				default:
-					log_warning(logger, "Operacion desconocida.");
+					log_error(logger_mostrado, "OPERACION DESCONOCIDA");
 					break;
 				}
 	}
@@ -1283,55 +1288,55 @@ void resolver_describe_consola(t_instruccion_lql instruccion){
 	*
 	*/
 	void select_esperar_conexiones_o_peticiones(char* memoria_principal,t_list* tablas){
-	FD_SET(server_memoria, &master); // agrego el socket de esta memoria(listener, está a la escucha)al conjunto maestro
-	fdmin = server_memoria;
-	fdmax = server_memoria; // por ahora el socket de mayor valor es este, pues es el unico ;)
-	log_info(logger,"A la espera de nuevas solicitudes");
-	for(;;) 	// bucle principal
-	{
-		read_fds = master; // cópialo
-	    	if (select(fdmax+1, &read_fds, NULL, NULL, NULL) == -1)
-	    		{
-	    			log_error(logger, "Fallo accion select.");;
-	                exit(1);
-	            }
-	            // explorar conexiones existentes en busca de datos que leer
-	            for(int i = 0; i <= fdmax; i++) {
-	                if (FD_ISSET(i, &read_fds)) //  pregunta si "i" está en el conjunto ¡¡tenemos datos!! read_fds es como una lista de sockets con conexiones entrantes
-	                	{
-	                    	if (i == server_memoria) // si estoy parado en el socket que espera conexiones nuevas (listen)
-	                    		{
-	                    		memoriaNuevaAceptada = esperar_cliente(server_memoria);
-	                    		FD_SET(memoriaNuevaAceptada, &master); // añadir al conjunto maestro
-	                    		if (memoriaNuevaAceptada > fdmax)
-	                    			{    // actualizar el máximo
-	                    			fdmax = memoriaNuevaAceptada;
-	                    			}
-	                            log_info(logger,"Nueva conexion desde %i",memoriaNuevaAceptada);
-	                    		} else 				// // gestionar datos de un cliente
-	                        	{
-	                    			int cod_op;
-	                    			nbytes = recv(i, &cod_op, sizeof(int), 0);
-	                    			if (nbytes <= 0) {
-	                    			                            // error o conexión cerrada por el cliente
-	                    			                            if (nbytes == 0) {
-	                    			                            // conexión cerrada
-	                    			                            	log_error(logger, "el cliente se desconecto. Terminando conexion con %i", i);
-	                    			                            } else {
-	                    			                                perror("recv");
-	                    			                            }
-	                    			                            close(i); // bye!
-	                    			                            FD_CLR(i, &master); // eliminar del conjunto maestro
-	                    			                        }
-	                    			else {
-	                    			                            // tenemos datos de algún cliente
-	                    				ejecutar_API_desde_Kernel(i,cod_op,memoria_principal,tablas);
-	                    			    log_info(logger, "Se recibio una operacion de %i", i);
+		FD_SET(server_memoria, &master); // agrego el socket de esta memoria(listener, está a la escucha)al conjunto maestro
+		fdmin = server_memoria;
+		fdmax = server_memoria; // por ahora el socket de mayor valor es este, pues es el unico ;)
+		log_info(logger,"A la espera de nuevas solicitudes");
+		for(;;) 	// bucle principal
+		{
+			read_fds = master; // cópialo
+				if (select(fdmax+1, &read_fds, NULL, NULL, NULL) == -1)
+					{
+						log_error(logger_mostrado, "Fallo accion select.");;
+						exit(1);
+					}
+					// explorar conexiones existentes en busca de datos que leer
+					for(int i = 0; i <= fdmax; i++) {
+						if (FD_ISSET(i, &read_fds)) //  pregunta si "i" está en el conjunto ¡¡tenemos datos!! read_fds es como una lista de sockets con conexiones entrantes
+							{
+								if (i == server_memoria) // si estoy parado en el socket que espera conexiones nuevas (listen)
+									{
+									memoriaNuevaAceptada = esperar_cliente(server_memoria);
+									FD_SET(memoriaNuevaAceptada, &master); // añadir al conjunto maestro
+									if (memoriaNuevaAceptada > fdmax)
+										{    // actualizar el máximo
+										fdmax = memoriaNuevaAceptada;
+										}
+									log_info(logger,"Nueva conexion desde %i",memoriaNuevaAceptada);
+									} else 				// // gestionar datos de un cliente
+									{
+										int cod_op;
+										nbytes = recv(i, &cod_op, sizeof(int), 0);
+										if (nbytes <= 0) {
+											// error o conexión cerrada por el cliente
+											if (nbytes == 0) {
+											// conexión cerrada
+												log_error(logger, "el cliente se desconecto. Terminando conexion con %i", i);
+											} else {
+												perror("recv");
+											}
+											close(i); // bye!
+											FD_CLR(i, &master); // eliminar del conjunto maestro
+										}
+										else {
+																	// tenemos datos de algún cliente
+											ejecutar_API_desde_Kernel(i,cod_op,memoria_principal,tablas);
+											log_info(logger, "Se recibio una operacion de %i", i);
 
-	                    			}}
-	                	}
-	            }
-	}
+										}}
+							}
+					}
+		}
 	}
 
 /**
