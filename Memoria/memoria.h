@@ -64,6 +64,7 @@ int primeraVuelta = 0;
 pthread_t thread_memoria;
 t_list* tablaGossiping;
 t_log* logger;
+t_log* logger_mostrado;
 t_config* archivoconfig;
 int socket_conexion_lfs;
 unsigned int cantidad_paginas;

@@ -22,7 +22,7 @@ int main(int argc, char **argv)
 	if(pthread_mutex_init(&mutexMemoria,NULL)==0){
 		//log_info(logger, "MutexMemoria inicializado correctamente");
 	} else {
-		log_error(logger, "Fallo inicializacion de MutexMemoria");
+		log_error(logger_mostrado, "Fallo inicializacion de MutexMemoria");
 	};
 	/*
 	 * HAY QUE CAMBIAR RUTA A UNA VARIABLE PARA PODER LEVANTAR MEMORIAS CON DIFERENTES CONFIGS
@@ -56,15 +56,15 @@ int main(int argc, char **argv)
 		log_info(logger,"La cantidad de paginas en memoria principal será: %i", cantidad_paginas);
 		} else
 			{
-			log_info(logger,"No se pudo realizar la conexion con LFS. Abortando.");
-			log_info(logger, "Se liberaran %i bytes de la memoria",(tamanio_memoria*sizeof(char)));
+			log_info(logger_mostrado,"No se pudo realizar la conexion con LFS. Abortando.");
+			log_info(logger_mostrado, "Se liberaran %i bytes de la memoria",(tamanio_memoria*sizeof(char)));
 			free(memoria_principal);
 			return -1;
 			}
 	iniciarHiloConsola(memoria_principal, tablas);
 	iniciarHiloJournaling(memoria_principal, tablas);
 	iniciarHiloGossiping(tablaGossiping);
-	log_info(logger,"Tabla gossiping lem: %i",tablaGossiping->elements_count);
+	log_info(logger_mostrado,"GOSSIPING hay %i memorias OK",tablaGossiping->elements_count);
 	select_esperar_conexiones_o_peticiones(memoria_principal,tablas);
 
 	return EXIT_SUCCESS;
@@ -179,10 +179,10 @@ void enviar_mi_tabla_de_gossiping(int socket){
 void iniciarHiloGossiping(t_list* tablaGossiping){ // @suppress("Type cannot be resolved")
 	pthread_t hiloGossiping;
 	if (pthread_create(&hiloGossiping, 0, iniciar_gossiping, tablaGossiping) !=0){
-			log_error(logger, "Error al crear el hilo");
+			log_error(logger_mostrado, "Error al crear el hilo GOSSIPING");
 		}
 	if (pthread_detach(hiloGossiping) != 0){
-			log_error(logger, "Error al crear el hilo");
+			log_error(logger_mostrado, "Error al crear el hilo GOSSIPING");
 		}
 }
 void iniciarHiloJournaling(char* memo, t_list* tablas){
@@ -191,10 +191,10 @@ void iniciarHiloJournaling(char* memo, t_list* tablas){
 	datos->memoria=memo;
 	datos->tabla=tablas;
 	if (pthread_create(&hiloJournaling, 0, journaling_automatico, datos) !=0){
-				log_error(logger, "Error al crear el hilo");
+				log_error(logger, "Error al crear el hilo JOURNALING");
 			}
 			if (pthread_detach(hiloJournaling) != 0){
-				log_error(logger, "Error al crear el hilo");
+				log_error(logger, "Error al crear el hilo JOURNALING");
 			}
 }
 void iniciarHiloConsola(char* memo, t_list* tablas){
@@ -203,10 +203,10 @@ void iniciarHiloConsola(char* memo, t_list* tablas){
 	datos->memoria=memo;
 	datos->tabla=tablas;
 		if (pthread_create(&hiloSelect, 0, iniciar_consola, datos) !=0){
-			log_error(logger, "Error al crear el hilo");
+			log_error(logger_mostrado, "Error al crear el hilo de consola");
 		}
 		if (pthread_detach(hiloSelect) != 0){
-			log_error(logger, "Error al crear el hilo");
+			log_error(logger_mostrado, "Error al crear el hilo de consola");
 		}
 }
 void *journaling_automatico(void* dato){
@@ -298,7 +298,7 @@ void gossiping_consola(){
 		if(ssocketMemoriaSeed!=-1) { // intento con la seed, siempre debo intentar con la seed
 		enviar_gossiping(ssocketMemoriaSeed);
 		close(ssocketMemoriaSeed);
-		} else { log_info(logger,"Seed no responde");}
+		} else { log_error(logger_mostrado,"Seed no responde");}
 	}
 	for(int i=0;i<tablaGossiping->elements_count;i++){
 		t_gossip* memoria = list_get(tablaGossiping,i);
@@ -1042,8 +1042,9 @@ void resolver_describe_consola(t_instruccion_lql instruccion){
 }
 
  void iniciar_logger() {
-	logger = log_create("/home/utnso/tp-2019-1c-Los-Dinosaurios-Del-Libro/Memoria/memoria.log", "Memoria", 1, LOG_LEVEL_INFO);
-	}
+	logger_mostrado = log_create("/home/utnso/tp-2019-1c-Los-Dinosaurios-Del-Libro/Memoria/memoria.log", "Memoria", 1, LOG_LEVEL_INFO);
+	logger = log_create("/home/utnso/tp-2019-1c-Los-Dinosaurios-Del-Libro/Memoria/memoria.log", "Memoria", 0, LOG_LEVEL_INFO);
+ }
  /**
  	* @NAME: leer_config
  	* @DESC: lee(abre)el archivo config
@@ -1178,7 +1179,7 @@ void resolver_describe_consola(t_instruccion_lql instruccion){
 			log_info(logger, "Se envió el mensaje %s", mensaje_env);
 			free(mensaje_env);
 			recibir_datos(logger, alguien);
-			log_info(logger,"Conexion exitosa con LFS");
+			log_info(logger_mostrado,"Conexion exitosa con LFS");
 		}
 	}
 
@@ -1270,7 +1271,7 @@ void resolver_describe_consola(t_instruccion_lql instruccion){
 	void seedsCargadas(){
 	int i=0;
 	while(seeds[i]!= NULL){
-		log_info(logger, "Se obtuvo la seed a memoria con ip: %s , y puerto: %s",seeds[i],puertosSeeds[i]);
+		log_info(logger_mostrado, "Se obtuvo la seed con ip: %s , y puerto: %s",seeds[i],puertosSeeds[i]);
 		i++;
 	}
 	log_info(logger, "Se obtuvieron %i seeds correctamente.",i);
@@ -1386,7 +1387,7 @@ void journaling(char* memoria_principal,t_list* tablas){
 
 	} 	posicionProximaLibre=0;
 		//log_info(logger,"CANTIDAD DE TABLAS: %",tablas->elements_count);
-		log_info(logger,"FinJournaling");
+		log_info(logger_mostrado,"Journaling OK");
 }
 
 /**
@@ -1497,16 +1498,18 @@ void* iniciar_inotify(char **argv){
 
 	fd = inotify_init();
 	if( fd < 0 ){
-		log_error(logger, "No se pudo inicializar Inotify");
+		log_error(logger_mostrado, "No se pudo inicializar Inotify");
 	}
 
 	/* add watch to starting directory */
 	wd = inotify_add_watch(fd, path, IN_MODIFY);
 
 	if(wd == -1){
-		log_error(logger, "No se pudo agregar una observador para el archivo: %s\n",path);
+		log_error(logger_mostrado, "No se pudo agregar una observador para el archivo: %s\n",path);
 	}else{
-		log_info(logger, "Inotify esta observando modificaciones al archivo: %s\n", path);
+		//log_info(logger, "Inotify esta observando modificaciones al archivo: %s\n", path);
+		log_info(logger_mostrado, "Inotify OK");
+
 	}
 
 	while(1){
@@ -1516,12 +1519,12 @@ void* iniciar_inotify(char **argv){
 		}else{
 			struct inotify_event *event = ( struct inotify_event * ) buffer;
 			if(event->mask == IN_MODIFY){
-				log_info(logger, "Se modifico el archivo de configuración");
+				log_warning(logger_mostrado, "Se modifico el archivo de configuración");
 				leer_config();
 				retardo_journaling = config_get_int_value(archivoconfig, "RETARDO_JOURNAL");
-				log_info(logger, "El retardo del journaling automatico es: %i",retardo_journaling);
+				log_warning(logger_mostrado, "El retardo del journaling automatico es: %i",retardo_journaling);
 				retardo_gossiping = config_get_int_value(archivoconfig, "RETARDO_GOSSIPING");
-				log_info(logger, "El retardo de gossiping automatico es: %i",retardo_gossiping);
+				log_warning(logger_mostrado, "El retardo de gossiping automatico es: %i",retardo_gossiping);
 
 			}
 		}
@@ -1533,9 +1536,9 @@ void* iniciar_inotify(char **argv){
 void iniciar_hilo_inotify_memoria(char **argv){
 	pthread_t hilo_inotify;
 	if (pthread_create(&hilo_inotify, 0, iniciar_inotify, argv) !=0){
-			log_error(logger, "Error al crear el hilo de Inotify");
+			log_error(logger_mostrado, "Error al crear el hilo de Inotify");
 		}
 	if (pthread_detach(hilo_inotify) != 0){
-			log_error(logger, "Error al crear el hilo de Inotify");
+			log_error(logger_mostrado, "Murio el hilo de inotify");
 		}
 }
