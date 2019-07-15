@@ -37,6 +37,7 @@ t_list* memtable;
 t_list* tablas_en_lfs;
 t_list* hilos_memorias;
 char* bmap;
+struct stat size_bitmap;
 t_bitarray* bitarray;
 
 typedef struct{
@@ -76,6 +77,7 @@ bool fin_de_programa;
 pthread_t hilo_consola;
 pthread_t hilo_dump;
 pthread_t hilo_server;
+pthread_t hilo_inotify;
 
 bool tabla_esta_bloqueada(char* nombre_tabla);
 t_instruccion_bloqueada* crear_instruccion_select_bloqueada(t_paquete_select* select, int socket_memoria);

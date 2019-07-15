@@ -11,6 +11,9 @@ void crear_hilo_server() {
 	if (pthread_create(&hilo_server, 0, levantar_server, NULL) !=0){
 		log_error(logger_consola, "Error al crear el hilo");
 	}
+	if (pthread_detach(hilo_server) != 0){
+		log_error(logger, "Error al frenar hilo");
+	}
 }
 
 void* levantar_server(){

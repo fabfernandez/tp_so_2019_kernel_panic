@@ -11,13 +11,16 @@ char* consistencia_to_string(t_consistencia consistencia){
 	char* cons;
 	switch (consistencia){
 		case STRONG :
-			 cons = STRONG_TEXT;
+			 cons = malloc(string_size(STRONG_TEXT));
+			 memcpy(cons, STRONG_TEXT,string_size(STRONG_TEXT) );
 			 break;
 		case STRONG_HASH:
-			cons= STRONG_HASH_TEXT;
+			cons = malloc(string_size(STRONG_HASH_TEXT));
+			memcpy(cons, STRONG_HASH_TEXT,string_size(STRONG_HASH_TEXT) );
 			break;
 		case EVENTUAL:
-			cons= EVENTUAL_TEXT;
+			cons = malloc(string_size(EVENTUAL_TEXT));
+			memcpy(cons, EVENTUAL_TEXT,string_size(EVENTUAL_TEXT) );
 			break;
 	}
 	return cons;
@@ -226,6 +229,12 @@ void enviar_paquete(t_paquete* paquete, int socket_cliente)
 	send(socket_cliente, a_enviar, bytes, 0);
 
 	free(a_enviar);
+}
+
+void eliminar_metadata(t_metadata* metadata){
+	free(metadata->nombre_tabla->palabra);
+	free(metadata->nombre_tabla);
+	free(metadata);
 }
 
 void eliminar_paquete_drop_describe(t_paquete_drop_describe* paquete_drop_describe){

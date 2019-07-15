@@ -36,6 +36,7 @@ void dump_proceso(){
 			dump_por_tabla(tabla);
 			eliminar_tabla(tabla);
 		}
+		list_destroy(datos);
 
 	}
 
@@ -54,11 +55,13 @@ void crear_hilo_dump(){
 void dump_por_tabla(t_cache_tabla* tabla){
 	char* path_tabla = string_from_format("%s/Tables/%s", path_montaje, tabla->nombre);
 	int num = proximo_archivo_temporal_para(path_tabla);
-	string_append(&path_tabla, string_from_format("/%i.temp", num));
+	char* path_temp =string_from_format("/%i.temp", num);
+	string_append(&path_tabla,path_temp);
 
 	log_info(logger_dump, "Se crea el temporal: [%d], en el path: [%s]", num, path_tabla);
 
 	escribir_registros_y_crear_archivo(tabla->registros, path_tabla);
+	free(path_temp);
 	free(path_tabla);
 
 }
@@ -68,10 +71,14 @@ void escribir_registros_y_crear_archivo(t_list* registros, char* path_archivo_nu
 
 	while(!list_is_empty(registros)){
 		t_registro* registro = list_remove(registros, 0);
-		string_append(&array_registros, string_from_format("%ld;", registro->timestamp));
-		string_append(&array_registros, string_from_format("%i;", registro->key));
+		char* string_timestamp = string_from_format("%ld;", registro->timestamp);
+		char* string_key = string_from_format("%i;", registro->key);
+		string_append(&array_registros, string_timestamp);
+		string_append(&array_registros, string_key);
 		string_append(&array_registros, registro->value);
 		string_append(&array_registros,"\n");
+		free(string_timestamp);
+		free(string_key);
 		eliminar_registro(registro);
 	}
 
@@ -162,15 +169,22 @@ int cantidad_archivos_actuales(char* path_dir, char* extension_archivo){
 		}
 		entry = readdir(dir);
 	}
+	closedir(dir);
 	return temporales_que_hay;
 }
 
 bool archivo_es_del_tipo(char* archivo, char* extension_archivo){
 	char ** nombre_y_extension = string_split(archivo, ".");
-	if (nombre_y_extension[1]== NULL){
+	char* extension = nombre_y_extension[1];
+	if (extension == NULL){
+		free(nombre_y_extension[0]);
+		free(nombre_y_extension[1]);
 		return false;
 	}
-	return strcmp(nombre_y_extension[1], extension_archivo) == 0;
+	bool result = strcmp(extension, extension_archivo) == 0;
+	free(nombre_y_extension[0]);
+	free(nombre_y_extension[1]);
+	return result;
 }
 
 
@@ -187,7 +201,7 @@ t_list* copiar_y_limpiar_memtable(){
 	pthread_mutex_lock(&mutexMemtable);
 
 	t_list* copia = list_duplicate(memtable);
-	memtable = list_create();
+	list_clean(memtable);
 	log_info(logger_dump, "Memtable lista para recibir datos nuevos");
 
 	pthread_mutex_unlock(&mutexMemtable);

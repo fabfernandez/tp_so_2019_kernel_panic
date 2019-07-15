@@ -33,7 +33,7 @@ void *compactar(void* nombre_tabla){
 			int comienzo = time(NULL);
 
 			realizar_compactacion(path_tabla, registros_filtrados);
-
+			list_destroy_and_destroy_elements(registros_filtrados, eliminar_registro);
 			desbloquear_tabla(nombre_tabla);
 			log_info(logger_compactacion, "Fin bloqueo de tabla: %s por compactacion.", nombre_tabla);
 			int tiempo_operatoria = comienzo - time(NULL);
@@ -42,7 +42,8 @@ void *compactar(void* nombre_tabla){
 		}
 		pthread_mutex_unlock(&(tabla_logica->mutex_compactacion));
 	}
-	//free path_tabla
+	//TODO:VER
+	free(path_tabla);
 }
 
 void bloquear_tabla(char* nombre_tabla){
@@ -78,7 +79,9 @@ void desbloquear_tabla(char* nombre_tabla){
 					status= resolver_select(nombre_tabla, instruccion_bloqueada->instruccion.parametros.SELECT.key);
 					enviar_status_resultado(status, instruccion_bloqueada->socket_memoria);
 					log_info(logger_compactacion, "Fin select bloqueado en tabla %s solicitado por memoria.", nombre_tabla);
+					//eliminar_paquete_status(status);
 				}
+				free(instruccion_bloqueada->instruccion.parametros.SELECT.tabla);
 
 			}else{
 				log_info(logger_compactacion, "Comienza insert bloqueado en tabla %s solicitado.", nombre_tabla);
@@ -88,8 +91,10 @@ void desbloquear_tabla(char* nombre_tabla){
 					log_info(logger_compactacion, "Se envia status de insert bloqueado en tabla %s solicitado.", nombre_tabla);
 				}
 				log_info(logger_compactacion, "Fin insert bloqueado en tabla %s solicitado.", nombre_tabla);
+				//eliminar_paquete_status(status);
+				free(instruccion_bloqueada->instruccion.parametros.INSERT.tabla);
+				free(instruccion_bloqueada->instruccion.parametros.INSERT.value);
 			}
-			//eliminar_paquete_status(status);
 			free(instruccion_bloqueada);
 		}
 		free(dictionary_remove(instrucciones_bloqueadas_por_tabla, nombre_tabla));
@@ -115,7 +120,8 @@ long obtener_tiempo_compactacion(char* path_tabla){
 	t_config* metadata_tabla = config_create(path_metadata);
 	long tiempo_compactacion = config_get_long_value(metadata_tabla,"COMPACTION_TIME");
 	config_destroy(metadata_tabla);
-
+	//TODO:VER
+	free(path_metadata);
 	return tiempo_compactacion;
 }
 
@@ -137,7 +143,9 @@ int renombrar_archivos_para_compactar(char* path_tabla){
 			char ** nombre_y_extension = string_split(entry->d_name, ".");
 			char* tempc = string_from_format("%s/%s.tempc", path_tabla, nombre_y_extension[0]);
 			rename(temp, tempc);
-
+			//TODO:VER
+			free(temp);
+			free(tempc);
 			//free a todos esos char?
 		}
 		entry = readdir(dir);
@@ -153,7 +161,8 @@ t_list* leer_registros_temporales(char* path_tabla, int cantidad_temporales){
 
 	for(int i=1 ; i<=cantidad_temporales; i++){
 		char* path_archivo = string_from_format("%s/%d.tempc", path_tabla, i);
-		list_add_all(registros, obtener_registros_de_archivo(path_archivo));
+		t_list* registros_de_archivo = obtener_registros_de_archivo(path_archivo);
+		list_add_all(registros, registros_de_archivo );
 //		t_config* tempc = config_create(path_archivo);
 //		char* bloques = config_get_string_value(tempc,"BLOCKS");
 //		int size = config_get_int_value(tempc,"SIZE");
@@ -164,6 +173,8 @@ t_list* leer_registros_temporales(char* path_tabla, int cantidad_temporales){
 //		//free(bloques)
 //		//free(path_archivo)
 //		config_destroy(tempc);
+		//TODO:VER
+		list_destroy(registros_de_archivo);
 	}
 	log_info(logger_compactacion, "Se leen registros de %d archivos temporales en: %s.", cantidad_temporales ,path_tabla);
 	return registros;
@@ -183,6 +194,7 @@ t_list* leer_registros_particiones(char* path_tabla){
 	}
 
 	config_destroy(metadata);
+	free(path_metadata);
 	return registros;
 }
 
@@ -354,6 +366,7 @@ void liberar_bloques_compactacion(char* path_tabla, t_list* particiones_a_libera
 		}
 		entry = readdir(dir);
 	}
+	closedir(dir);
 }
 
 bool pertenece_a_lista_particiones(t_list* particiones_a_liberar,char* nombre_archivo){
@@ -403,7 +416,6 @@ t_list* encontrar_particiones_tocadas(t_list* registros_filtrados){
 		index++;
 	}
 	list_iterate(registros_filtrados, (void*) no_es_vacia);
-
 	return listas_tocadas;
 }
 
@@ -422,4 +434,5 @@ void eliminar_temp_y_bin_tabla(char* path_tabla, t_list* particiones_a_liberar){
 		}
 		entry = readdir(dir);
 	}
+	closedir(dir);
 }

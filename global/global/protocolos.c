@@ -289,7 +289,7 @@ t_paquete_select* deserializar_select (int socket_cliente){
 	recv(socket_cliente, nombre_tabla, size_nombre_tabla, MSG_WAITALL);
 	strcpy(consulta_select->nombre_tabla->palabra ,nombre_tabla);
 	recv(socket_cliente,  &(consulta_select->key), sizeof(uint16_t), MSG_WAITALL);
-
+	free(nombre_tabla);
 	return consulta_select;//Acordarse de hacer un free despues de usarse
 }
 
@@ -306,6 +306,7 @@ t_paquete_create* deserializar_create (int socket_cliente){
 	recv(socket_cliente,  &(consulta_create->consistencia), sizeof(t_consistencia), MSG_WAITALL);
 	recv(socket_cliente,  &(consulta_create->num_particiones), sizeof(uint16_t), MSG_WAITALL);
 	recv(socket_cliente,  &(consulta_create->tiempo_compac), sizeof(long), MSG_WAITALL);
+	free(nombre_tabla);
 
 	return consulta_create;//Acordarse de hacer un free despues de usarse
 }
@@ -333,6 +334,8 @@ t_paquete_insert* deserealizar_insert(int socket_cliente) {
 	memcpy(consulta_insert->valor->palabra ,valor, size_valor );
 
 	recv(socket_cliente,  &(consulta_insert->timestamp), sizeof(long), MSG_WAITALL);
+	free(nombre_tabla);
+	free(valor);
 	return consulta_insert;//Acordarse de hacer un free despues de usarse
 }
 
@@ -355,6 +358,7 @@ t_status_solicitud* desearilizar_status_solicitud(int socket_cliente){
 	status->mensaje->palabra = malloc(status->mensaje->size);
 	recv(socket_cliente, mensaje, size_mensaje, MSG_WAITALL);
 	memcpy(status->mensaje->palabra ,mensaje, size_mensaje );
+	free(mensaje);
 	return status;//Acordarse de hacer un free despues de usarse
 }
 
@@ -368,7 +372,7 @@ t_paquete_drop_describe* deserealizar_drop_describe(int socket_cliente) {
 	consulta->nombre_tabla->palabra = malloc(consulta->nombre_tabla->size);
 	recv(socket_cliente, nombre_tabla, size_nombre_tabla, MSG_WAITALL);
 	memcpy(consulta->nombre_tabla->palabra ,nombre_tabla, size_nombre_tabla );
-
+	free(nombre_tabla);
 	return consulta;//Acordarse de hacer un free despues de usarse
 }
 
@@ -384,6 +388,7 @@ t_metadata* deserealizar_metadata(int socket_cliente){
 	metadata->nombre_tabla->palabra = malloc(metadata->nombre_tabla->size);
 	recv(socket_cliente, nombre_tabla, size_nombre_tabla, MSG_WAITALL);
 	memcpy(metadata->nombre_tabla->palabra ,nombre_tabla, size_nombre_tabla );
+	free(nombre_tabla);
 	return metadata;
 }
 
