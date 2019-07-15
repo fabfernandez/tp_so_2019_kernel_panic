@@ -8,8 +8,15 @@
 int main(int argc, char **argv)
 
 {
-	path = argv[1];
-	pathlog = argv[2];
+	/** creacion path **/
+	path="/home/utnso/tp-2019-1c-Los-Dinosaurios-Del-Libro/Memoria/";
+	char* pathc = malloc(strlen(argv[1])+strlen(path)+1);
+	memcpy(pathc,path,strlen(path));
+	memcpy(pathc+strlen(path),argv[1],strlen(argv[1])+1);
+	char* pathl = malloc(strlen(argv[2])+strlen(path)+1);
+	memcpy(pathl,path,strlen(path));
+	memcpy(pathl+strlen(path),argv[2],strlen(argv[2])+1);
+
 	FD_ZERO(&master);    // borra los conjuntos maestro y temporal
 	FD_ZERO(&read_fds);
 	/*
@@ -17,8 +24,8 @@ int main(int argc, char **argv)
 	 */
 
 
-	iniciar_logger();
-	leer_config();
+	iniciar_logger(pathl);
+	leer_config(pathc);
 	iniciar_hilo_inotify_memoria(argv);
 	if(pthread_mutex_init(&mutexMemoria,NULL)==0){
 		//log_info(logger, "MutexMemoria inicializado correctamente");
@@ -1042,7 +1049,7 @@ void resolver_describe_consola(t_instruccion_lql instruccion){
 
 }
 
- void iniciar_logger() {
+ void iniciar_logger(char* pathlog) {
 	logger_mostrado = log_create(pathlog, "Memoria", 1, LOG_LEVEL_INFO);
 	logger = log_create(pathlog, "Memoria", 0, LOG_LEVEL_INFO);
  }
@@ -1051,7 +1058,7 @@ void resolver_describe_consola(t_instruccion_lql instruccion){
  	* @DESC: lee(abre)el archivo config
  	*
  	*/
- 	void leer_config() {
+ 	void leer_config(char* path) {
  	archivoconfig = config_create(path);
  	}
 /**
@@ -1497,7 +1504,9 @@ void* iniciar_inotify(char **argv){
 	#define EVENT_SIZE  ( sizeof (struct inotify_event) ) /*size of one event*/
 	#define BUF_LEN     ( MAX_EVENTS * ( EVENT_SIZE + LEN_NAME )) /*buffer to store the data of events*/
 
-	char* path = argv[1];
+	char* path1 = malloc(strlen(argv[1])+strlen(path)+1);
+	memcpy(path1,path,strlen(path));
+	memcpy(path1+strlen(path),argv[1],strlen(argv[1])+1);
 	int length, wd;
 	int fd;
 	char buffer[BUF_LEN];
@@ -1508,7 +1517,7 @@ void* iniciar_inotify(char **argv){
 	}
 
 	/* add watch to starting directory */
-	wd = inotify_add_watch(fd, path, IN_MODIFY);
+	wd = inotify_add_watch(fd, path1, IN_MODIFY);
 
 	if(wd == -1){
 		log_error(logger_mostrado, "No se pudo agregar una observador para el archivo: %s\n",path);
@@ -1519,6 +1528,7 @@ void* iniciar_inotify(char **argv){
 	}
 
 	while(1){
+
 		length = read( fd, buffer, BUF_LEN );
 		if(length < 0){
 			perror("read");
@@ -1526,12 +1536,11 @@ void* iniciar_inotify(char **argv){
 			struct inotify_event *event = ( struct inotify_event * ) buffer;
 			if(event->mask == IN_MODIFY){
 				log_warning(logger_mostrado, "Se modifico el archivo de configuración");
-				leer_config();
+				leer_config(path1);
 				retardo_journaling = config_get_int_value(archivoconfig, "RETARDO_JOURNAL");
 				log_warning(logger_mostrado, "El retardo del journaling automatico es: %i",retardo_journaling);
 				retardo_gossiping = config_get_int_value(archivoconfig, "RETARDO_GOSSIPING");
 				log_warning(logger_mostrado, "El retardo de gossiping automatico es: %i",retardo_gossiping);
-
 			}
 		}
 	}
