@@ -32,8 +32,8 @@ KERNEL:
 Memorias:
 
 	cd Memoria/Debug
-	./Memoria /home/utnso/tp-2019-1c-Los-Dinosaurios-Del-Libro/Memoria/memoria.config
-	Para la memoria principal
-
-	./Memoria /home/utnso/tp-2019-1c-Los-Dinosaurios-Del-Libro/Memoria/memoriaN.config
-	Siendo N el numero de memoria que queramos levantar.
+	./Memoria [memoria.config] [memoria.log]
+	
+	*memoria.config y memoria.log es la memoria principal
+	*memoriaN.config y memoriaN.log para las N memorias. ( N > 0 )
+	
