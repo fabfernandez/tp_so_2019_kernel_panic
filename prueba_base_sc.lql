@@ -1,0 +1,3 @@
+add memory 1 to SC
+add memory 2 to SC
+run /home/utnso/1C2019-Scripts-lql-entrega/scripts/simple_sc.lql

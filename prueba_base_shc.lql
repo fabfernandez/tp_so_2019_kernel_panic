@@ -1,0 +1,3 @@
+add memory 1 to SHC
+add memory 2 to SHC
+run /home/utnso/1C2019-Scripts-lql-entrega/scripts/simple_shc.lql
