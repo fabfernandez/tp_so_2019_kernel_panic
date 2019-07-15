@@ -154,8 +154,8 @@ void recibir_tabla_de_gossiping(int socket){
 		list_add(memorias_disponibles,memoria);
 		pthread_mutex_unlock(&memorias_disponibles_mutex);
 
-		cambiar_nodos_viejos_por_nuevos();
 	}
+	cambiar_nodos_viejos_por_nuevos();
 }
 
 void cambiar_nodos_viejos_por_nuevos(){
@@ -463,7 +463,8 @@ void resolver_add (t_instruccion_lql instruccion){
 	}
 
 	pthread_mutex_lock(&memorias_disponibles_mutex);
-	t_memoria* memoria = list_find(memorias_disponibles, (void*) es_la_memoria);
+	t_memoria* memoria = malloc(sizeof(t_memoria));
+	memoria = list_find(memorias_disponibles, (void*) es_la_memoria);
 	pthread_mutex_unlock(&memorias_disponibles_mutex);
 
 	char* consistencia_deseada = tipo_consistencia(consistencia);
