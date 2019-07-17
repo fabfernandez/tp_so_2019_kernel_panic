@@ -1,0 +1,8 @@
+ADD MEMORY 1 TO SC
+ADD MEMORY 2 TO SHC
+ADD MEMORY 4 TO SHC
+ADD MEMORY 3 TO EC
+ADD MEMORY 4 TO EC
+run /home/utnso/1C2019-Scripts-lql-entrega/scripts/animales.lql
+run /home/utnso/1C2019-Scripts-lql-entrega/scripts/comidas.lql
+run /home/utnso/1C2019-Scripts-lql-entrega/scripts/internet_browser_falla.lql
