@@ -149,18 +149,18 @@ void enviar_mi_tabla_de_gossiping(int socket){
 		t_gossip* memoria = list_get(tablaGossiping,i);
 		int memo = crear_conexion(memoria->ip_memoria,memoria->puerto_memoria);
 		if(memo!=-1){
-		close(memo);
-		int tamanio_ip=strlen(memoria->ip_memoria)+1;
-		send(socket,&tamanio_ip,sizeof(int),MSG_WAITALL);
-		send(socket,memoria->ip_memoria,tamanio_ip,MSG_WAITALL);
+			close(memo);
+			int tamanio_ip=strlen(memoria->ip_memoria)+1;
+			send(socket,&tamanio_ip,sizeof(int),MSG_WAITALL);
+			send(socket,memoria->ip_memoria,tamanio_ip,MSG_WAITALL);
 
-		int tamanio_nombre=strlen(memoria->nombre_memoria)+1;
-		send(socket,&tamanio_nombre,sizeof(int),MSG_WAITALL);
-		send(socket,memoria->nombre_memoria,tamanio_nombre,MSG_WAITALL);
+			int tamanio_nombre=strlen(memoria->nombre_memoria)+1;
+			send(socket,&tamanio_nombre,sizeof(int),MSG_WAITALL);
+			send(socket,memoria->nombre_memoria,tamanio_nombre,MSG_WAITALL);
 
-		int tamanio_puerto=strlen(memoria->puerto_memoria)+1;
-		send(socket,&tamanio_puerto,sizeof(int),MSG_WAITALL);
-		send(socket,memoria->puerto_memoria,tamanio_puerto,MSG_WAITALL);
+			int tamanio_puerto=strlen(memoria->puerto_memoria)+1;
+			send(socket,&tamanio_puerto,sizeof(int),MSG_WAITALL);
+			send(socket,memoria->puerto_memoria,tamanio_puerto,MSG_WAITALL);
 		} else {
 			int tamanio_ip=strlen(memoria->ip_memoria)+1;
 			send(socket,&tamanio_ip,sizeof(int),MSG_WAITALL);

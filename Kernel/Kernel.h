@@ -41,6 +41,8 @@ sem_t exec_queue_consumer;
 sem_t new_queue_consumer;
 sem_t ready_queue_consumer;
 char* ARCHIVO_CONFIG;
+char* IP_MEMORIA;
+char* PUERTO_MEMORIA;
 
 
 typedef char* t_valor;					// VALOR QUE DEVUELVE EL SELECT(TODAVIA NO SABEMOS QUE ALMACENA EN TABLAS?)
