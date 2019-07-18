@@ -10,8 +10,6 @@
 
 #include "LFS_Dump.h"
 #include "LFS.h"
-
-//pthread_t crear_hilo_compactacion(t_parametros_compactacion* parametros);
 void *compactar(void* nombre_tabla);
 long obtener_tiempo_compactacion(char* path_tabla);
 bool hay_temporales(char* path_tabla);

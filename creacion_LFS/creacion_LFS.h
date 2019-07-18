@@ -23,6 +23,7 @@
 #include <errno.h>
 
 
+struct stat mystat;
 t_bitarray* bitarray;
 t_config* archivoconfig;
 

@@ -37,6 +37,19 @@ int main(int argc, char* argv[]) {
 			i=i+1;
 		}
 	}
+
+//	int i=0;
+//	while(directorio_base[i]!=NULL){
+//		free(directorio_base[i]);
+//		i = i +1;
+//	}
+	free(directorio_base);
+	int i = 0;
+	while(directorios[i]!=NULL){
+		free(directorios[i]);
+		i = i +1;
+	}
+	free(directorios);
 	char* dir_bloques = string_from_format("%s/Bloques", montaje);
 	mkdir(dir_bloques, 0777);
 	char* dir_metadata = string_from_format("%s/Metadata", montaje);
@@ -47,19 +60,27 @@ int main(int argc, char* argv[]) {
 	crear_bitmap(dir_metadata, blocks, block_size);
 	crear_metadata(dir_metadata, blocks, block_size, magic_number);
 	crear_bloques(dir_bloques, blocks, block_size);
+	free(dir_bloques);
+	free(dir_metadata);
+	free(dir_tablas);
+	printf("Creado LFS correctamente");
 	terminar_programa();
 }
 
 void crear_metadata(char* dir_metadata, int blocks, int block_size, char*magic_number){
 	char* dir_metadata_tabla = string_from_format("%s/Metadata", dir_metadata);
 	FILE* file = fopen(dir_metadata_tabla, "wb+");
+	char* magic = string_new();
+	string_append(&magic, magic_number);
 	fclose(file);
 	t_config* metadata_tabla = config_create(dir_metadata_tabla);
 	dictionary_put(metadata_tabla->properties,"BLOCK_SIZE", string_itoa(block_size) );
 	dictionary_put(metadata_tabla->properties, "BLOCKS", string_itoa(blocks));
-	dictionary_put(metadata_tabla->properties, "MAGIC_NUMBER", magic_number);
+	dictionary_put(metadata_tabla->properties, "MAGIC_NUMBER", magic);
 
 	config_save(metadata_tabla);
+	config_destroy(metadata_tabla);
+	free(dir_metadata_tabla);
 
 }
 
@@ -71,7 +92,7 @@ void crear_bloques(char* dir_bloques, int nro_bloques, int size_bloque){
         FILE* fpFile = fopen(nombre_bloque,"wb+");
         fclose(fpFile);
         truncate(nombre_bloque, size_bloque);
-
+        free(nombre_bloque);
     }
 
     //truncate(nombre_bitmap, nro_bloques/8);
@@ -84,7 +105,6 @@ void crear_bitmap(char* path_metadata, int nro_bloques, int size_bloques){
 	fclose(fpFile);
 	truncate(nombre_bitmap, nro_bloques/8);
 
-	struct stat mystat;
 	int fd = open(nombre_bitmap, O_RDWR);
 	if (fstat(fd, &mystat) < 0) {
 		printf("Error al establecer fstat\n");
@@ -102,8 +122,9 @@ void crear_bitmap(char* path_metadata, int nro_bloques, int size_bloques){
 	}
 	msync(bmap, sizeof(bitarray), MS_SYNC);
 
-	int pagesize = sysconf(_SC_PAGESIZE);
-	munmap(bmap, pagesize);
+
+	munmap(bmap, mystat.st_size);
+	free(nombre_bitmap);
 }
 
 void leer_config() {				// APERTURA DE CONFIG
@@ -113,6 +134,7 @@ void leer_config() {				// APERTURA DE CONFIG
 void terminar_programa()
 {
 	config_destroy(archivoconfig);
+	bitarray_destroy(bitarray);
 }
 
 
