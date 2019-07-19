@@ -599,10 +599,12 @@ int asignar_consistencia(t_memoria* memoria, t_consistencia consistencia){
 			pthread_mutex_lock(&strong_hash_consistency_mutex);
 			if(list_find(strong_hash_consistency, (void*) es_la_memoria) == NULL){
 				list_add(strong_hash_consistency, memoria);
-				resolver_journal_hash();
 				ya_estaba = 1;
 			}
 			pthread_mutex_unlock(&strong_hash_consistency_mutex);
+			if(ya_estaba){
+				resolver_journal_hash();
+			}
 
 			return ya_estaba;
 		case EVENTUAL:
