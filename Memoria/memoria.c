@@ -138,10 +138,17 @@ void recibir_tabla_de_gossiping(int socket){
 			//log_info(logger, "Tamanio puerto %i",tamanio_puerto);
 			recv(socket,memoria->puerto_memoria,tamanio_puerto,MSG_WAITALL);
 			log_info(logger, "IP: %s , PUERTO: %s , NOMBRE: %s",memoria->ip_memoria,memoria->puerto_memoria,memoria->nombre_memoria);
-			if(encontrarMemoria(memoria->nombre_memoria, tablaGossiping)!=NULL){ free(memoria); } else { list_add(tablaGossiping,memoria); }
+			if(encontrarMemoria(memoria->nombre_memoria, tablaGossiping)!=NULL){ eliminar_memoria_gossip(memoria); } else { list_add(tablaGossiping,memoria); }
 
 		}
 }
+void eliminar_memoria_gossip(t_gossip* memoria){
+	free(memoria->ip_memoria);
+	free(memoria->nombre_memoria);
+	free(memoria->puerto_memoria);
+	free(memoria);
+}
+
 void enviar_mi_tabla_de_gossiping(int socket){
 	send(socket,&tablaGossiping->elements_count,sizeof(int),MSG_WAITALL);
 	for(int i=0;i<tablaGossiping->elements_count;i++){
@@ -318,7 +325,7 @@ void gossiping_consola(){
 			if(socketMemoria!=-1) {
 				enviar_gossiping(socketMemoria);
 				close(socketMemoria);
-			} else { list_remove(tablaGossiping,i);
+			} else { list_remove(tablaGossiping,i );
 			free(memoria->ip_memoria);
 			free(memoria->nombre_memoria);
 			free(memoria->puerto_memoria);
@@ -480,7 +487,7 @@ int resolver_select_para_kernel (int socket_kernel_fd, int socket_conexion_lfs,c
 							enviar_status_resultado(status, socket_kernel_fd);
 							free(registro->value);
 							free(registro);
-							free(consulta_select);
+							eliminar_paquete_select(consulta_select);
 
 							return 1;
 					}
@@ -489,7 +496,7 @@ int resolver_select_para_kernel (int socket_kernel_fd, int socket_conexion_lfs,c
 						log_error(logger, "No existe el registro buscado");
 						log_info(logger, "Se procede a enviar el error a kernel");
 						enviar_status_resultado(status, socket_kernel_fd);
-						free(consulta_select);
+						eliminar_paquete_select(consulta_select);
 
 						return 1;
 						//Mostrar el status.mensaje o enviarlo a Kernel
@@ -504,7 +511,7 @@ int resolver_select_para_kernel (int socket_kernel_fd, int socket_conexion_lfs,c
 					enviar_status_resultado(status, socket_kernel_fd);
 					free(paginalala->value);
 					free(paginalala);
-					free(consulta_select);
+					eliminar_paquete_select(consulta_select);
 
 					return 1;
 			}
@@ -622,14 +629,14 @@ pagina_concreta* traerPaginaDeMemoria(unsigned int posicion,char* memoria_princi
 	strcpy(pagina->value, &memoria_principal[posicion*tamanio_pagina+sizeof(uint16_t)+sizeof(long)]);
 	return pagina;
 	}
-void traerPaginaDeMemoria2(unsigned int posicion,char* memoriappal,pagina_concreta* pagina){
-	//pagina_concreta* pagina= malloc(sizeof(pagina_concreta));
-	memcpy(&(pagina->key), &memoriappal[posicion*tamanio_pagina], sizeof(uint16_t));
-	memcpy(&(pagina->timestamp), &memoriappal[posicion*tamanio_pagina+sizeof(uint16_t)], sizeof(long));
-	pagina->value = malloc(20);
-	strcpy(pagina->value, &memoriappal[posicion*tamanio_pagina+sizeof(uint16_t)+sizeof(long)]);
-	//return pagina;
-	}
+//void traerPaginaDeMemoria2(unsigned int posicion,char* memoriappal,pagina_concreta* pagina){
+//	//pagina_concreta* pagina= malloc(sizeof(pagina_concreta));
+//	memcpy(&(pagina->key), &memoriappal[posicion*tamanio_pagina], sizeof(uint16_t));
+//	memcpy(&(pagina->timestamp), &memoriappal[posicion*tamanio_pagina+sizeof(uint16_t)], sizeof(long));
+//	pagina->value = malloc(20);
+//	strcpy(pagina->value, &memoriappal[posicion*tamanio_pagina+sizeof(uint16_t)+sizeof(long)]);
+//	//return pagina;
+//	}
 
 /**
  	* @NAME: crearPagina
@@ -751,8 +758,7 @@ int buscarRegistroEnTabla(char* tabla, uint16_t key, char* memoria_principal,t_l
 			pagina* pagin = list_get(segment->paginas,i);
 			uint16_t pos = pagin->posicionEnMemoria;
 			//log_info(logger,"Posicion en memoria: %i",pagin->posicionEnMemoria);
-			pagina_concreta * pagc = malloc(sizeof(pagina_concreta));
-			pagc = traerPaginaDeMemoria(pos,memoria_principal);
+			pagina_concreta * pagc = traerPaginaDeMemoria(pos,memoria_principal);
 			//log_info(logger,"Pagina Key: %i",pagc->key);
 			int posicion=pagin->posicionEnMemoria;
 			if(pagc->key == key){
@@ -761,9 +767,12 @@ int buscarRegistroEnTabla(char* tabla, uint16_t key, char* memoria_principal,t_l
 				pagin->ultimaLectura=(unsigned)time(NULL);;
 				log_info(logger,"TS: %i",(unsigned)time(NULL));
 				log_info(logger,"Ultima lectura(actual): %i",pagin->ultimaLectura);
+				free(pagc->value);
 				free(pagc);
 				return posicion;
 			}
+			free(pagc->value);
+			free(pagc);
 		}
 		log_error(logger,"El registro no se encuentra en memoria");
 		return -1;
@@ -799,19 +808,19 @@ int buscarRegistroEnTabla(char* tabla, uint16_t key, char* memoria_principal,t_l
 			{
 			list_add(tablas, crearSegmento(tabla));
 			paginaNuevaInsert(key,dato,tsss,tabla,memoria_principal,tablas);
-			free(consulta_insert);
+			eliminar_paquete_insert(consulta_insert);
 			return 1;
 			} else { // existe el segmento, agrego la pagina al segmento
 					log_error(logger, "no encontre el registro en la tabla");
 					paginaNuevaInsert(key,dato,tsss,tabla,memoria_principal,tablas);
-					free(consulta_insert);
+					eliminar_paquete_insert(consulta_insert);
 					return 1;
 					}
 	} else // el registro con esa key ya existe
 			//modificarRegistro(key,dato,(unsigned)time(NULL),reg2,memoria_principal,tablas);
 			modificarRegistro(key,dato,tsss,registroAInsertar,memoria_principal,tablas);
 			cambiarBitModificado(tabla, key,tablas, memoria_principal);
-			free(consulta_insert);
+			eliminar_paquete_insert(consulta_insert);
 			return 1;
 	}
 	/*}
@@ -901,8 +910,9 @@ int buscarRegistroEnTabla(char* tabla, uint16_t key, char* memoria_principal,t_l
 					pagin->modificado=1;
 					log_info(logger,"Pagina con posicion en memoria %i modificada, ultimo acceso: %i , Bit de MOD = %i",pagin->posicionEnMemoria,pagin->ultimaLectura, pagin->modificado);
 					log_info(logger,"vuelta %i",i);
-					free(pagc);
 				}
+				free(pagc->value);
+				free(pagc);
 			}
 	}
 	void modificarRegistro(uint16_t key,char* dato,long tss,int posicion, char* memoria_principal, t_list* tablas){
@@ -982,6 +992,7 @@ void resolver_describe_para_kernel(int socket_kernel_fd, int socket_conexion_lfs
 		for(int i=0; i<cant_tablas; i++){
 			t_metadata* metadata = deserealizar_metadata(socket_conexion_lfs);
 			enviar_paquete_metadata(socket_kernel_fd, metadata);
+			eliminar_metadata(metadata);
 		}
 	}
 	else{
@@ -994,8 +1005,11 @@ void resolver_describe_para_kernel(int socket_kernel_fd, int socket_conexion_lfs
 		if (status->es_valido){
 			t_metadata* metadata = deserealizar_metadata(socket_conexion_lfs);
 			enviar_paquete_metadata(socket_kernel_fd, metadata);
+			eliminar_metadata(metadata);
 		}
+		eliminar_paquete_status(status);
 	}
+	eliminar_paquete_drop_describe(consulta_describe);
 
 }
 void resolver_describe_consola(t_instruccion_lql instruccion){
