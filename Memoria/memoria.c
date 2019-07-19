@@ -13,9 +13,14 @@ int main(int argc, char **argv)
 	char* pathc = malloc(strlen(argv[1])+strlen(path)+1);
 	memcpy(pathc,path,strlen(path));
 	memcpy(pathc+strlen(path),argv[1],strlen(argv[1])+1);
+
 	char* pathl = malloc(strlen(argv[2])+strlen(path)+1);
 	memcpy(pathl,path,strlen(path));
 	memcpy(pathl+strlen(path),argv[2],strlen(argv[2])+1);
+
+	char* pathg = malloc(strlen(argv[3])+strlen(path)+1);
+	memcpy(pathg,path,strlen(path));
+	memcpy(pathg+strlen(path),argv[3],strlen(argv[3])+1);
 
 	FD_ZERO(&master);    // borra los conjuntos maestro y temporal
 	FD_ZERO(&read_fds);
@@ -25,6 +30,8 @@ int main(int argc, char **argv)
 
 
 	iniciar_logger(pathl);
+	iniciar_logger_gossip(pathg);
+
 	leer_config(pathc);
 	iniciar_hilo_inotify_memoria(argv);
 	if(pthread_mutex_init(&mutexMemoria,NULL)==0){
@@ -1082,6 +1089,10 @@ void resolver_describe_consola(t_instruccion_lql instruccion){
 	logger_mostrado = log_create(pathlog, "Memoria", 1, LOG_LEVEL_INFO);
 	logger = log_create(pathlog, "Memoria", 0, LOG_LEVEL_INFO);
  }
+ void iniciar_logger_gossip(char* pathlog) {
+	logger_g = log_create(pathlog, "Memoria", 0, LOG_LEVEL_INFO);
+ }
+
  /**
  	* @NAME: leer_config
  	* @DESC: lee(abre)el archivo config
