@@ -42,6 +42,7 @@ t_instruccion_lql parsear_linea(char* line){
 		char **value_ts = string_split(insert_split[3], "\"");
 		ret.operacion = INSERT;
 		if (insert_split[1] == NULL || insert_split[2]== NULL || insert_split[3] == NULL ){
+			free(value_ts);
 			return lanzar_error("Formato incorrecto. INSERT TABLA KEY VALUE TIMESTAMP - El ultimo valor es opcional\n");
 		}
 		string_to_upper(insert_split[1]);
@@ -58,6 +59,7 @@ t_instruccion_lql parsear_linea(char* line){
 	} else if(string_equals_ignore_case(keyword, SELECT_KEY)){
 		ret.operacion=SELECT;
 		if (split[1] == NULL || split[2]== NULL){
+			free(split);
 			return lanzar_error("Formato incorrecto. SELECT TABLA KEY\n");
 		}
 		string_to_upper(split[1]);
@@ -66,12 +68,14 @@ t_instruccion_lql parsear_linea(char* line){
 	} else if(string_equals_ignore_case(keyword, CREATE_KEY)){
 		ret.operacion=CREATE;
 		if (split[1] == NULL || split[2]== NULL || split[3] == NULL || split[4] == NULL){
+			free(split);
 			return lanzar_error("Formato incorrecto. CREATE TABLE SC NumPart COMPACTACION\n");
 		}
 		string_to_upper(split[1]);
 		ret.parametros.CREATE.tabla = split[1];
 		string_to_upper(split[2]);
 		if (!check_consistencia(split[2])){
+			free(split);
 			return lanzar_error("Valor consistencia inválido. Debe ser STRONG, STRONG_HASH, EVENTUAL\n");
 		}
 		ret.parametros.CREATE.consistencia = get_valor_consistencia(split[2]);
@@ -88,6 +92,7 @@ t_instruccion_lql parsear_linea(char* line){
 	} else if(string_equals_ignore_case(keyword, DROP_KEY)){
 		ret.operacion=DROP;
 		if (split[1] == NULL || split[2]!= NULL){
+			free(split);
 			return lanzar_error("Formato incorrecto. DROPE TABLE\n");
 		}
 		string_to_upper(split[1]);
@@ -95,27 +100,32 @@ t_instruccion_lql parsear_linea(char* line){
 	} else if(string_equals_ignore_case(keyword, RUN_KEY)){
 		ret.operacion=RUN;
 		if (split[1] == NULL || split[2]!= NULL){
+			free(split);
 			return lanzar_error("Formato incorrecto. RUN path\n");
 		}
 		ret.parametros.RUN.path_script = split[1];
 	} else if(string_equals_ignore_case(keyword, JOURNAL_KEY)){
 		ret.operacion=JOURNAL;
 		if (split[1] != NULL){
+			free(split);
 			return lanzar_error("Formato incorrecto. JOURNAL\n");
 		}
 	} else if(string_equals_ignore_case(keyword, GOSSIPING_KEY)){
 			ret.operacion=GOSSPING;
 			if (split[1] != NULL){
+				free(split);
 				return lanzar_error("Formato incorrecto. GOSSIPING\n");
 			}
 	} else if(string_equals_ignore_case(keyword, TABLA_KEY)){
 				ret.operacion=SOLICITUD_TABLA_GOSSIPING;
 				if (split[1] != NULL){
+					free(split);
 					return lanzar_error("Formato incorrecto. GOSSIPING\n");
 				}
 	} else if(string_equals_ignore_case(keyword, ADD_KEY)){
 		ret.operacion=ADD;
 		if (!string_equals_ignore_case(split[1],"MEMORY") || split[2]== NULL || !string_equals_ignore_case(split[3],"TO") || split[4]==NULL){
+			free(split);
 			return lanzar_error("Formato incorrecto. ADD MEMORY TO CONSISTENCY\n");
 		}
 		ret.parametros.ADD.numero_memoria=atoi(split[2]);
@@ -124,12 +134,13 @@ t_instruccion_lql parsear_linea(char* line){
 	} else if(string_equals_ignore_case(keyword, METRICS_KEY)){
 		ret.operacion=METRICS;
 		if(split[1] != NULL){
+			free(split);
 			return lanzar_error("Formato incorrecto. METRICS\n");
 		}
 	} else if(string_equals_ignore_case(keyword, EXIT_KEY)){
 			ret.operacion=EXIT;
 	}else {
-
+		free(split);
 		return lanzar_error("Operacion no contemplada.\n");
 	}
 

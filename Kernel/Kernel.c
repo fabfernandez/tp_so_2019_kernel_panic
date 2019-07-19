@@ -18,10 +18,7 @@ int CANT_METRICS = 0;
 char* ARCHIVO_CONFIG = "/home/utnso/tp-2019-1c-Los-Dinosaurios-Del-Libro/Kernel/kernel.config";
 
 
-int main(void)
-{
-	char* IP_MEMORIA;
-	char* PUERTO_MEMORIA;
+int main(void){
 
 	iniciar_logger(); // creamos log
 	leer_config(); // abrimos config
@@ -109,9 +106,30 @@ void* iniciar_peticion_tablas(void* memorias_disponibles){
 			sleep(retardo_gossiping);
 			log_info(logger, "Inicio PEDIDO DE TABLAS A MEMORIA");
 			t_operacion operacion = SOLICITUD_TABLA_GOSSIPING;
-			send(socket_memoria,&operacion,sizeof(t_operacion),MSG_WAITALL);
-			recibir_tabla_de_gossiping(socket_memoria);
-			log_info(logger, "FIN PEDIDO DE TABLAS");
+
+			if(socket_memoria != -1){
+				send(socket_memoria,&operacion,sizeof(t_operacion),MSG_WAITALL);
+				recibir_tabla_de_gossiping(socket_memoria);
+				log_info(logger, "FIN PEDIDO DE TABLAS");
+			} else {
+				int i=0;
+				int tamanio = tablag->elements_count;
+				while (i < tamanio){
+					t_memoria* memoria_a_pedir = list_get(tablag, i);
+					int socket_memoria_a_pedir = crear_conexion(memoria_a_pedir->ip,memoria_a_pedir->puerto);
+					if(socket_memoria_a_pedir != -1){
+						send(socket_memoria_a_pedir,&operacion,sizeof(t_operacion),MSG_WAITALL);
+						recibir_tabla_de_gossiping(socket_memoria_a_pedir);
+						log_info(logger, "FIN PEDIDO DE TABLAS");
+						socket_memoria = crear_conexion(IP_MEMORIA, PUERTO_MEMORIA);
+						i = tamanio;
+					} else {
+						i++;
+					}
+
+				}
+			}
+
 		}
 	}
 
@@ -142,6 +160,7 @@ void recibir_tabla_de_gossiping(int socket){
 		char* numero_memoria=malloc(tamanio_nombre);
 		recv(socket,numero_memoria,tamanio_nombre,MSG_WAITALL);
 		memoria->numero_memoria = convertir_string_a_int(numero_memoria);
+		free(numero_memoria);
 
 		int tamanio_puerto;
 		recv(socket,&tamanio_puerto,sizeof(int),MSG_WAITALL);
@@ -322,6 +341,8 @@ void guardar_consistencia_tabla(char* nombre_tabla, t_consistencia consistencia)
 	if(tabla == NULL){
 		list_add(tablas_con_consistencias, consistencia_tabla);
 	}
+
+	free(nombre_tabla_a_cargar);
 }
 
 t_consistencia_tabla* conseguir_tabla(char* nombre_tabla){
@@ -454,7 +475,7 @@ void resolver_add (t_instruccion_lql instruccion){
 
 	pthread_mutex_lock(&strong_consistency_mutex);
 	if(consistencia == STRONG && list_size(strong_consistency) == 1) {
-		t_memoria* memoria_antigua = list_remove(strong_consistency, 0);
+		list_remove(strong_consistency, 0);
 	}
 	pthread_mutex_unlock(&strong_consistency_mutex);
 
@@ -463,8 +484,7 @@ void resolver_add (t_instruccion_lql instruccion){
 	}
 
 	pthread_mutex_lock(&memorias_disponibles_mutex);
-	t_memoria* memoria = malloc(sizeof(t_memoria));
-	memoria = list_find(memorias_disponibles, (void*) es_la_memoria);
+	t_memoria* memoria = list_find(memorias_disponibles, (void*) es_la_memoria);
 	pthread_mutex_unlock(&memorias_disponibles_mutex);
 
 	char* consistencia_deseada = tipo_consistencia(consistencia);
