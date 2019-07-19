@@ -466,6 +466,11 @@ void resolver_insert (t_instruccion_lql instruccion){
 void ejecutar_script(t_script* script_a_ejecutar){
 	char* path = script_a_ejecutar->path;
 	FILE* archivo = fopen(path,"r");
+
+	if(archivo == NULL) {
+	log_error(logger, "La ruta es incorrecta");
+		}
+
 	fseek(archivo, script_a_ejecutar->offset, SEEK_SET);
 
 	char ultimo_caracter_leido = leer_archivo(archivo);
