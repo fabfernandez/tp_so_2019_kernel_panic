@@ -112,7 +112,7 @@ void leer_config(void);
 void leer_atributos_config();
 void terminar_programa(int conexion);
 int generarID();
-void asignar_consistencia(t_memoria* memoria, t_consistencia consistencia);
+int asignar_consistencia(t_memoria* memoria, t_consistencia consistencia);
 char* tipo_consistencia(t_consistencia consistencia);
 char leer_archivo(FILE* archivo);
 void ejecutar_instruccion(t_instruccion_lql instruccion);
@@ -137,6 +137,8 @@ void iniciar_inotify();
 void cambiar_nodos_viejos_por_nuevos();
 void revisar_y_cambiar_en(t_list* lista);
 void revisa_y_cambia_si_encuentra(t_memoria* nodo_viejo, t_list* lista, int indice);
+t_memoria* crear_nuevo_nodo_memoria(t_memoria* memoria);
+void destruir_elementos(t_list* lista);
 
 
 //				***** REVISAR COMO CREAR LAS CONEXIONES *****					//

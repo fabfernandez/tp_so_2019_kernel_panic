@@ -47,7 +47,8 @@ int main(void){
 	memoria_principal->puerto = malloc(string_size(PUERTO_MEMORIA));
 	memcpy(memoria_principal->puerto, PUERTO_MEMORIA, string_size(PUERTO_MEMORIA));
 
-	memoria_principal->numero_memoria= 1;
+//	memoria_principal->numero_memoria = (uint16_t)malloc(sizeof(int));
+	memoria_principal->numero_memoria = 1;
 
 	memorias_disponibles = list_create();
 	strong_consistency = list_create();
@@ -113,9 +114,13 @@ void* iniciar_peticion_tablas(void* memorias_disponibles){
 			log_info(logger, "FIN PEDIDO DE TABLAS");
 		} else {
 			int i=0;
+			pthread_mutex_lock(&memorias_disponibles_mutex);
 			int tamanio = tablag->elements_count;
 			while (i < tamanio){
+//				pthread_mutex_lock(&memorias_disponibles_mutex);
 				t_memoria* memoria_a_pedir = list_get(tablag, i);
+				pthread_mutex_unlock(&memorias_disponibles_mutex);
+
 				int socket_memoria_a_pedir = crear_conexion(memoria_a_pedir->ip,memoria_a_pedir->puerto);
 				if(socket_memoria_a_pedir != -1){
 					send(socket_memoria_a_pedir,&operacion,sizeof(t_operacion),MSG_WAITALL);
@@ -145,8 +150,9 @@ void recibir_tabla_de_gossiping(int socket){
 	log_info(logger, "Memorias de tabla: %i",numero_memorias);
 
 	pthread_mutex_lock(&memorias_disponibles_mutex);
-	list_destroy_and_destroy_elements(memorias_disponibles,(void*) eliminar_t_memoria);
-	memorias_disponibles = list_create();
+	//list_destroy_and_destroy_elements(memorias_disponibles,(void*) eliminar_t_memoria);
+	destruir_elementos(memorias_disponibles);
+//	memorias_disponibles = list_create();
 	pthread_mutex_unlock(&memorias_disponibles_mutex);
 
 	for(int i=0;i<numero_memorias;i++){
@@ -183,6 +189,13 @@ void recibir_tabla_de_gossiping(int socket){
 	cambiar_nodos_viejos_por_nuevos();
 }
 
+void destruir_elementos(t_list* lista){
+	while(list_size(lista)){
+		t_memoria* nodo_a_destruir = list_remove(lista, 0);
+		eliminar_t_memoria(nodo_a_destruir);
+	}
+}
+
 void cambiar_nodos_viejos_por_nuevos(){
 	pthread_mutex_lock(&strong_consistency_mutex);
 	revisar_y_cambiar_en(strong_consistency);
@@ -214,10 +227,11 @@ void revisa_y_cambia_si_encuentra(t_memoria* nodo_viejo, t_list* lista, int indi
 	t_memoria* nuevo_nodo_memoria = list_find(memorias_disponibles, (void*) es_la_memoria);
 	pthread_mutex_unlock(&memorias_disponibles_mutex);
 
-	if(nuevo_nodo_memoria != NULL){
-		list_replace(lista, indice, nuevo_nodo_memoria);
-	}else{
-		list_remove_and_destroy_element(lista, indice, free);
+	if(nuevo_nodo_memoria == NULL){
+//		list_replace(lista, indice, nuevo_nodo_memoria);
+//	}else{
+		t_memoria* nodo = list_remove(lista, indice);
+		eliminar_t_memoria(nodo);
 	}
 }
 
@@ -514,13 +528,31 @@ void resolver_add (t_instruccion_lql instruccion){
 
 	char* consistencia_deseada = tipo_consistencia(consistencia);
 	if(memoria != NULL){
-		asignar_consistencia(memoria, consistencia);
-		log_info(logger, "Se ha añadido la Memoria: %d a la Consistencia: %s", numero_memoria, consistencia_deseada);
+		t_memoria* nuevo_nodo_memoria = crear_nuevo_nodo_memoria(memoria);
+		int asignado = asignar_consistencia(nuevo_nodo_memoria, consistencia);
+		if(asignado == 1){
+			log_info(logger, "Se ha añadido la Memoria: %d a la Consistencia: %s", numero_memoria, consistencia_deseada);
+		}else if(asignado == 0){
+			log_error(logger, "La Memoria: %d ya se encontraba en la Consistencia: %s", numero_memoria, consistencia_deseada);
+		}else{
+			log_error(logger, "Ingrese correctamente el tipo de Consistencia");
+		}
 	}else{
 		log_error(logger, "No se ha podido añadir la Memoria: %d a la Consistencia: %s", numero_memoria, consistencia_deseada);
 	}
 }
 
+t_memoria* crear_nuevo_nodo_memoria(t_memoria* memoria){
+	t_memoria* nuevo_nodo = malloc(sizeof(t_memoria));
+	nuevo_nodo->ip = malloc(sizeof(memoria->ip));
+	nuevo_nodo->puerto = malloc(sizeof(memoria->puerto));
+
+	nuevo_nodo->numero_memoria = memoria->numero_memoria;
+	strcpy(nuevo_nodo->ip, memoria->ip);
+	strcpy(nuevo_nodo->puerto, memoria->puerto);
+
+	return nuevo_nodo;
+}
 void resolver_metrics(){
 	t_metrics* metrica_uno;
 
@@ -551,26 +583,38 @@ void resolver_journal(){
 	log_info(logger, "Se ha realizado el JOURNAL a todas las memorias");
 }
 
-void asignar_consistencia(t_memoria* memoria, t_consistencia consistencia){
+int asignar_consistencia(t_memoria* memoria, t_consistencia consistencia){
+	uint16_t numero_memoria;
+	int es_la_memoria(t_memoria* memoria){
+		return memoria->numero_memoria == numero_memoria;
+	}
+	int ya_estaba = 0;
 	switch(consistencia){
 		case STRONG:
 			pthread_mutex_lock(&strong_consistency_mutex);
 			list_add(strong_consistency, memoria);
 			pthread_mutex_unlock(&strong_consistency_mutex);
-			break;
+			return 1;
 		case STRONG_HASH:
 			pthread_mutex_lock(&strong_hash_consistency_mutex);
-			list_add(strong_hash_consistency, memoria);
+			if(list_find(strong_hash_consistency, (void*) es_la_memoria) == NULL){
+				list_add(strong_hash_consistency, memoria);
+				resolver_journal_hash();
+				ya_estaba = 1;
+			}
 			pthread_mutex_unlock(&strong_hash_consistency_mutex);
-			resolver_journal_hash();
-			break;
+
+			return ya_estaba;
 		case EVENTUAL:
 			pthread_mutex_lock(&eventual_consistency_mutex);
-			list_add(eventual_consistency, memoria);
+			if(list_find(eventual_consistency, (void*) es_la_memoria) == NULL){
+				list_add(eventual_consistency, memoria);
+				ya_estaba = 1;
+			}
 			pthread_mutex_unlock(&eventual_consistency_mutex);
-			break;
+			return ya_estaba;
 		default:
-			break;
+			return -1;
 	}
 }
 
