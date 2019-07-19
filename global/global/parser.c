@@ -80,7 +80,9 @@ t_instruccion_lql parsear_linea(char* line){
 		}
 		ret.parametros.CREATE.consistencia = get_valor_consistencia(split[2]);
 		ret.parametros.CREATE.num_particiones=atoi(split[3]);
+		free(split[3]);
 		ret.parametros.CREATE.compactacion_time=(long)atol(split[4]);
+		free(split[4]);
 	} else if(string_equals_ignore_case(keyword, DESCRIBE_KEY)){
 		ret.operacion=DESCRIBE;
 		if(split[1] !=NULL){
