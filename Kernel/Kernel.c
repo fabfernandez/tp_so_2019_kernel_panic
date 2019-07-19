@@ -718,7 +718,7 @@ int generarID(){
 }
 
 uint16_t convertir_string_a_int(char* string){
-	uint16_t convertido = (uint16_t)atoi(string);
+	uint16_t convertido = (uint16_t)atol(string);
 	return convertido;
 }
 
