@@ -145,7 +145,7 @@ void recibir_tabla_de_gossiping(int socket){
 	log_info(logger, "Memorias de tabla: %i",numero_memorias);
 
 	pthread_mutex_lock(&memorias_disponibles_mutex);
-	list_destroy_and_destroy_elements(memorias_disponibles,(void*) eliminar_t_memoria);
+	list_destroy(memorias_disponibles);
 	memorias_disponibles = list_create();
 	pthread_mutex_unlock(&memorias_disponibles_mutex);
 
@@ -215,9 +215,11 @@ void revisa_y_cambia_si_encuentra(t_memoria* nodo_viejo, t_list* lista, int indi
 	pthread_mutex_unlock(&memorias_disponibles_mutex);
 
 	if(nuevo_nodo_memoria != NULL){
-		list_replace(lista, indice, nuevo_nodo_memoria);
+		t_memoria* memoria_a_liberar = (t_memoria*) list_replace(lista, indice, nuevo_nodo_memoria);
+		eliminar_t_memoria(memoria_a_liberar);
 	}else{
-		list_remove_and_destroy_element(lista, indice, free);
+		//list_remove_and_destroy_element(lista, indice, free);
+		list_remove_and_destroy_element(lista, indice, eliminar_t_memoria);
 	}
 }
 
