@@ -102,36 +102,42 @@ void iniciarHiloGossiping(t_list* memorias_disponibles){ // @suppress("Type cann
 
 void* iniciar_peticion_tablas(void* memorias_disponibles){
 	t_list* tablag = (t_list *) memorias_disponibles;
-		while(1){
-			sleep(retardo_gossiping);
-			log_info(logger, "Inicio PEDIDO DE TABLAS A MEMORIA");
-			t_operacion operacion = SOLICITUD_TABLA_GOSSIPING;
+	while(1){
+		sleep(retardo_gossiping);
+		log_info(logger, "Inicio PEDIDO DE TABLAS A MEMORIA");
+		t_operacion operacion = SOLICITUD_TABLA_GOSSIPING;
 
-			if(socket_memoria != -1){
-				send(socket_memoria,&operacion,sizeof(t_operacion),MSG_WAITALL);
-				recibir_tabla_de_gossiping(socket_memoria);
-				log_info(logger, "FIN PEDIDO DE TABLAS");
-			} else {
-				int i=0;
-				int tamanio = tablag->elements_count;
-				while (i < tamanio){
-					t_memoria* memoria_a_pedir = list_get(tablag, i);
-					int socket_memoria_a_pedir = crear_conexion(memoria_a_pedir->ip,memoria_a_pedir->puerto);
-					if(socket_memoria_a_pedir != -1){
-						send(socket_memoria_a_pedir,&operacion,sizeof(t_operacion),MSG_WAITALL);
-						recibir_tabla_de_gossiping(socket_memoria_a_pedir);
-						log_info(logger, "FIN PEDIDO DE TABLAS");
-						socket_memoria = crear_conexion(IP_MEMORIA, PUERTO_MEMORIA);
-						i = tamanio;
-					} else {
-						i++;
-					}
-
+		if(socket_memoria != -1){
+			send(socket_memoria,&operacion,sizeof(t_operacion),MSG_WAITALL);
+			recibir_tabla_de_gossiping(socket_memoria);
+			log_info(logger, "FIN PEDIDO DE TABLAS");
+		} else {
+			int i=0;
+			int tamanio = tablag->elements_count;
+			while (i < tamanio){
+				t_memoria* memoria_a_pedir = list_get(tablag, i);
+				int socket_memoria_a_pedir = crear_conexion(memoria_a_pedir->ip,memoria_a_pedir->puerto);
+				if(socket_memoria_a_pedir != -1){
+					send(socket_memoria_a_pedir,&operacion,sizeof(t_operacion),MSG_WAITALL);
+					recibir_tabla_de_gossiping(socket_memoria_a_pedir);
+					log_info(logger, "FIN PEDIDO DE TABLAS");
+					socket_memoria = crear_conexion(IP_MEMORIA, PUERTO_MEMORIA);
+					i = tamanio;
+				} else {
+					i++;
 				}
-			}
 
+			}
 		}
+
 	}
+}
+
+void eliminar_t_memoria(t_memoria* memoria){
+	free(memoria->ip);
+	free(memoria->puerto);
+	free(memoria);
+}
 
 void recibir_tabla_de_gossiping(int socket){
 	int numero_memorias;
@@ -139,7 +145,7 @@ void recibir_tabla_de_gossiping(int socket){
 	log_info(logger, "Memorias de tabla: %i",numero_memorias);
 
 	pthread_mutex_lock(&memorias_disponibles_mutex);
-	list_destroy(memorias_disponibles);
+	list_destroy_and_destroy_elements(memorias_disponibles,(void*) eliminar_t_memoria);
 	memorias_disponibles = list_create();
 	pthread_mutex_unlock(&memorias_disponibles_mutex);
 

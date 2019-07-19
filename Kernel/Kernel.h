@@ -122,6 +122,7 @@ void iniciarHiloGossiping(t_list* tablaGossiping);
 void ejecutar_script(t_script* script_a_ejecutar);
 t_memoria* conseguir_memoria(char* nombre_tabla, uint16_t key);
 void recibir_tabla_de_gossiping(int socket);
+void eliminar_t_memoria(t_memoria* memoria);
 void guardar_consistencia_tabla(char* nombre_tabla, t_consistencia consistencia);
 t_consistencia_tabla* conseguir_tabla(char* nombre_tabla);
 t_memoria* obtener_memoria_segun_consistencia(t_consistencia consistencia, uint16_t key);
