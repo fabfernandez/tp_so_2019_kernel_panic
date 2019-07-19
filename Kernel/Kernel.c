@@ -508,12 +508,6 @@ void resolver_add (t_instruccion_lql instruccion){
 	uint16_t numero_memoria = instruccion.parametros.ADD.numero_memoria;
 	t_consistencia consistencia = instruccion.parametros.ADD.consistencia;
 
-	pthread_mutex_lock(&strong_consistency_mutex);
-	if(consistencia == STRONG && list_size(strong_consistency) == 1) {
-		list_remove(strong_consistency, 0);
-	}
-	pthread_mutex_unlock(&strong_consistency_mutex);
-
 	int es_la_memoria(t_memoria* memoria){
 		return memoria->numero_memoria == numero_memoria;
 	}
@@ -524,6 +518,13 @@ void resolver_add (t_instruccion_lql instruccion){
 
 	char* consistencia_deseada = tipo_consistencia(consistencia);
 	if(memoria != NULL){
+
+		pthread_mutex_lock(&strong_consistency_mutex);
+		if(consistencia == STRONG && list_size(strong_consistency) == 1) {
+			list_remove(strong_consistency, 0);
+		}
+		pthread_mutex_unlock(&strong_consistency_mutex);
+
 		t_memoria* nuevo_nodo_memoria = crear_nuevo_nodo_memoria(memoria);
 		int asignado = asignar_consistencia(nuevo_nodo_memoria, consistencia);
 		if(asignado == 1){
