@@ -437,8 +437,10 @@ void resolver_insert (t_instruccion_lql instruccion){
 
 	if(memoria_a_usar == -1){
 		log_error(logger, "No se pudo realizar el INSERT ya que no se ha encontrado la tabla.");
+		error = 1;
 	}else if(memoria_a_usar == -2){
 		log_error(logger, "No se pudo realizar el INSERT ya que no se ha encontrado Memoria");
+		error = 1;
 	}else{
 		int socket_memoria_a_usar = crear_conexion(memoria_a_usar->ip, memoria_a_usar->puerto);
 		struct timespec spec;
@@ -451,12 +453,14 @@ void resolver_insert (t_instruccion_lql instruccion){
 		recv(socket_memoria_a_usar,&respuesta,sizeof(bool),MSG_WAITALL);
 		if(respuesta) {
 			log_info(logger, "Insert OK");
+			error = 0;
 		} else {
 			int largo;
 			recv(socket_memoria_a_usar,&largo,sizeof(int),MSG_WAITALL);
 			char* mensaje = malloc(largo);
 			recv(socket_memoria_a_usar,mensaje,largo,MSG_WAITALL);
 			log_error(logger, "%s",mensaje);
+			error = 1;
 			free(mensaje);
 
 		}
@@ -485,6 +489,7 @@ void ejecutar_script(t_script* script_a_ejecutar){
 			script_a_ejecutar->offset = ftell(archivo) - 1;
 		} else {
 			script_a_ejecutar->offset = NULL;
+			error = 0;
 		}
 
 		fclose(archivo);
