@@ -437,6 +437,20 @@ void resolver_insert (t_instruccion_lql instruccion){
 
 		enviar_paquete_insert(socket_memoria_a_usar, paquete_insert);
 
+		bool respuesta;
+		recv(socket_memoria_a_usar,&respuesta,sizeof(bool),MSG_WAITALL);
+		if(respuesta) {
+			log_info(logger, "Insert OK");
+		} else {
+			int largo;
+			recv(socket_memoria_a_usar,&largo,sizeof(int),MSG_WAITALL);
+			char* mensaje = malloc(largo);
+			recv(socket_memoria_a_usar,mensaje,largo,MSG_WAITALL);
+			log_error(logger, "%s",mensaje);
+			free(mensaje);
+
+		}
+
 		clock_gettime(CLOCK_REALTIME, &spec);
 		int timestamp_destino = spec.tv_sec;
 		int diferencia_timestamp = timestamp_destino - timestamp_origen;

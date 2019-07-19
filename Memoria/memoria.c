@@ -467,9 +467,12 @@ int resolver_select_para_kernel (int socket_kernel_fd, int socket_conexion_lfs,c
 										 *
 										 */
 										log_error(logger, "No hay lugar en la memoria, debe realizarse JOURNAL", tabla);
-										journaling(memoria_principal, tablas);
-										consulta_select_a_usar = consulta_select;
-										return -1;
+										//journaling(memoria_principal, tablas);
+										//consulta_select_a_usar = consulta_select;
+										char* mensaje = "Memoria full";
+										t_status_solicitud* status = crear_paquete_status(false,mensaje);
+										enviar_status_resultado(status, socket_kernel_fd);
+										return 1;
 				}  else {
 					log_info(logger, "Hay espacio en memoria, se procede a realizar la peticion a LFS", key);
 					enviar_paquete_select(socket_conexion_lfs, consulta_select);
@@ -799,9 +802,15 @@ int buscarRegistroEnTabla(char* tabla, uint16_t key, char* memoria_principal,t_l
 
 	if(posicionProximaLibre>=cantidad_paginas&&(lruu==-1)&&(registroAInsertar==-1)){ //
 		log_error(logger, "No hay lugar en la memoria, debe realizarse JOURNAL");
-		journaling(memoria_principal, tablas);
-		consulta_insert_a_usar = consulta_insert;
-		return -1;
+		bool respuesta = false;
+		send(socket_kernel_fd,&respuesta,sizeof(bool),MSG_WAITALL);
+		char* mensaje = "Memoria full";
+		int tamanio = (int) strlen(mensaje)+1;
+		send(socket_kernel_fd,&tamanio,sizeof(int),MSG_WAITALL);
+		send(socket_kernel_fd,mensaje,tamanio,MSG_WAITALL);
+		//journaling(memoria_principal, tablas);
+		//consulta_insert_a_usar = consulta_insert;
+		return 1;
 	} else {
 	if(registroAInsertar==-1){ // no está el registro, hay que agregarlo -> bit mod en 1
 		if(segmentoBuscado==NULL) // si el segmento no existe lo creo, y luego la pagina.
@@ -809,11 +818,15 @@ int buscarRegistroEnTabla(char* tabla, uint16_t key, char* memoria_principal,t_l
 			list_add(tablas, crearSegmento(tabla));
 			paginaNuevaInsert(key,dato,tsss,tabla,memoria_principal,tablas);
 			eliminar_paquete_insert(consulta_insert);
+			bool respuesta = true;
+			send(socket_kernel_fd,&respuesta,sizeof(bool),MSG_WAITALL);
 			return 1;
 			} else { // existe el segmento, agrego la pagina al segmento
 					log_error(logger, "no encontre el registro en la tabla");
 					paginaNuevaInsert(key,dato,tsss,tabla,memoria_principal,tablas);
 					eliminar_paquete_insert(consulta_insert);
+					bool respuesta = true;
+					send(socket_kernel_fd,&respuesta,sizeof(bool),MSG_WAITALL);
 					return 1;
 					}
 	} else // el registro con esa key ya existe
@@ -821,6 +834,8 @@ int buscarRegistroEnTabla(char* tabla, uint16_t key, char* memoria_principal,t_l
 			modificarRegistro(key,dato,tsss,registroAInsertar,memoria_principal,tablas);
 			cambiarBitModificado(tabla, key,tablas, memoria_principal);
 			eliminar_paquete_insert(consulta_insert);
+			bool respuesta = true;
+			send(socket_kernel_fd,&respuesta,sizeof(bool),MSG_WAITALL);
 			return 1;
 	}
 	/*}
