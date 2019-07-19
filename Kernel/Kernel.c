@@ -541,8 +541,8 @@ void resolver_add (t_instruccion_lql instruccion){
 
 t_memoria* crear_nuevo_nodo_memoria(t_memoria* memoria){
 	t_memoria* nuevo_nodo = malloc(sizeof(t_memoria));
-	nuevo_nodo->ip = malloc(sizeof(memoria->ip));
-	nuevo_nodo->puerto = malloc(sizeof(memoria->puerto));
+	nuevo_nodo->ip = malloc(string_size(memoria->ip));
+	nuevo_nodo->puerto = malloc(string_size(memoria->puerto));
 
 	nuevo_nodo->numero_memoria = memoria->numero_memoria;
 	strcpy(nuevo_nodo->ip, memoria->ip);
