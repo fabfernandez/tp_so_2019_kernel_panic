@@ -477,30 +477,33 @@ void ejecutar_script(t_script* script_a_ejecutar){
 	char* path = script_a_ejecutar->path;
 	FILE* archivo = fopen(path,"r");
 
-	if(archivo == NULL) {
-	log_error(logger, "La ruta es incorrecta");
+		fseek(archivo, script_a_ejecutar->offset, SEEK_SET);
+
+		char ultimo_caracter_leido = leer_archivo(archivo);
+
+		if(ultimo_caracter_leido != EOF && error == 0){
+			script_a_ejecutar->offset = ftell(archivo) - 1;
+		} else {
+			script_a_ejecutar->offset = NULL;
 		}
 
-	fseek(archivo, script_a_ejecutar->offset, SEEK_SET);
-
-	char ultimo_caracter_leido = leer_archivo(archivo);
-
-	if(ultimo_caracter_leido != EOF && error == 0){
-		script_a_ejecutar->offset = ftell(archivo) - 1;
-	} else {
-		script_a_ejecutar->offset = NULL;
-	}
-
-	fclose(archivo);
+		fclose(archivo);
 }
 
 
 
 void resolver_run(t_instruccion_lql instruccion){
+
 	char* path = instruccion.parametros.RUN.path_script;
-	queue_push(new_queue,path);
-	log_info(logger, "El archivo %s pasa a estado NEW", path);
-	sem_post(&new_queue_consumer);
+	FILE* archivo = fopen(path,"r");
+	if(archivo == NULL) {
+		log_error(logger, "La ruta es incorrecta");
+	} else {
+		fclose(archivo);
+		queue_push(new_queue,path);
+		log_info(logger, "El archivo %s pasa a estado NEW", path);
+		sem_post(&new_queue_consumer);
+	}
 }
 
 
