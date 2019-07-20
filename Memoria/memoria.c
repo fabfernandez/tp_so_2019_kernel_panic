@@ -112,9 +112,9 @@ void *iniciar_gossiping(void* tablaGossiping){
 	t_list* tablag = (t_list *) tablaGossiping;
 	while(1){
 		sleep(retardo_gossiping);
-		log_info(logger, "Inicio GOSSIPING automatico");
+		log_info(logger_g, "Inicio GOSSIPING automatico");
 		gossiping_consola();
-		log_info(logger, "FIN GOSSIPING automatico");
+		log_info(logger_g, "FIN GOSSIPING automatico");
 	}
 }
 
@@ -125,7 +125,7 @@ void resolver_gossiping(int socket){
 void recibir_tabla_de_gossiping(int socket){
 	int numero_memorias;
 	recv(socket,&numero_memorias,sizeof(int),MSG_WAITALL);
-	log_info(logger, "Memorias de tabla: %i",numero_memorias);
+	log_info(logger_g, "Memorias de tabla: %i",numero_memorias);
 		for(int i=0;i<numero_memorias;i++){
 			t_gossip* memoria=malloc(sizeof(t_gossip));
 			int tamanio_ip;
@@ -144,7 +144,7 @@ void recibir_tabla_de_gossiping(int socket){
 			memoria->puerto_memoria=malloc(tamanio_puerto);
 			//log_info(logger, "Tamanio puerto %i",tamanio_puerto);
 			recv(socket,memoria->puerto_memoria,tamanio_puerto,MSG_WAITALL);
-			log_info(logger, "IP: %s , PUERTO: %s , NOMBRE: %s",memoria->ip_memoria,memoria->puerto_memoria,memoria->nombre_memoria);
+			log_info(logger_g, "IP: %s , PUERTO: %s , NOMBRE: %s",memoria->ip_memoria,memoria->puerto_memoria,memoria->nombre_memoria);
 			if(encontrarMemoria(memoria->nombre_memoria, tablaGossiping)!=NULL){ eliminar_memoria_gossip(memoria); } else { list_add(tablaGossiping,memoria); }
 
 		}
@@ -320,7 +320,10 @@ void gossiping_consola(){
 		if(ssocketMemoriaSeed!=-1) { // intento con la seed, siempre debo intentar con la seed
 		enviar_gossiping(ssocketMemoriaSeed);
 		close(ssocketMemoriaSeed);
-		} else { log_error(logger_mostrado,"Seed no responde");}
+		} else {
+			log_error(logger_mostrado,"Seed no responde");
+			log_error(logger_g,"Seed no responde");
+ 		}
 	}
 	for(int i=0;i<tablaGossiping->elements_count;i++){
 		t_gossip* memoria = list_get(tablaGossiping,i);
@@ -365,7 +368,7 @@ int resolver_insert_para_consola(t_instruccion_lql insert,char* memoria_principa
 
 	}
 	if(posicionProximaLibre>=cantidad_paginas&&(lruu==-1)&&(registroAInsertar==-1)){ //
-		log_error(logger, "No hay lugar en la memoria, debe realizarse JOURNAL", tabla);
+		log_error(logger_mostrado, "No hay lugar en la memoria, debe realizarse JOURNAL", tabla);
 		journaling(memoria_principal, tablas);
 		return -1;
 	} else {
@@ -391,9 +394,8 @@ int resolver_insert_para_consola(t_instruccion_lql insert,char* memoria_principa
 
 int resolver_select_para_consola(t_instruccion_lql instruccion_select,char* memoria_principal, t_list* tablas){
 
-	log_info(logger, "Se realiza SELECT");
-	log_info(logger, "Consulta en la tabla: %s", instruccion_select.parametros.SELECT.tabla);
-	log_info(logger, "Consulta por key: %d", instruccion_select.parametros.SELECT.key);
+	log_info(logger_mostrado, "SELECT");
+	log_info(logger_mostrado, "TABLA: %s KEY %d", consulta_select->nombre_tabla->palabra, consulta_select->key);
 
 	char* tabla = instruccion_select.parametros.SELECT.tabla;
 	uint16_t key = instruccion_select.parametros.SELECT.key;
@@ -455,9 +457,8 @@ int resolver_select_para_consola(t_instruccion_lql instruccion_select,char* memo
 int resolver_select_para_kernel (int socket_kernel_fd, int socket_conexion_lfs,char* memoria_principal, t_list* tablas){
 		t_paquete_select* consulta_select = deserializar_select(socket_kernel_fd);
 
-		log_info(logger, "Se realiza SELECT");
-		log_info(logger, "Consulta en la tabla: %s", consulta_select->nombre_tabla->palabra);
-		log_info(logger, "Consulta por key: %d", consulta_select->key);
+		log_info(logger_mostrado, "SELECT");
+		log_info(logger_mostrado, "TABLA: %s KEY %d", consulta_select->nombre_tabla->palabra, consulta_select->key);
 
 		char* tabla = consulta_select->nombre_tabla->palabra;
 		uint16_t key = consulta_select->key;
