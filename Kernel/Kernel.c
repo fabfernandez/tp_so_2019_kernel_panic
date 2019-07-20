@@ -120,7 +120,7 @@ void* iniciar_peticion_tablas(void* memorias_disponibles){
 		pthread_mutex_unlock(&memorias_disponibles_mutex);
 		while (i < tamanio){
 			pthread_mutex_lock(&memorias_disponibles_mutex);
-			t_memoria* memoria_a_pedir = list_get(tablag, i);
+			t_memoria* memoria_a_pedir = list_get(memorias_disponibles, i);
 			pthread_mutex_unlock(&memorias_disponibles_mutex);
 
 			int socket_memoria_a_pedir = crear_conexion(memoria_a_pedir->ip,memoria_a_pedir->puerto);
@@ -373,7 +373,8 @@ t_consistencia_tabla* conseguir_tabla(char* nombre_tabla){
 void resolver_create(t_instruccion_lql instruccion){
 	t_paquete_create* paquete_create = crear_paquete_create(instruccion);
 
-	int socket_memoria_a_usar = socket_memoria;
+	t_memoria* memoria_a_usar = obtener_memoria_segun_consistencia(instruccion.parametros.CREATE.consistencia, 0);
+	int socket_memoria_a_usar = crear_conexion(memoria_a_usar->ip, memoria_a_usar->puerto);
 
 	enviar_paquete_create(socket_memoria_a_usar, paquete_create);
 	t_status_solicitud* status = desearilizar_status_solicitud(socket_memoria_a_usar);
