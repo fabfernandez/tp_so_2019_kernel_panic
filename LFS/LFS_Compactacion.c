@@ -18,10 +18,14 @@ void *compactar(void* args){
 	while(1){
 		log_info(logger_compactacion, "%i", tiempo_compactacion);
 		sleep(tiempo_compactacion/1000);
-
+		log_info(logger_compactacion,  "previo mutex mutex_compactacion en compactar : %d", tabla_logica->mutex_compactacion);
 		pthread_mutex_lock(&(tabla_logica->mutex_compactacion));
+		log_info(logger_compactacion,  "previo mutex compac select en compactar : %d", tabla_logica->mutex_compac_select);
+		pthread_mutex_lock(&tabla_logica->mutex_compac_select);
+		log_info(logger_compactacion,  "Pase todos los mutex en compactacion: %d", tabla_logica->mutex_compac_select);
 		if (!hay_temporales(path_tabla)) {
 			log_info(logger_compactacion, "Compactacion- No hay datos para compactar en: %s.", path_tabla);
+			pthread_mutex_unlock(&tabla_logica->mutex_compac_select);
 		}else{
 			log_info(logger_compactacion, "Se realiza compactacion en: %s.", path_tabla);
 			int cantidad_archivos_renombrados = renombrar_archivos_para_compactar(path_tabla);
@@ -37,6 +41,9 @@ void *compactar(void* args){
 
 			realizar_compactacion(path_tabla, registros_filtrados);
 			list_destroy_and_destroy_elements(registros_filtrados, eliminar_registro);
+			pthread_mutex_unlock(&tabla_logica->mutex_compac_select);
+
+
 			desbloquear_tabla(nombre_tabla);
 			log_info(logger_compactacion, "Fin bloqueo de tabla: %s por compactacion.", nombre_tabla);
 			int tiempo_operatoria = comienzo - time(NULL);
@@ -68,7 +75,7 @@ void bloquear_tabla(char* nombre_tabla){
 	}
 
 	t_tabla_logica* tabla_a_bloquear = list_find(tablas_en_lfs, _es_tabla_con_nombre);
-	tabla_a_bloquear->esta_bloqueado=true;
+	tabla_a_bloquear->esta_bloqueado=1;
 }
 
 void desbloquear_tabla(char* nombre_tabla){
@@ -78,42 +85,45 @@ void desbloquear_tabla(char* nombre_tabla){
 
 	t_tabla_logica* tabla_a_bloquear = list_find(tablas_en_lfs, _es_tabla_con_nombre);
 	tabla_a_bloquear->esta_bloqueado=false;
-
+	log_info(logger_compactacion, "if de instrucciones bloqueadas" );
 	if (dictionary_has_key(instrucciones_bloqueadas_por_tabla, nombre_tabla)){
 		t_queue* instrucciones_bloqueadas = dictionary_get(instrucciones_bloqueadas_por_tabla, nombre_tabla);
+		log_info(logger_compactacion, "entre al if de instrucciones bloqueadas" );
 		for(int i=0; i<queue_size(instrucciones_bloqueadas); i++){
 			log_info(logger_compactacion, "Comienza ejecucion de instrucciones bloqueadas en tabla %s.", nombre_tabla);
 			t_instruccion_bloqueada* instruccion_bloqueada = queue_pop(instrucciones_bloqueadas);
 			t_status_solicitud* status;
-			if (instruccion_bloqueada->instruccion.operacion == SELECT){
+			if (instruccion_bloqueada->instruccion->operacion == SELECT){
 				if (instruccion_bloqueada->socket_memoria==NULL){
 					log_info(logger_compactacion, "Comienza select bloqueado en tabla %s solicitado por consola.", nombre_tabla);
-					resolver_select_consola(nombre_tabla, instruccion_bloqueada->instruccion.parametros.SELECT.key);
+					resolver_select_consola(nombre_tabla, instruccion_bloqueada->instruccion->parametros.SELECT.key);
 					log_info(logger_compactacion, "Fin select bloqueado en tabla %s solicitado por c.", nombre_tabla);
 				}else{
 					log_info(logger_compactacion, "Comienza select bloqueado en tabla %s solicitado por memoria.", nombre_tabla);
-					status= resolver_select(nombre_tabla, instruccion_bloqueada->instruccion.parametros.SELECT.key);
+					status= resolver_select(nombre_tabla, instruccion_bloqueada->instruccion->parametros.SELECT.key);
 					enviar_status_resultado(status, instruccion_bloqueada->socket_memoria);
 					log_info(logger_compactacion, "Fin select bloqueado en tabla %s solicitado por memoria.", nombre_tabla);
 					//eliminar_paquete_status(status);
 				}
-				free(instruccion_bloqueada->instruccion.parametros.SELECT.tabla);
+				free(instruccion_bloqueada->instruccion->parametros.SELECT.tabla);
 
 			}else{
 				log_info(logger_compactacion, "Comienza insert bloqueado en tabla %s solicitado.", nombre_tabla);
-				status = resolver_insert(logger, nombre_tabla, instruccion_bloqueada->instruccion.parametros.INSERT.key, instruccion_bloqueada->instruccion.parametros.INSERT.value, instruccion_bloqueada->instruccion.parametros.INSERT.timestamp);
+				status = resolver_insert(logger, nombre_tabla, instruccion_bloqueada->instruccion->parametros.INSERT.key, instruccion_bloqueada->instruccion->parametros.INSERT.value, instruccion_bloqueada->instruccion->parametros.INSERT.timestamp);
 				if (instruccion_bloqueada->socket_memoria!=NULL){
 					enviar_status_resultado(status, instruccion_bloqueada->socket_memoria);
 					log_info(logger_compactacion, "Se envia status de insert bloqueado en tabla %s solicitado.", nombre_tabla);
 				}
 				log_info(logger_compactacion, "Fin insert bloqueado en tabla %s solicitado.", nombre_tabla);
 				//eliminar_paquete_status(status);
-				free(instruccion_bloqueada->instruccion.parametros.INSERT.tabla);
-				free(instruccion_bloqueada->instruccion.parametros.INSERT.value);
+				free(instruccion_bloqueada->instruccion->parametros.INSERT.tabla);
+				free(instruccion_bloqueada->instruccion->parametros.INSERT.value);
 			}
 			free(instruccion_bloqueada);
 		}
+		pthread_mutex_lock(&mutexInstBloqueadas);
 		free(dictionary_remove(instrucciones_bloqueadas_por_tabla, nombre_tabla));
+		pthread_mutex_unlock(&mutexInstBloqueadas);
 
 	}
 
@@ -383,19 +393,21 @@ void actualizar_registro(t_list* registros, t_registro* un_registro){
 }
 void liberar_bloques_compactacion(char* path_tabla, t_list* particiones_a_liberar){
 
+	pthread_mutex_lock(&mutexBloques);
 	DIR * dir = opendir(path_tabla);
 	struct dirent * entry = readdir(dir);
 	while(entry != NULL){
 		if (( strcmp(entry->d_name, ".")!=0 && strcmp(entry->d_name, "..")!=0 ) && ( archivo_es_del_tipo(entry->d_name,"tempc") || (archivo_es_del_tipo(entry->d_name,"bin")&& pertenece_a_lista_particiones(particiones_a_liberar,entry->d_name) )) ) {
 			char* dir_archivo = string_from_format("%s/%s", path_tabla, entry->d_name);
-			pthread_mutex_lock(&mutexBloques);
+
 			liberar_bloques_archivo(dir_archivo);
-			pthread_mutex_unlock(&mutexBloques);
+
 			free(dir_archivo);
 		}
 		entry = readdir(dir);
 	}
 	closedir(dir);
+	pthread_mutex_unlock(&mutexBloques);
 }
 
 bool pertenece_a_lista_particiones(t_list* particiones_a_liberar,char* nombre_archivo){
@@ -418,6 +430,7 @@ bool pertenece_a_lista_particiones(t_list* particiones_a_liberar,char* nombre_ar
 
 void realizar_compactacion(char* path_tabla, t_list* registros_filtrados){
 	t_list* particiones_a_liberar = encontrar_particiones_tocadas(registros_filtrados);
+
 	liberar_bloques_compactacion(path_tabla, particiones_a_liberar);
 
 	//borra todos tempc y .bin para una tabla

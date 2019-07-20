@@ -9,7 +9,7 @@
 int main(void)
 {
 	char *montaje;
-	iniciar_loggers(); // creamos leer_bloques_de_archivoleer_bloques_de_archivoleer_bloques_de_archivoleer_bloques_de_archivoleer_bloques_de_archivoleer_bloques_de_archivoleer_bloques_de_archivoleer_bloques_de_archivoleer_bloques_de_archivolog
+	iniciar_loggers();
 	leer_config(); // abrimos config
 	ip_lfs = config_get_string_value(archivoconfig, "IP_LFS"); // asignamos IP de memoria a conectar desde CONFIG
 	log_info(logger, "La IP del LFS es %s",ip_lfs );
@@ -22,9 +22,12 @@ int main(void)
 	log_info(logger, "La IP de la memoria es %s",ip_lfs );
 	log_info(logger, "El puerto de la memoria es %s",puerto_lfs);
 
+
+	iniciarMutexBitmap();
 	iniciarMutexMemtable();
 	iniciarMutexDump();
 	iniciarMutexTablasLFS();
+	iniciarMutexInstBloqueadas();
 	iniciarMutexBloques();
 	levantar_lfs(montaje);
 	crear_hilo_server();
@@ -112,6 +115,16 @@ void desconectar_clientes(){
 	pthread_cancel(hilo_server);
 }
 
+void iniciarMutexBitmap(){
+	if(pthread_mutex_init(&mutexBitmap,NULL)==0){
+		log_info(logger, "mutexBitmap inicializado correctamente");
+	} else {
+		log_error(logger, "Fallo inicializacion de mutexBitmap");
+	};
+}
+
+
+
 void iniciarMutexMemtable(){
 	if(pthread_mutex_init(&mutexMemtable,NULL)==0){
 		log_info(logger, "MutexMemtable inicializado correctamente");
@@ -139,14 +152,25 @@ void iniciarMutexHilosMemoria(){
 		};
 }
 
+void iniciarMutexInstBloqueadas(){
+	if(pthread_mutex_init(&mutexInstBloqueadas,NULL)==0){
+			log_info(logger, "MutexInstBloqueadas inicializado correctamente");
+
+		} else {
+			log_error(logger, "Fallo inicializacion de MutexInstBloqueadas");
+		};
+
+}
+
 void iniciarMutexTablasLFS(){
 	if(pthread_mutex_init(&mutexTablasLFS,NULL)==0){
-		log_info(logger, "MutexBitmap inicializado correctamente");
+				log_info(logger, "mutexTablasLFS inicializado correctamente");
 
-	} else {
-		log_error(logger, "Fallo inicializacion de MutexBitmap");
-	};
-}
+			} else {
+				log_error(logger, "Fallo inicializacion de mutexTablasLFS");
+			};
+
+	}
 
 void iniciarMutexBloques(){
 	if(pthread_mutex_init(&mutexBloques,NULL)==0){
@@ -229,7 +253,7 @@ int resolver_operacion(int socket_memoria, t_operacion cod_op){
 			log_info(logger, "memoria solicitó SELECT");
 			t_paquete_select* select = deserializar_select(socket_memoria);
 			if (tabla_esta_bloqueada(select->nombre_tabla->palabra)){
-				log_info(logger, "La tabla %s esta bloqueada. Creo una nueva instruccion bloqueada para ejecutar dsp", select->nombre_tabla->palabra);
+				log_info(logger, "La tabla %s esta bloqueada. Creo una nueva instruccion bloqueada select para ejecutar dsp", select->nombre_tabla->palabra);
 				agregar_instruccion_bloqueada(crear_instruccion_select_bloqueada(select, socket_memoria), select->nombre_tabla->palabra);
 			}else{
 				status = resolver_select(select->nombre_tabla->palabra, select->key);
@@ -241,7 +265,7 @@ int resolver_operacion(int socket_memoria, t_operacion cod_op){
 			log_info(logger, "memoria solicitó INSERT");
 			t_paquete_insert* consulta_insert = deserealizar_insert(socket_memoria);
 			if (tabla_esta_bloqueada(consulta_insert->nombre_tabla->palabra)){
-				log_info(logger, "La tabla %s esta bloqueada. Creo una nueva instruccion bloqueada para ejecutar dsp", select->nombre_tabla->palabra);
+				log_info(logger, "La tabla %s esta bloqueada. Creo una nueva instruccion bloqueada insert para ejecutar dsp", consulta_insert->nombre_tabla->palabra);
 				agregar_instruccion_bloqueada(crear_instruccion_insert_bloqueada(consulta_insert, socket_memoria), consulta_insert->nombre_tabla->palabra);
 			}else{
 				status = resolver_insert(logger, consulta_insert->nombre_tabla->palabra, consulta_insert->key, consulta_insert->valor->palabra, consulta_insert->timestamp);
@@ -286,16 +310,14 @@ int resolver_operacion(int socket_memoria, t_operacion cod_op){
 }
 
 t_instruccion_bloqueada* crear_instruccion_select_bloqueada(t_paquete_select* select, int socket_memoria){
-	char* nombre_tabla = malloc(string_size(select->nombre_tabla->palabra));
 
-	memcpy(nombre_tabla, select->nombre_tabla->palabra,string_size(select->nombre_tabla->palabra) );
+	t_instruccion_lql* ret = malloc(sizeof(t_instruccion_lql));
+	ret->valido = true;
+	ret->operacion=SELECT;
+	ret->parametros.SELECT.key = select->key;
+	ret->parametros.SELECT.tabla=malloc(string_size( select->nombre_tabla->palabra));
+	memcpy(ret->parametros.SELECT.tabla, select->nombre_tabla->palabra,string_size( select->nombre_tabla->palabra));
 
-	t_instruccion_lql ret = {
-		.valido = true
-	};
-	ret.operacion=SELECT;
-	ret.parametros.SELECT.key = select->key;
-	ret.parametros.SELECT.tabla=nombre_tabla;
 	t_instruccion_bloqueada* bloqueada = malloc(sizeof(t_instruccion_bloqueada));
 
 	bloqueada->instruccion = ret;
@@ -304,21 +326,16 @@ t_instruccion_bloqueada* crear_instruccion_select_bloqueada(t_paquete_select* se
 }
 
 t_instruccion_bloqueada* crear_instruccion_insert_bloqueada(t_paquete_insert* insert, int socket_memoria){
-
-	char* nombre_tabla = malloc(string_size(insert->nombre_tabla->palabra));
-	char* value = malloc(string_size(insert->valor->palabra));
-	memcpy(nombre_tabla, insert->nombre_tabla->palabra,string_size(insert->nombre_tabla->palabra) );
-	memcpy(value, insert->valor->palabra,string_size(insert->valor->palabra) );
-	t_instruccion_lql ret = {
-		.valido = true
-	};
-	ret.operacion=INSERT;
-	ret.parametros.INSERT.key = insert->key;
-	ret.parametros.INSERT.tabla=nombre_tabla;
-	ret.parametros.INSERT.timestamp=insert->timestamp;
-	ret.parametros.INSERT.value = value;
-
 	t_instruccion_bloqueada* bloqueada = malloc(sizeof(t_instruccion_bloqueada));
+	t_instruccion_lql* ret = malloc(sizeof(t_instruccion_lql));
+	ret->valido = true;
+	ret->operacion=INSERT;
+	ret->parametros.INSERT.key = insert->key;
+	ret->parametros.INSERT.tabla=malloc(string_size(insert->nombre_tabla->palabra));
+	ret->parametros.INSERT.timestamp=insert->timestamp;
+	ret->parametros.INSERT.value = malloc(string_size(insert->valor->palabra));
+	memcpy(ret->parametros.INSERT.value,insert->valor->palabra,string_size(insert->valor->palabra));
+	memcpy(ret->parametros.INSERT.tabla,insert->nombre_tabla->palabra,string_size(insert->nombre_tabla->palabra));
 
 	bloqueada->instruccion = ret;
 	bloqueada->socket_memoria=socket_memoria;
@@ -327,12 +344,17 @@ t_instruccion_bloqueada* crear_instruccion_insert_bloqueada(t_paquete_insert* in
 
 void agregar_instruccion_bloqueada(t_instruccion_bloqueada* instruccion_bloqueada, char* tabla){
 	t_queue* instrucciones_bloqueadas ;
+	pthread_mutex_lock(&mutexInstBloqueadas);
 	if( dictionary_has_key(instrucciones_bloqueadas_por_tabla, tabla)){
 		instrucciones_bloqueadas = dictionary_get(instrucciones_bloqueadas_por_tabla, tabla);
 
 	}else{
 		instrucciones_bloqueadas = queue_create();
+		char* nombre_tabla = malloc(string_size(tabla));
+		memcpy(nombre_tabla, tabla, string_size(tabla));
+		dictionary_put(instrucciones_bloqueadas_por_tabla, nombre_tabla,  instrucciones_bloqueadas);
 	}
+	pthread_mutex_unlock(&mutexInstBloqueadas);
 	queue_push(instrucciones_bloqueadas, instruccion_bloqueada);
 }
 
@@ -347,6 +369,7 @@ t_tabla_logica* buscar_tabla_logica_con_nombre(char*nombre_tabla){
 bool tabla_esta_bloqueada(char* nombre_tabla){
 
 	t_tabla_logica* tabla_logica = buscar_tabla_logica_con_nombre(nombre_tabla);
+	log_info(logger, "verificando si la tabla esta bloqueada. NULL:%d - Bloqueada: %d", tabla_logica !=NULL, tabla_logica->esta_bloqueado);
 	return (tabla_logica != NULL) && (tabla_logica->esta_bloqueado);
 
 }
@@ -359,11 +382,16 @@ t_status_solicitud* resolver_drop(t_log* log_a_usar, char* nombre_tabla){
 	log_info(log_a_usar, "Tabla: %s",nombre_tabla);
 	char* dir_tabla = string_from_format("%s/Tables/%s", path_montaje, nombre_tabla);
 	if (existe_tabla_fisica(nombre_tabla)){
+		t_tabla_logica* tabla_logica = buscar_tabla_logica_con_nombre(nombre_tabla);
+		pthread_mutex_lock(&tabla_logica->mutex_compactacion);
+		pthread_mutex_lock(&tabla_logica->mutex_select_drop);
 		eliminar_tabla_memtable(nombre_tabla);
 		eliminar_tabla_logica(nombre_tabla);
 		liberar_bloques_tabla(dir_tabla);
 		eliminar_directorio(dir_tabla);
 		paquete_a_enviar = crear_paquete_status(true, "OK");
+		pthread_mutex_unlock(&tabla_logica->mutex_select_drop);
+		pthread_mutex_unlock(&tabla_logica->mutex_compactacion);
 	}else{
 		char * mje_error = string_from_format("La tabla %s no existe", nombre_tabla);
 		log_error(log_a_usar, mje_error);
@@ -391,6 +419,7 @@ void liberar_bloques_tabla(char* path_tabla){
 }
 
 void liberar_bloques_archivo(char* path_archivo){
+	log_info(logger, "se trata de liberar bloques del archivo %s", path_archivo);
 	t_config* archivo = config_create(path_archivo);
 	int size_files = config_get_int_value(archivo, "SIZE");
 	char **bloques = config_get_array_value(archivo, "BLOCKS");
@@ -529,7 +558,20 @@ t_tabla_logica* crear_tabla_logica(char* nombre_tabla){
 	} else {
 		log_error(logger, "Fallo inicializacion de MutexCompactacion para tabla %s", nombre_tabla);
 	}
+	pthread_mutex_t mutex_select, mutex_sel_drop;
+	if(pthread_mutex_init(&mutex_select,NULL)==0){
+		log_info(logger, "mutex_select para tabla %s se inicializo correctamente", nombre_tabla);
+	} else {
+		log_error(logger, "Fallo inicializacion de mutex_compac_select para tabla %s", nombre_tabla);
+	}
+	if(pthread_mutex_init(&mutex_sel_drop,NULL)==0){
+			log_info(logger, "mutex_compac_select para tabla %s se inicializo correctamente", nombre_tabla);
+		} else {
+			log_error(logger, "Fallo inicializacion de mutex_compac_select para tabla %s", nombre_tabla);
+		}
 	tabla->mutex_compactacion = mutex_compactacion_tabla;
+	tabla->mutex_compac_select = mutex_select;
+	tabla->mutex_select_drop = mutex_sel_drop;
 	pthread_mutex_lock(&mutexTablasLFS);
 	list_add(tablas_en_lfs, tabla);
 	pthread_mutex_unlock(&mutexTablasLFS);
@@ -698,10 +740,10 @@ void liberar_bloque(int num_bloque){
 	FILE* fpFile = fopen(dir_bloque,"wb");
 	fclose(fpFile);
 	truncate(dir_bloque, block_size);
-	//pthread_mutex_lock(&mutexBitmap);
+	pthread_mutex_lock(&mutexBitmap);
 	bitarray_clean_bit(bitarray, num_bloque);
 	msync(bmap, sizeof(bitarray), MS_SYNC);
-	//pthread_mutex_unlock(&mutexBitmap);
+	pthread_mutex_unlock(&mutexBitmap);
 	free(dir_bloque);
 }
 
@@ -709,7 +751,7 @@ int obtener_bloque_disponible(){
 
 	bool esta_ocupado=true;
 	int nro_bloque=0;
-	//pthread_mutex_lock(&mutexBitmap);
+	pthread_mutex_lock(&mutexBitmap);
 	while(esta_ocupado == true){
 		esta_ocupado = bitarray_test_bit(bitarray, nro_bloque);
 		nro_bloque=nro_bloque+1;
@@ -717,7 +759,7 @@ int obtener_bloque_disponible(){
 	nro_bloque=nro_bloque-1;
 	bitarray_set_bit(bitarray,nro_bloque);
 	msync(bmap, sizeof(bitarray), MS_SYNC);
-	//pthread_mutex_unlock(&mutexBitmap);
+	pthread_mutex_unlock(&mutexBitmap);
 	return nro_bloque;
 
 }
@@ -903,12 +945,19 @@ bool existe_tabla_fisica(char* nombre_tabla){
 t_status_solicitud* resolver_select (char* nombre_tabla, uint16_t key){
 	sleep(retardo);
 
+
 	t_status_solicitud* status;
 	log_info(logger, "Se realiza SELECT");
 	log_info(logger, "Consulta en la tabla: %s", nombre_tabla);
 	log_info(logger, "Consulta por key: %d", key);
 	t_list* registros_encontrados = list_create();
 	if (existe_tabla_fisica(nombre_tabla)){
+		t_tabla_logica* tabla = buscar_tabla_logica_con_nombre(nombre_tabla);
+
+		pthread_mutex_lock(&tabla->mutex_compac_select);
+
+		pthread_mutex_lock(&tabla->mutex_select_drop);
+		log_info(logger,  "pase todos los mutex en el select");
 		t_list* registros_memtable = buscar_registros_memtable(nombre_tabla, key);
 		t_list* registros_temporales = buscar_registros_temporales(nombre_tabla, key);
 		t_list* registros_particion = buscar_registros_en_particion(nombre_tabla, key);
@@ -933,7 +982,9 @@ t_status_solicitud* resolver_select (char* nombre_tabla, uint16_t key){
 		list_destroy(registros_memtable);
 		list_destroy(registros_temporales);
 		list_destroy(registros_particion);
+		pthread_mutex_unlock(&tabla->mutex_select_drop);
 
+		pthread_mutex_unlock(&tabla->mutex_compac_select);
 
 	}else{
 		char * mje_error = string_from_format("La tabla %s no existe", nombre_tabla);
@@ -953,6 +1004,7 @@ t_list* buscar_registros_en_particion(char* nombre_tabla,uint16_t key){
 	t_list* registros_encontrados = list_create();
 	int particion = key % num_particiones;
 	char* path_particion = string_from_format("%s/Tables/%s/%d.bin", path_montaje, nombre_tabla, particion);
+
 	t_list* registros_en_particion = obtener_registros_de_archivo(path_particion);
 	t_list* registros_con_key=	filtrar_registros_con_key(registros_en_particion, key);
 	list_add_all(registros_encontrados, registros_con_key);
@@ -966,7 +1018,6 @@ t_list* buscar_registros_en_particion(char* nombre_tabla,uint16_t key){
 }
 
 t_list* buscar_registros_temporales(char* nombre_tabla, uint16_t key){
-
 	char* path_tablas = string_from_format("%s/Tables/%s", path_montaje, nombre_tabla);
 	t_list* registros_encontrados = list_create();
 	DIR * dir = opendir(path_tablas);
@@ -1002,6 +1053,7 @@ t_list* obtener_registros_de_archivo(char* path_archivo_temporal){
 
 	char* buffer_registros = leer_bloques_de_archivo(path_archivo_temporal);
 	return obtener_registros_de_buffer(buffer_registros);
+
 }
 
 char* leer_bloques_de_archivo(char* path_archivo){
@@ -1032,9 +1084,9 @@ char* leer_bloques_de_archivo(char* path_archivo){
 //			long tamanioArchivo = ftell(file);
 //			fseek(file, 0, SEEK_SET);
 			buffer = malloc(size_a_leer+1);
-			pthread_mutex_lock(&mutexBloques);
+
 			size_t read_count = fread(buffer, sizeof(char), size_a_leer, file);
-			pthread_mutex_unlock(&mutexBloques);
+
 			buffer[read_count]='\0';
 			string_append(&buffer_bloques, buffer);
 			fclose(file);
@@ -1073,6 +1125,7 @@ t_list* obtener_registros_de_buffer(char* buffer){
 	}
 	free(array_buffer_registro);
 	free(buffer);
+//	sem_post(&bloques_consumer);
 	//TODO: ver qe hacer con ese array_buffer_registro
 	return registros_de_bloques;
 

@@ -50,6 +50,8 @@ typedef struct{
 	char* nombre;
 	pthread_t id_hilo_compactacion;
 	pthread_mutex_t mutex_compactacion;
+	pthread_mutex_t mutex_compac_select;
+	pthread_mutex_t mutex_select_drop;
 	bool esta_bloqueado;
 	t_parametros_compactacion* parametros;
 }t_tabla_logica;
@@ -57,7 +59,7 @@ typedef struct{
 
 
 typedef struct{
-	t_instruccion_lql instruccion;
+	t_instruccion_lql* instruccion;
 	int socket_memoria;
 }t_instruccion_bloqueada;
 
@@ -81,7 +83,7 @@ char* ip_lfs;
 char* puerto_lfs;
 int tiempo_dump;
 long retardo;
-pthread_mutex_t mutexMemtable, mutexDump, mutexTablasLFS, mutexBloques, mutexHilosMemoria;
+pthread_mutex_t mutexMemtable, mutexDump, mutexTablasLFS, mutexBloques, mutexHilosMemoria, mutexInstBloqueadas, mutex_compac_select, mutexBitmap;
 bool fin_de_programa;
 pthread_t hilo_consola;
 pthread_t hilo_dump;

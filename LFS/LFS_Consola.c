@@ -141,6 +141,9 @@ void resolver_select_consola (char* nombre_tabla, uint16_t key){
 
 	if (existe_tabla_fisica(nombre_tabla)){
 
+		t_tabla_logica* tabla = buscar_tabla_logica_con_nombre(nombre_tabla);
+		pthread_mutex_lock(&tabla->mutex_compac_select);
+		pthread_mutex_lock(&tabla->mutex_select_drop);
 		t_list* registros_memtable = buscar_registros_memtable(nombre_tabla, key);
 		t_list* registros_temporales = buscar_registros_temporales(nombre_tabla, key);
 		t_list* registros_particion = buscar_registros_en_particion(nombre_tabla, key);
@@ -163,7 +166,8 @@ void resolver_select_consola (char* nombre_tabla, uint16_t key){
 		list_destroy(registros_memtable);
 		list_destroy(registros_temporales);
 		list_destroy(registros_particion);
-
+		pthread_mutex_unlock(&tabla->mutex_select_drop);
+		pthread_mutex_unlock(&tabla->mutex_compac_select);
 	}else{
 		char * mje_error = string_from_format("La tabla %s no existe", nombre_tabla);
 		log_error(logger_consola, mje_error);
