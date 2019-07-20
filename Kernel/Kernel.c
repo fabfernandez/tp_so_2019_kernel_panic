@@ -139,6 +139,26 @@ void* iniciar_peticion_tablas(void* memorias_disponibles){
 	}
 }
 
+int socket_memoria_principal(){
+	pthread_mutex_lock(&memorias_disponibles_mutex);
+	int tamanio = list_size(memorias_disponibles);
+	pthread_mutex_unlock(&memorias_disponibles_mutex);
+	int i = 0;
+	while(i < tamanio){
+		pthread_mutex_lock(&memorias_disponibles_mutex);
+		t_memoria* memoria_a_pedir = list_get(memorias_disponibles, i);
+		pthread_mutex_unlock(&memorias_disponibles_mutex);
+
+		int socket_memoria_a_pedir = crear_conexion(memoria_a_pedir->ip,memoria_a_pedir->puerto);
+		if(socket_memoria_a_pedir != -1){
+			close(socket_memoria);
+			return socket_memoria_a_pedir;
+		}
+		i++;
+	}
+	return -1;
+}
+
 void eliminar_t_memoria(t_memoria* memoria){
 	free(memoria->ip);
 	free(memoria->puerto);
@@ -313,15 +333,19 @@ void resolver_describe(t_instruccion_lql instruccion){
 
 //	char* nombre_tabla = paquete_describe->nombre_tabla->palabra;
 //	int socket_memoria_a_usar = conseguir_memoria(nombre_tabla);
-	enviar_paquete_drop_describe(socket_memoria, paquete_describe);
+	int socket_memoria_a_usar = socket_memoria_principal();
+	if(socket_memoria_a_usar == -1){
+		log_error(logger, "No se pudo realizar el DESCRIBE por falta de Memorias disponibles");
+	}
+	enviar_paquete_drop_describe(socket_memoria_a_usar, paquete_describe);
 
 	log_info(logger, "Se realiza DESCRIBE");
 	if(string_is_empty(paquete_describe->nombre_tabla->palabra)){
 		log_info(logger, "Se trata de un describe global.");
-		int cant_tablas= recibir_numero_de_tablas (socket_memoria);
+		int cant_tablas= recibir_numero_de_tablas (socket_memoria_a_usar);
 		log_info(logger, "Cantidad de tablas en LFS: %i", cant_tablas);
 		for(int i=0; i<cant_tablas; i++){
-			t_metadata* metadata = deserealizar_metadata(socket_memoria);
+			t_metadata* metadata = deserealizar_metadata(socket_memoria_a_usar);
 			log_info(logger, "Metadata tabla: %s", metadata->nombre_tabla->palabra);
 			log_info(logger, "Consistencia: %s", tipo_consistencia(metadata->consistencia));
 			log_info(logger, "Numero de particiones: %d", metadata->n_particiones);
@@ -330,9 +354,9 @@ void resolver_describe(t_instruccion_lql instruccion){
 			guardar_consistencia_tabla(metadata->nombre_tabla->palabra, metadata->consistencia);
 		}
 	}else{
-		t_status_solicitud* status = desearilizar_status_solicitud(socket_memoria);
+		t_status_solicitud* status = desearilizar_status_solicitud(socket_memoria_a_usar);
 		if (status->es_valido){
-			t_metadata* t_metadata = deserealizar_metadata(socket_memoria);
+			t_metadata* t_metadata = deserealizar_metadata(socket_memoria_a_usar);
 			//aca se está mostrando pero deberia guardarselo no?
 			log_info(logger, "Metadata tabla: %s", t_metadata->nombre_tabla->palabra);
 			log_info(logger, "Consistencia: %s", tipo_consistencia(t_metadata->consistencia));
@@ -344,6 +368,7 @@ void resolver_describe(t_instruccion_lql instruccion){
 
 	}
 	eliminar_paquete_drop_describe(paquete_describe);
+	liberar_conexion(socket_memoria_a_usar);
 }
 
 void guardar_consistencia_tabla(char* nombre_tabla, t_consistencia consistencia){
