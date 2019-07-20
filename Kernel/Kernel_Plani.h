@@ -15,6 +15,7 @@ void iniciar_hilo_ejecucion();
 void* planificador();
 void revisa_new_queue();
 void revisa_ready_queue();
+void revisa_exit_queue();
 int hay_algo();
 int puedo_ejecutar();
 void revisa_exec_queue();

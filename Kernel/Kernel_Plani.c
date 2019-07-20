@@ -135,4 +135,12 @@ void revisa_exec_queue(){
 	}
 }
 
+void revisa_exit_queue(){
+	while(1){
+		t_script* script=queue_pop(exit_queue);
+		fclose(script);
+
+	}
+}
+
 
