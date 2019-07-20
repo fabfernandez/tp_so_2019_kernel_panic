@@ -28,7 +28,7 @@ int main(void)
 	iniciarMutexDump();
 	iniciarMutexTablasLFS();
 	iniciarMutexInstBloqueadas();
-	iniciarMutexBloques();
+	iniciarMutexTemp();
 	levantar_lfs(montaje);
 	crear_hilo_server();
 	crear_hilo_consola();
@@ -71,10 +71,10 @@ void desconectar_lfs(){
 	pthread_mutex_lock(&mutexMemtable);
 	list_destroy_and_destroy_elements(memtable, eliminar_tabla);
 	pthread_mutex_unlock(&mutexMemtable);
-	pthread_mutex_lock(&mutexBloques);
+	pthread_mutex_lock(&mutexBitmap);
 	munmap(bmap, size_bitmap.st_size);
 	bitarray_destroy(bitarray);
-	pthread_mutex_unlock(&mutexBloques);
+	pthread_mutex_unlock(&mutexBitmap);
 	dictionary_destroy(instrucciones_bloqueadas_por_tabla);
 	config_destroy(archivoconfig);
 	log_destroy(logger_dump);
@@ -123,7 +123,13 @@ void iniciarMutexBitmap(){
 	};
 }
 
-
+void iniciarMutexTemp(){
+	if(pthread_mutex_init(&mutex_temp,NULL)==0){
+		log_info(logger, "mutexBitmap inicializado correctamente");
+	} else {
+		log_error(logger, "Fallo inicializacion de mutexBitmap");
+	};
+}
 
 void iniciarMutexMemtable(){
 	if(pthread_mutex_init(&mutexMemtable,NULL)==0){
@@ -171,15 +177,6 @@ void iniciarMutexTablasLFS(){
 			};
 
 	}
-
-void iniciarMutexBloques(){
-	if(pthread_mutex_init(&mutexBloques,NULL)==0){
-		log_info(logger, "MutexBloques inicializado correctamente");
-
-	} else {
-		log_error(logger, "Fallo inicializacion de MutexBloques");
-	};
-}
 
 
 
@@ -403,22 +400,25 @@ t_status_solicitud* resolver_drop(t_log* log_a_usar, char* nombre_tabla){
 }
 void liberar_bloques_tabla(char* path_tabla){
 
+	//pthread_mutex_lock(&mutexBloques);
 	DIR * dir = opendir(path_tabla);
 	struct dirent * entry = readdir(dir);
 	while(entry != NULL){
 		if (( strcmp(entry->d_name, ".")!=0 && strcmp(entry->d_name, "..")!=0 ) && ( archivo_es_del_tipo(entry->d_name,"temp") || archivo_es_del_tipo(entry->d_name,"tempc") || archivo_es_del_tipo(entry->d_name,"bin"))) {
 			char* dir_archivo = string_from_format("%s/%s", path_tabla, entry->d_name);
-			pthread_mutex_lock(&mutexBloques);
+
 			liberar_bloques_archivo(dir_archivo);
-			pthread_mutex_unlock(&mutexBloques);
+
 			free(dir_archivo);
 		}
 		entry = readdir(dir);
 	}
 	closedir(dir);
+	//pthread_mutex_unlock(&mutexBloques);
 }
 
 void liberar_bloques_archivo(char* path_archivo){
+	pthread_mutex_lock(&mutexBitmap);
 	log_info(logger, "se trata de liberar bloques del archivo %s", path_archivo);
 	t_config* archivo = config_create(path_archivo);
 	int size_files = config_get_int_value(archivo, "SIZE");
@@ -432,7 +432,7 @@ void liberar_bloques_archivo(char* path_archivo){
 	}
 	free(bloques);
 	config_destroy(archivo);
-
+	pthread_mutex_unlock(&mutexBitmap);
 }
 
 void eliminar_tabla_memtable(char* nombre_tabla){
@@ -593,6 +593,7 @@ void obtener_bitmap(){
         close(fd);
     }
 
+
     bmap = mmap(NULL, size_bitmap.st_size, PROT_READ | PROT_WRITE, MAP_SHARED,	fd, 0);
 	bitarray = bitarray_create_with_mode(bmap, blocks/8, MSB_FIRST);
 	free(nombre_bitmap);
@@ -683,9 +684,9 @@ void crear_particiones(char* dir_tabla,int  num_particiones){
 	for(ind =0;ind < num_particiones; ind++){
 		char* dir_particion = string_from_format("%s/%i.bin", dir_tabla, ind);
 		t_list* bloques = list_create();
-		pthread_mutex_lock(&mutexBloques);
+		//pthread_mutex_lock(&mutexBloques);
 		int num_bloque= obtener_bloque_disponible();
-		pthread_mutex_unlock(&mutexBloques);
+		//pthread_mutex_unlock(&mutexBloques);
 		list_add(bloques, num_bloque);   //paso la direccion de memoria de num_bloque, que adentro tiene el bloque disponible
 
 		crear_archivo(dir_particion, 0, bloques);
@@ -695,10 +696,12 @@ void crear_particiones(char* dir_tabla,int  num_particiones){
 }
 
 void crear_archivo(char* dir_archivo, int size, t_list* array_bloques){
+	pthread_mutex_lock(&mutex_temp);
 	FILE* file = fopen(dir_archivo, "wb+");
 	fclose(file);
 
 	guardar_datos_particion_o_temp(dir_archivo, size, array_bloques);
+	pthread_mutex_unlock(&mutex_temp);
 }
 
 void guardar_datos_particion_o_temp(char* dir_archivo, int size, t_list* array_bloques){
@@ -740,18 +743,15 @@ void liberar_bloque(int num_bloque){
 	FILE* fpFile = fopen(dir_bloque,"wb");
 	fclose(fpFile);
 	truncate(dir_bloque, block_size);
-	pthread_mutex_lock(&mutexBitmap);
 	bitarray_clean_bit(bitarray, num_bloque);
 	msync(bmap, sizeof(bitarray), MS_SYNC);
-	pthread_mutex_unlock(&mutexBitmap);
 	free(dir_bloque);
 }
 
 int obtener_bloque_disponible(){
-
+	pthread_mutex_lock(&mutexBitmap);
 	bool esta_ocupado=true;
 	int nro_bloque=0;
-	pthread_mutex_lock(&mutexBitmap);
 	while(esta_ocupado == true){
 		esta_ocupado = bitarray_test_bit(bitarray, nro_bloque);
 		nro_bloque=nro_bloque+1;
@@ -997,6 +997,7 @@ t_status_solicitud* resolver_select (char* nombre_tabla, uint16_t key){
 
 }
 t_list* buscar_registros_en_particion(char* nombre_tabla,uint16_t key){
+	//pthread_mutex_lock(&mutexBloques);
 
 	char* path_metadata = string_from_format("%s/Tables/%s/Metadata", path_montaje, nombre_tabla);
 	t_config* metadata = config_create(path_metadata);
@@ -1014,10 +1015,12 @@ t_list* buscar_registros_en_particion(char* nombre_tabla,uint16_t key){
 	//TODO:ver
 	free(path_metadata);
 	free(path_particion);
+	//pthread_mutex_unlock(&mutexBloques);
 	return registros_encontrados;
 }
 
 t_list* buscar_registros_temporales(char* nombre_tabla, uint16_t key){
+	//pthread_mutex_lock(&mutexBloques);
 	char* path_tablas = string_from_format("%s/Tables/%s", path_montaje, nombre_tabla);
 	t_list* registros_encontrados = list_create();
 	DIR * dir = opendir(path_tablas);
@@ -1037,6 +1040,7 @@ t_list* buscar_registros_temporales(char* nombre_tabla, uint16_t key){
 	}
 	closedir(dir);
 	//TODO:ver si esta bien
+	//pthread_mutex_unlock(&mutexBloques);
 	free(path_tablas);
 	return registros_encontrados;
 }
@@ -1051,7 +1055,9 @@ t_list* filtrar_registros_con_key(t_list* registros, uint16_t key){
 
 t_list* obtener_registros_de_archivo(char* path_archivo_temporal){
 
+
 	char* buffer_registros = leer_bloques_de_archivo(path_archivo_temporal);
+
 	return obtener_registros_de_buffer(buffer_registros);
 
 }
@@ -1059,6 +1065,7 @@ t_list* obtener_registros_de_archivo(char* path_archivo_temporal){
 char* leer_bloques_de_archivo(char* path_archivo){
 	t_config* archivo = config_create(path_archivo);
 	int size_files = config_get_int_value(archivo, "SIZE");
+	log_info(logger, "linea 1071. Al leer el archivo con path %s , SIZE= %d", path_archivo, size_files);
 	char **bloques = config_get_array_value(archivo, "BLOCKS");
 	int resto_a_leer = size_files;
 	int size_a_leer;
@@ -1074,7 +1081,7 @@ char* leer_bloques_de_archivo(char* path_archivo){
 			}else{
 				size_a_leer = resto_a_leer;
 			}
-
+			log_info(logger, "linea 1087. El numero de Bloque a abrir es: %s", bloques[ind_bloques]);
 			int num_bloque=atoi(bloques[ind_bloques]);
 
 			char* dir_bloque = string_from_format("%s/Bloques/%i.bin", path_montaje, num_bloque);
@@ -1086,7 +1093,7 @@ char* leer_bloques_de_archivo(char* path_archivo){
 			buffer = malloc(size_a_leer+1);
 
 			size_t read_count = fread(buffer, sizeof(char), size_a_leer, file);
-
+			log_info(logger, "linea 1099. Cantidad de bytes leidos son: %d", read_count);
 			buffer[read_count]='\0';
 			string_append(&buffer_bloques, buffer);
 			fclose(file);
@@ -1099,6 +1106,7 @@ char* leer_bloques_de_archivo(char* path_archivo){
 	//buffer_bloques[size_files]="\0";
 	free(bloques);
 	config_destroy(archivo);
+	log_info(logger, "linea 1112. Buffer de todos los bloques en el path: %s", path_archivo);
 	return buffer_bloques;
 
 }
@@ -1106,10 +1114,13 @@ char* leer_bloques_de_archivo(char* path_archivo){
 t_list* obtener_registros_de_buffer(char* buffer){
 	t_list* registros_de_bloques = list_create();
 	char **array_buffer_registro = string_split(buffer, "\n");
+	log_info(logger, "1118. BUFFER recibido en los bloques  %s", buffer);
 	int ind_registros=0;
 	while (array_buffer_registro[ind_registros]!=NULL){
+		log_info(logger, "nuevo buffer registro");
+		log_info(logger, "1120. aca puede romper %s", array_buffer_registro[ind_registros]);
 		char** string_registro = string_split(array_buffer_registro[ind_registros], ";");
-
+		log_info(logger, "1122. aca puede romper %s", string_registro[1]);
 		uint16_t key = (uint16_t) atol(string_registro[1]);
 		long timestamp = (long)atol(string_registro[0]);
 		t_registro* registro= crear_registro(string_registro[2], key, timestamp);

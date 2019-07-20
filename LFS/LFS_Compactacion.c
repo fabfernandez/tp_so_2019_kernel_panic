@@ -28,14 +28,14 @@ void *compactar(void* args){
 			pthread_mutex_unlock(&tabla_logica->mutex_compac_select);
 		}else{
 			log_info(logger_compactacion, "Se realiza compactacion en: %s.", path_tabla);
-			int cantidad_archivos_renombrados = renombrar_archivos_para_compactar(path_tabla);
 
+			int cantidad_archivos_renombrados = renombrar_archivos_para_compactar(path_tabla);
+			bloquear_tabla(nombre_tabla);
 			t_list* registros = leer_registros_temporales(path_tabla, cantidad_archivos_renombrados);
 			t_list* registros_filtrados= filtrar_registros_duplicados_segun_particiones(path_tabla, registros); //esto podria devolver una matris filtrando los datos respecto de la particion a la que corresponde, devolveria una lista de lista donde cada posicin de la lista es el index de la particion, y la lista en esa posicion contiene los registros filtrados en base a ese archivo
 
 			list_destroy(registros);
 
-			bloquear_tabla(nombre_tabla);
 			log_info(logger_compactacion, "Comienza bloqueo de tabla: %s por compactacion.", nombre_tabla);
 			int comienzo = time(NULL);
 
@@ -140,6 +140,23 @@ pthread_t crear_hilo_compactacion(t_parametros_compactacion* parametros){
 	return hilo_compactacion;
 }
 
+t_list* obtener_num_bloques_de_archivo(char* path_tabla){
+	t_list* bloques_num = list_create();
+	t_config* particion = config_create(path_tabla);
+	char** bloques = config_get_array_value(particion,"BLOCKS");
+
+	int ind_bloques=0;
+
+	while(bloques[ind_bloques]!=NULL){
+		list_add(bloques_num,(atoi(bloques[ind_bloques])));
+		ind_bloques = ind_bloques + 1;
+		//free(bloques[ind_bloques]);
+	}
+	free(bloques);
+	config_destroy(particion);
+	return bloques_num;
+}
+
 long obtener_tiempo_compactacion(char* path_tabla){
 	char* path_metadata = string_from_format("%s/Metadata", path_tabla);
 
@@ -157,6 +174,8 @@ bool hay_temporales(char* path_tabla){
 }
 
 int renombrar_archivos_para_compactar(char* path_tabla){
+	//pthread_mutex_lock(&mutexBloques);
+	pthread_mutex_lock(&mutex_temp);
 	int cantidad_temporales = 0;
 	DIR * dir = opendir(path_tabla);
 	struct dirent * entry = readdir(dir);
@@ -180,12 +199,15 @@ int renombrar_archivos_para_compactar(char* path_tabla){
 		entry = readdir(dir);
 	}
 	closedir(dir);
+	pthread_mutex_unlock(&mutex_temp);
+	//pthread_mutex_unlock(&mutexBloques);
 
 	log_info(logger_compactacion, "Renombrando %d archivos temp a tempc en: %s.", cantidad_temporales ,path_tabla);
 	return cantidad_temporales;
 }
 
 t_list* leer_registros_temporales(char* path_tabla, int cantidad_temporales){
+	//pthread_mutex_lock(&mutexBloques);
 	t_list* registros = list_create();
 
 	for(int i=1 ; i<=cantidad_temporales; i++){
@@ -207,10 +229,13 @@ t_list* leer_registros_temporales(char* path_tabla, int cantidad_temporales){
 		list_destroy(registros_de_archivo);
 	}
 	log_info(logger_compactacion, "Se leen registros de %d archivos temporales en: %s.", cantidad_temporales ,path_tabla);
+	//pthread_mutex_unlock(&mutexBloques);
 	return registros;
 }
 
 t_list* leer_registros_particiones(char* path_tabla){
+
+	//pthread_mutex_lock(&mutexBloques);
 	char* path_metadata = string_from_format("%s/Metadata", path_tabla);
 	t_config* metadata = config_create(path_metadata);
 	int num_particiones = config_get_int_value(metadata, "PARTITIONS");
@@ -226,6 +251,7 @@ t_list* leer_registros_particiones(char* path_tabla){
 
 	config_destroy(metadata);
 	free(path_metadata);
+	//pthread_mutex_unlock(&mutexBloques);
 	return registros;
 }
 
@@ -391,23 +417,14 @@ void actualizar_registro(t_list* registros, t_registro* un_registro){
 	}
 
 }
-void liberar_bloques_compactacion(char* path_tabla, t_list* particiones_a_liberar){
+void liberar_bloques_compactacion(t_list* bloques_a_liberar){
 
-	pthread_mutex_lock(&mutexBloques);
-	DIR * dir = opendir(path_tabla);
-	struct dirent * entry = readdir(dir);
-	while(entry != NULL){
-		if (( strcmp(entry->d_name, ".")!=0 && strcmp(entry->d_name, "..")!=0 ) && ( archivo_es_del_tipo(entry->d_name,"tempc") || (archivo_es_del_tipo(entry->d_name,"bin")&& pertenece_a_lista_particiones(particiones_a_liberar,entry->d_name) )) ) {
-			char* dir_archivo = string_from_format("%s/%s", path_tabla, entry->d_name);
+	//pthread_mutex_lock(&mutexBloques);
 
-			liberar_bloques_archivo(dir_archivo);
-
-			free(dir_archivo);
-		}
-		entry = readdir(dir);
+	for (int i = 0; i< list_size(bloques_a_liberar);i++){
+		liberar_bloque(list_get(bloques_a_liberar, i));
 	}
-	closedir(dir);
-	pthread_mutex_unlock(&mutexBloques);
+	//pthread_mutex_unlock(&mutexBloques);
 }
 
 bool pertenece_a_lista_particiones(t_list* particiones_a_liberar,char* nombre_archivo){
@@ -429,12 +446,15 @@ bool pertenece_a_lista_particiones(t_list* particiones_a_liberar,char* nombre_ar
 }
 
 void realizar_compactacion(char* path_tabla, t_list* registros_filtrados){
+
+
+
 	t_list* particiones_a_liberar = encontrar_particiones_tocadas(registros_filtrados);
 
-	liberar_bloques_compactacion(path_tabla, particiones_a_liberar);
-
 	//borra todos tempc y .bin para una tabla
-	eliminar_temp_y_bin_tabla(path_tabla, particiones_a_liberar);
+	t_list* bloques_ocupados = eliminar_temp_y_bin_tabla(path_tabla, particiones_a_liberar);
+
+	liberar_bloques_compactacion(bloques_ocupados);
 
 	for(int i=0 ; !list_is_empty(registros_filtrados); i++){
 		t_list* registros_de_particion = list_remove(registros_filtrados, 0);
@@ -442,9 +462,9 @@ void realizar_compactacion(char* path_tabla, t_list* registros_filtrados){
 		if(!list_is_empty(registros_de_particion)){
 		char* path_archivo = string_from_format("%s/%d.bin", path_tabla, i);
 
-		pthread_mutex_lock(&mutexBloques);
+		//pthread_mutex_lock(&mutexBloques);
 		escribir_registros_y_crear_archivo(registros_de_particion, path_archivo);
-		pthread_mutex_unlock(&mutexBloques);
+		//pthread_mutex_unlock(&mutexBloques);
 		free(path_archivo);
 		}
 
@@ -467,13 +487,22 @@ t_list* encontrar_particiones_tocadas(t_list* registros_filtrados){
 	return listas_tocadas;
 }
 
-void eliminar_temp_y_bin_tabla(char* path_tabla, t_list* particiones_a_liberar){
+t_list* eliminar_temp_y_bin_tabla(char* path_tabla, t_list* particiones_a_liberar){
+
+	//pthread_mutex_lock(&mutexBloques);
+	t_list* bloques_ocupados = list_create();
 	DIR * dir = opendir(path_tabla);
 	struct dirent * entry = readdir(dir);
 	while(entry != NULL){
 		if ( strcmp(entry->d_name, ".")!=0 && strcmp(entry->d_name, "..")!=0 && strcmp(entry->d_name, "Metadata")!=0  && !archivo_es_del_tipo(entry->d_name, "temp")) {
-			if(pertenece_a_lista_particiones(particiones_a_liberar,entry->d_name) ){
+			if(pertenece_a_lista_particiones(particiones_a_liberar,entry->d_name) || (!archivo_es_del_tipo(entry->d_name, "tempc"))){
+
 				char* dir_archivo = string_from_format("%s/%s", path_tabla, entry->d_name);
+				t_list* bloques_num = obtener_num_bloques_de_archivo(dir_archivo);
+				list_add_all(bloques_ocupados, bloques_num);
+
+
+				//liberar_bloques_compactacion(path_tabla, particiones_a_liberar);
 				if (unlink(dir_archivo) == 0)
 					log_info(logger, "Eliminado archivo: %s\n", entry->d_name);
 				else
@@ -484,4 +513,6 @@ void eliminar_temp_y_bin_tabla(char* path_tabla, t_list* particiones_a_liberar){
 		entry = readdir(dir);
 	}
 	closedir(dir);
+	return bloques_ocupados;
+	//pthread_mutex_unlock(&mutexBloques);
 }
