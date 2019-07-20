@@ -108,8 +108,8 @@ t_list* bajo_registros_a_blocks(int size_registros, char* registros){
 
 		int byte_inicial = i*block_size;
 		int tamanio_registros = tamanio_bloque(i+1,cantidad_bloques, size_registros);
-		int byte_final = byte_inicial + tamanio_registros;
-		char* datos = string_substring(registros, byte_inicial, byte_final);
+		//int byte_final = byte_inicial + tamanio_registros;
+		char* datos = string_substring(registros, byte_inicial, tamanio_registros);
 		int bloque = obtener_bloque_disponible();
 
 		log_info(logger_dump, "Se escriben [%d] bytes de registros, en el bloque: [%d]",tamanio_registros,bloque);
@@ -200,7 +200,7 @@ bool archivo_es_del_tipo(char* archivo, char* extension_archivo){
  	*/
 t_list* copiar_y_limpiar_memtable(){
 
-	log_info(logger, "Duplico y limpio memtable para bloquear su uso el mejor tiempo posible");
+	log_info(logger_dump, "Duplico y limpio memtable para bloquear su uso el mejor tiempo posible");
 
 	pthread_mutex_lock(&mutexMemtable);
 
