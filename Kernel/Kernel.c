@@ -48,7 +48,7 @@ int main(void){
 	memcpy(memoria_principal->puerto, PUERTO_MEMORIA, string_size(PUERTO_MEMORIA));
 
 //	memoria_principal->numero_memoria = (uint16_t)malloc(sizeof(int));
-	memoria_principal->numero_memoria = 1;
+	memoria_principal->numero_memoria = (uint16_t)config_get_int_value(archivoconfig, "NUMERO_MEMORIA");
 
 	memorias_disponibles = list_create();
 	strong_consistency = list_create();
@@ -108,33 +108,34 @@ void* iniciar_peticion_tablas(void* memorias_disponibles){
 		log_info(logger, "Inicio PEDIDO DE TABLAS A MEMORIA");
 		t_operacion operacion = SOLICITUD_TABLA_GOSSIPING;
 
-		if(socket_memoria != -1){
-			send(socket_memoria,&operacion,sizeof(t_operacion),MSG_WAITALL);
-			recibir_tabla_de_gossiping(socket_memoria);
-			log_info(logger, "FIN PEDIDO DE TABLAS");
-		} else {
-			int i=0;
+
+//		if(socket_memoria != -1){
+//			send(socket_memoria,&operacion,sizeof(t_operacion),MSG_WAITALL);
+//			recibir_tabla_de_gossiping(socket_memoria);
+//			log_info(logger, "FIN PEDIDO DE TABLAS");
+//		} else {
+		int i=0;
+		pthread_mutex_lock(&memorias_disponibles_mutex);
+		int tamanio = list_size(memorias_disponibles);
+		pthread_mutex_unlock(&memorias_disponibles_mutex);
+		while (i < tamanio){
 			pthread_mutex_lock(&memorias_disponibles_mutex);
-			int tamanio = tablag->elements_count;
-			while (i < tamanio){
-//				pthread_mutex_lock(&memorias_disponibles_mutex);
-				t_memoria* memoria_a_pedir = list_get(tablag, i);
-				pthread_mutex_unlock(&memorias_disponibles_mutex);
+			t_memoria* memoria_a_pedir = list_get(tablag, i);
+			pthread_mutex_unlock(&memorias_disponibles_mutex);
 
-				int socket_memoria_a_pedir = crear_conexion(memoria_a_pedir->ip,memoria_a_pedir->puerto);
-				if(socket_memoria_a_pedir != -1){
-					send(socket_memoria_a_pedir,&operacion,sizeof(t_operacion),MSG_WAITALL);
-					recibir_tabla_de_gossiping(socket_memoria_a_pedir);
-					log_info(logger, "FIN PEDIDO DE TABLAS");
-					socket_memoria = crear_conexion(IP_MEMORIA, PUERTO_MEMORIA);
-					i = tamanio;
-				} else {
-					i++;
-				}
+			int socket_memoria_a_pedir = crear_conexion(memoria_a_pedir->ip,memoria_a_pedir->puerto);
 
+			if(socket_memoria_a_pedir != -1){
+				close(socket_memoria);
+				send(socket_memoria_a_pedir,&operacion,sizeof(t_operacion),MSG_WAITALL);
+				recibir_tabla_de_gossiping(socket_memoria_a_pedir);
+				log_info(logger, "FIN PEDIDO DE TABLAS");
+				socket_memoria = socket_memoria_a_pedir;
+				i = tamanio;
+			} else {
+				i++;
 			}
 		}
-
 	}
 }
 
@@ -629,11 +630,11 @@ void resolver_journal(){
 }
 
 int asignar_consistencia(t_memoria* memoria, t_consistencia consistencia){
-	uint16_t numero_memoria;
+	uint16_t numero_memoria = memoria->numero_memoria;
 	int es_la_memoria(t_memoria* memoria){
 		return memoria->numero_memoria == numero_memoria;
 	}
-	int ya_estaba = 0;
+	int agregada = 0;
 	switch(consistencia){
 		case STRONG:
 			pthread_mutex_lock(&strong_consistency_mutex);
@@ -644,22 +645,22 @@ int asignar_consistencia(t_memoria* memoria, t_consistencia consistencia){
 			pthread_mutex_lock(&strong_hash_consistency_mutex);
 			if(list_find(strong_hash_consistency, (void*) es_la_memoria) == NULL){
 				list_add(strong_hash_consistency, memoria);
-				ya_estaba = 1;
+				agregada = 1;
 			}
 			pthread_mutex_unlock(&strong_hash_consistency_mutex);
-			if(ya_estaba){
+			if(agregada){
 				resolver_journal_hash();
 			}
 
-			return ya_estaba;
+			return agregada;
 		case EVENTUAL:
 			pthread_mutex_lock(&eventual_consistency_mutex);
 			if(list_find(eventual_consistency, (void*) es_la_memoria) == NULL){
 				list_add(eventual_consistency, memoria);
-				ya_estaba = 1;
+				agregada = 1;
 			}
 			pthread_mutex_unlock(&eventual_consistency_mutex);
-			return ya_estaba;
+			return agregada;
 		default:
 			return -1;
 	}
@@ -819,7 +820,7 @@ void leer_atributos_config(){
 	QUANTUM = config_get_int_value(archivoconfig, "QUANTUM");
 	CANT_EXEC = config_get_int_value(archivoconfig, "NIVEL_MULTIPROCESAMIENTO");
 	SLEEP_EJECUCION = config_get_int_value(archivoconfig, "SLEEP_EJECUCION") / 1000;
-	retardo_gossiping = config_get_int_value(archivoconfig, "RETARDO_GOSSIPING");
+	retardo_gossiping = config_get_int_value(archivoconfig, "RETARDO_GOSSIPING") / 1000;
 }
 
 int generarID(){

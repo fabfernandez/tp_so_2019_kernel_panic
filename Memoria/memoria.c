@@ -123,31 +123,39 @@ void resolver_gossiping(int socket){
 	enviar_mi_tabla_de_gossiping(socket);
 }
 void recibir_tabla_de_gossiping(int socket){
-	int numero_memorias;
+	int numero_memorias = 0;
 	recv(socket,&numero_memorias,sizeof(int),MSG_WAITALL);
 	log_info(logger_g, "Memorias de tabla: %i",numero_memorias);
-		for(int i=0;i<numero_memorias;i++){
-			t_gossip* memoria=malloc(sizeof(t_gossip));
-			int tamanio_ip;
-			recv(socket,&tamanio_ip,sizeof(int),MSG_WAITALL);
-			memoria->ip_memoria=malloc(tamanio_ip);
-			//log_info(logger, "Tamanio ip %i",tamanio_ip);
-			recv(socket,memoria->ip_memoria,tamanio_ip,MSG_WAITALL);
-			//log_info(logger, "IP: %s",memoria->ip_memoria);
-			int tamanio_nombre;
-			recv(socket,&tamanio_nombre,sizeof(int),MSG_WAITALL);
-			//log_info(logger, "Tamanio nombre %i",tamanio_nombre);
-			memoria->nombre_memoria=malloc(tamanio_nombre);
-			recv(socket,memoria->nombre_memoria,tamanio_nombre,MSG_WAITALL);
-			int tamanio_puerto;
-			recv(socket,&tamanio_puerto,sizeof(int),MSG_WAITALL);
-			memoria->puerto_memoria=malloc(tamanio_puerto);
-			//log_info(logger, "Tamanio puerto %i",tamanio_puerto);
-			recv(socket,memoria->puerto_memoria,tamanio_puerto,MSG_WAITALL);
-			log_info(logger_g, "IP: %s , PUERTO: %s , NOMBRE: %s",memoria->ip_memoria,memoria->puerto_memoria,memoria->nombre_memoria);
-			if(encontrarMemoria(memoria->nombre_memoria, tablaGossiping)!=NULL){ eliminar_memoria_gossip(memoria); } else { list_add(tablaGossiping,memoria); }
 
+	for(int i=0;i<numero_memorias;i++){
+		t_gossip* memoria=malloc(sizeof(t_gossip));
+		int tamanio_ip;
+		recv(socket,&tamanio_ip,sizeof(int),MSG_WAITALL);
+		memoria->ip_memoria=malloc(tamanio_ip);
+
+		//log_info(logger, "Tamanio ip %i",tamanio_ip);
+		recv(socket,memoria->ip_memoria,tamanio_ip,MSG_WAITALL);
+		//log_info(logger, "IP: %s",memoria->ip_memoria);
+		int tamanio_nombre;
+		recv(socket,&tamanio_nombre,sizeof(int),MSG_WAITALL);
+
+		//log_info(logger, "Tamanio nombre %i",tamanio_nombre);
+		memoria->nombre_memoria=malloc(tamanio_nombre);
+		recv(socket,memoria->nombre_memoria,tamanio_nombre,MSG_WAITALL);
+		int tamanio_puerto;
+		recv(socket,&tamanio_puerto,sizeof(int),MSG_WAITALL);
+		memoria->puerto_memoria=malloc(tamanio_puerto);
+
+		//log_info(logger, "Tamanio puerto %i",tamanio_puerto);
+		recv(socket,memoria->puerto_memoria,tamanio_puerto,MSG_WAITALL);
+		log_info(logger_g, "IP: %s , PUERTO: %s , NOMBRE: %s",memoria->ip_memoria,memoria->puerto_memoria,memoria->nombre_memoria);
+
+		if(encontrarMemoria(memoria->nombre_memoria, tablaGossiping)!=NULL){
+			eliminar_memoria_gossip(memoria);
+		}else{
+			list_add(tablaGossiping,memoria);
 		}
+	}
 }
 void eliminar_memoria_gossip(t_gossip* memoria){
 	free(memoria->ip_memoria);
@@ -395,7 +403,7 @@ int resolver_insert_para_consola(t_instruccion_lql insert,char* memoria_principa
 int resolver_select_para_consola(t_instruccion_lql instruccion_select,char* memoria_principal, t_list* tablas){
 
 	log_info(logger_mostrado, "SELECT");
-	log_info(logger_mostrado, "TABLA: %s KEY %d", consulta_select->nombre_tabla->palabra, consulta_select->key);
+	log_info(logger_mostrado, "TABLA: %s KEY %d", instruccion_select.parametros.SELECT.tabla, instruccion_select.parametros.SELECT.key);
 
 	char* tabla = instruccion_select.parametros.SELECT.tabla;
 	uint16_t key = instruccion_select.parametros.SELECT.key;
