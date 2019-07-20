@@ -1041,10 +1041,10 @@ void resolver_describe_para_kernel(int socket_kernel_fd, int socket_conexion_lfs
 			enviar_paquete_metadata(socket_kernel_fd, metadata);
 			eliminar_metadata(metadata);
 		}
-		eliminar_paquete_status(status);
+//		WARNING: Tiene un free de mas que aca estalla y en el resto no
+//		eliminar_paquete_status(status);
 	}
 	eliminar_paquete_drop_describe(consulta_describe);
-
 }
 void resolver_describe_consola(t_instruccion_lql instruccion){
 	t_paquete_drop_describe* consulta = malloc(sizeof(t_paquete_drop_describe));
