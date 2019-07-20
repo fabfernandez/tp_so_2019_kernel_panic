@@ -108,35 +108,34 @@ void* iniciar_peticion_tablas(void* memorias_disponibles){
 		log_info(logger, "Inicio PEDIDO DE TABLAS A MEMORIA");
 		t_operacion operacion = SOLICITUD_TABLA_GOSSIPING;
 
-		if(socket_memoria != -1){
-			send(socket_memoria,&operacion,sizeof(t_operacion),MSG_WAITALL);
-			recibir_tabla_de_gossiping(socket_memoria);
-			log_info(logger, "FIN PEDIDO DE TABLAS");
-		} else {
-			int i=0;
+
+//		if(socket_memoria != -1){
+//			send(socket_memoria,&operacion,sizeof(t_operacion),MSG_WAITALL);
+//			recibir_tabla_de_gossiping(socket_memoria);
+//			log_info(logger, "FIN PEDIDO DE TABLAS");
+//		} else {
+		int i=0;
+		pthread_mutex_lock(&memorias_disponibles_mutex);
+		int tamanio = list_size(memorias_disponibles);
+		pthread_mutex_unlock(&memorias_disponibles_mutex);
+		while (i < tamanio){
 			pthread_mutex_lock(&memorias_disponibles_mutex);
-			int tamanio = list_size(memorias_disponibles);
+			t_memoria* memoria_a_pedir = list_get(tablag, i);
 			pthread_mutex_unlock(&memorias_disponibles_mutex);
-			while (i < tamanio){
-				pthread_mutex_lock(&memorias_disponibles_mutex);
-				t_memoria* memoria_a_pedir = list_get(tablag, i);
-				pthread_mutex_unlock(&memorias_disponibles_mutex);
 
-				int socket_memoria_a_pedir = crear_conexion(memoria_a_pedir->ip,memoria_a_pedir->puerto);
-				if(socket_memoria_a_pedir != -1){
-					send(socket_memoria_a_pedir,&operacion,sizeof(t_operacion),MSG_WAITALL);
-					recibir_tabla_de_gossiping(socket_memoria_a_pedir);
-					log_info(logger, "FIN PEDIDO DE TABLAS");
-					socket_memoria = crear_conexion(memoria_a_pedir->ip,memoria_a_pedir->puerto);
-					i = tamanio;
-					close(socket_memoria_a_pedir);
-				} else {
-					i++;
-				}
+			int socket_memoria_a_pedir = crear_conexion(memoria_a_pedir->ip,memoria_a_pedir->puerto);
 
+			if(socket_memoria_a_pedir != -1){
+				close(socket_memoria);
+				send(socket_memoria_a_pedir,&operacion,sizeof(t_operacion),MSG_WAITALL);
+				recibir_tabla_de_gossiping(socket_memoria_a_pedir);
+				log_info(logger, "FIN PEDIDO DE TABLAS");
+				socket_memoria = socket_memoria_a_pedir;
+				i = tamanio;
+			} else {
+				i++;
 			}
 		}
-
 	}
 }
 
