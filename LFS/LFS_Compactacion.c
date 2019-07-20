@@ -379,6 +379,7 @@ void actualizar_registro(t_list* registros, t_registro* un_registro){
 			eliminar_registro(un_registro);
 		}
 	}
+
 }
 void liberar_bloques_compactacion(char* path_tabla, t_list* particiones_a_liberar){
 
@@ -387,7 +388,9 @@ void liberar_bloques_compactacion(char* path_tabla, t_list* particiones_a_libera
 	while(entry != NULL){
 		if (( strcmp(entry->d_name, ".")!=0 && strcmp(entry->d_name, "..")!=0 ) && ( archivo_es_del_tipo(entry->d_name,"tempc") || (archivo_es_del_tipo(entry->d_name,"bin")&& pertenece_a_lista_particiones(particiones_a_liberar,entry->d_name) )) ) {
 			char* dir_archivo = string_from_format("%s/%s", path_tabla, entry->d_name);
+			pthread_mutex_lock(&mutexBloques);
 			liberar_bloques_archivo(dir_archivo);
+			pthread_mutex_unlock(&mutexBloques);
 			free(dir_archivo);
 		}
 		entry = readdir(dir);
@@ -426,7 +429,9 @@ void realizar_compactacion(char* path_tabla, t_list* registros_filtrados){
 		if(!list_is_empty(registros_de_particion)){
 		char* path_archivo = string_from_format("%s/%d.bin", path_tabla, i);
 
+		pthread_mutex_lock(&mutexBloques);
 		escribir_registros_y_crear_archivo(registros_de_particion, path_archivo);
+		pthread_mutex_unlock(&mutexBloques);
 		free(path_archivo);
 		}
 

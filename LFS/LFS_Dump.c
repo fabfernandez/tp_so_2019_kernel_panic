@@ -59,8 +59,9 @@ void dump_por_tabla(t_cache_tabla* tabla){
 	string_append(&path_tabla,path_temp);
 
 	log_info(logger_dump, "Se crea el temporal: [%d], en el path: [%s]", num, path_tabla);
-
+	pthread_mutex_lock(&mutexBloques);
 	escribir_registros_y_crear_archivo(tabla->registros, path_tabla);
+	pthread_mutex_unlock(&mutexBloques);
 	free(path_temp);
 	free(path_tabla);
 
@@ -112,6 +113,7 @@ t_list* bajo_registros_a_blocks(int size_registros, char* registros){
 		int bloque = obtener_bloque_disponible();
 
 		log_info(logger_dump, "Se escriben [%d] bytes de registros, en el bloque: [%d]",tamanio_registros,bloque);
+
 		escribir_bloque(bloque, datos);
 		log_info(logger_dump, "Bloque escrito satisfactoriamente");
 		list_add(bloques, (int) bloque);

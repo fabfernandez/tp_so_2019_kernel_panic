@@ -453,6 +453,7 @@ int resolver_select_para_consola(t_instruccion_lql instruccion_select,char* memo
  	*
  	*/
 int resolver_select_para_kernel (int socket_kernel_fd, int socket_conexion_lfs,char* memoria_principal, t_list* tablas){
+		log_info(logger, "Se realiza SELECT a pedido de Kernel--");
 		t_paquete_select* consulta_select = deserializar_select(socket_kernel_fd);
 
 		log_info(logger, "Se realiza SELECT");
@@ -494,7 +495,9 @@ int resolver_select_para_kernel (int socket_kernel_fd, int socket_conexion_lfs,c
 									list_add(tablas, crearSegmento(tabla));
 									paginaNueva(key,registro->value,registro->timestamp,tabla,memoria_principal,tablas);
 								} else { paginaNueva(key,registro->value,registro->timestamp,tabla,memoria_principal,tablas); }
+
 							enviar_status_resultado(status, socket_kernel_fd);
+							log_info(logger, "ACA ENVIE STATUS DSP DE LFS");
 							free(registro->value);
 							free(registro);
 							eliminar_paquete_select(consulta_select);

@@ -415,6 +415,21 @@ void resolver_select(t_instruccion_lql instruccion){
 			error = 0;
 		}else{
 			log_error(logger, "Error: %s", status->mensaje->palabra);
+			if (strcmp(status->mensaje->palabra, "Memoria full" )==0){
+				t_operacion operacion_a_enviar = JOURNAL;
+				send(socket_memoria_a_usar, &operacion_a_enviar, sizeof(t_operacion), MSG_WAITALL);
+				log_info(logger, "Se ha realizado el JOURNAL a la memoria con socket: %d", socket_memoria_a_usar);
+				enviar_paquete_select(socket_memoria_a_usar, paquete_select);
+				log_info(logger, "Se ha realizado el SELECT nuevamente a la memoria con socket: %d", socket_memoria_a_usar);
+				t_status_solicitud* status = desearilizar_status_solicitud(socket_memoria_a_usar);
+				if(status->es_valido){
+					log_info(logger, "Resultado: %s", status->mensaje->palabra);
+					error = 0;
+				}else{
+					log_error(logger, "Error: %s", status->mensaje->palabra);
+				}
+
+			}
 			error = 0;
 		}
 		clock_gettime(CLOCK_REALTIME, &spec);
@@ -457,6 +472,25 @@ void resolver_insert (t_instruccion_lql instruccion){
 			char* mensaje = malloc(largo);
 			recv(socket_memoria_a_usar,mensaje,largo,MSG_WAITALL);
 			log_error(logger, "%s",mensaje);
+			if (strcmp(mensaje, "Memoria full" )==0){
+				t_operacion operacion_a_enviar = JOURNAL;
+				send(socket_memoria_a_usar, &operacion_a_enviar, sizeof(t_operacion), MSG_WAITALL);
+				log_info(logger, "Se ha realizado el JOURNAL a la memoria con socket: %d", socket_memoria_a_usar);
+				enviar_paquete_insert(socket_memoria_a_usar, paquete_insert);
+				log_info(logger, "Se ha realizado el SELECT nuevamente a la memoria con socket: %d", socket_memoria_a_usar);
+				bool respuesta;
+				recv(socket_memoria_a_usar,&respuesta,sizeof(bool),MSG_WAITALL);
+				if(respuesta) {
+					log_info(logger, "Insert OK");
+				} else {
+					int largo;
+					recv(socket_memoria_a_usar,&largo,sizeof(int),MSG_WAITALL);
+					char* mensaje = malloc(largo);
+					recv(socket_memoria_a_usar,mensaje,largo,MSG_WAITALL);
+					log_error(logger, "%s",mensaje);
+				}
+
+			}
 			free(mensaje);
 
 		}
@@ -573,13 +607,17 @@ void resolver_metrics(){
 }
 
 void resolver_journal(){
+	pthread_mutex_lock(&memorias_disponibles_mutex);
 	for(int i=0; i<list_size(memorias_disponibles); i++){
 		t_memoria* memoria = list_get(memorias_disponibles, i);
 		int socket_conexion = crear_conexion(memoria->ip, memoria->puerto);
-		send(socket_conexion, JOURNAL, sizeof(int), MSG_WAITALL);
+		t_operacion operacion_a_enviar = JOURNAL;
+		send(socket_conexion, &operacion_a_enviar, sizeof(t_operacion), MSG_WAITALL);
+
 		liberar_conexion(socket_conexion);
 		log_info(logger, "Se ha realizado el JOURNAL a la memoria: %d", memoria->numero_memoria);
 	}
+	pthread_mutex_unlock(&memorias_disponibles_mutex);
 	log_info(logger, "Se ha realizado el JOURNAL a todas las memorias");
 }
 

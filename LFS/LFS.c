@@ -24,6 +24,8 @@ int main(void)
 
 	iniciarMutexMemtable();
 	iniciarMutexDump();
+	iniciarMutexTablasLFS();
+	iniciarMutexBloques();
 	levantar_lfs(montaje);
 	crear_hilo_server();
 	crear_hilo_consola();
@@ -63,9 +65,13 @@ void desconectar_lfs(){
 	dump_proceso();
 	log_info(logger_dump,"Finaliza LFS. Finalizado Dump");
 	eliminar_tablas_logicas();
+	pthread_mutex_lock(&mutexMemtable);
 	list_destroy_and_destroy_elements(memtable, eliminar_tabla);
+	pthread_mutex_unlock(&mutexMemtable);
+	pthread_mutex_lock(&mutexBloques);
 	munmap(bmap, size_bitmap.st_size);
 	bitarray_destroy(bitarray);
+	pthread_mutex_unlock(&mutexBloques);
 	dictionary_destroy(instrucciones_bloqueadas_por_tabla);
 	config_destroy(archivoconfig);
 	log_destroy(logger_dump);
@@ -86,7 +92,9 @@ void eliminar_tablas_logicas(){
 		log_info(logger_compactacion,"Finaliza LFS. Finalizado Compactacion para tabla %s", tabla_logica->nombre);
 		pthread_mutex_unlock(&(tabla_logica->mutex_compactacion));
 	}
+	pthread_mutex_lock(&mutexTablasLFS);
 	list_destroy_and_destroy_elements(tablas_en_lfs, (void*)liberar_tabla_logica);
+	pthread_mutex_unlock(&mutexTablasLFS);
 }
 
 void liberar_tabla_logica(t_tabla_logica* tabla){
@@ -121,6 +129,36 @@ void iniciarMutexDump(){
 	};
 }
 
+void iniciarMutexHilosMemoria(){
+
+	if(pthread_mutex_init(&mutexHilosMemoria,NULL)==0){
+			log_info(logger, "MutexHilosMemoria inicializado correctamente");
+
+		} else {
+			log_error(logger, "Fallo inicializacion de MutexHilosMemoria");
+		};
+}
+
+void iniciarMutexTablasLFS(){
+	if(pthread_mutex_init(&mutexTablasLFS,NULL)==0){
+		log_info(logger, "MutexBitmap inicializado correctamente");
+
+	} else {
+		log_error(logger, "Fallo inicializacion de MutexBitmap");
+	};
+}
+
+void iniciarMutexBloques(){
+	if(pthread_mutex_init(&mutexBloques,NULL)==0){
+		log_info(logger, "MutexBloques inicializado correctamente");
+
+	} else {
+		log_error(logger, "Fallo inicializacion de MutexBloques");
+	};
+}
+
+
+
 void *atender_pedido_memoria (void* memoria_fd){
 
 	int socket_memoria = *((int *) memoria_fd);
@@ -131,9 +169,12 @@ void *atender_pedido_memoria (void* memoria_fd){
 	while(1){
 		int cod_op = recibir_operacion(socket_memoria);
 		if (resolver_operacion(socket_memoria, cod_op)!=0){
+			pthread_mutex_lock(&mutexHilosMemoria);
 			list_remove_by_condition(hilos_memorias,_es_hilo_memoria);
+			pthread_mutex_unlock(&mutexHilosMemoria);
 			pthread_cancel(id_hilo);
 			free(memoria_fd);
+
 		}
 	}
 	    //free(i);
@@ -150,8 +191,9 @@ void crear_hilo_memoria(int socket_memoria){
 	if (pthread_detach(hilo_memoria) != 0){
 		log_error(logger, "Error al frenar hilo");
 	}
+	pthread_mutex_lock(&mutexHilosMemoria);
 	list_add(hilos_memorias, hilo_memoria);
-
+	pthread_mutex_unlock(&mutexHilosMemoria);
 }
 
 void agregar_cliente(fd_set* master, int cliente, int* fdmax){
@@ -187,6 +229,7 @@ int resolver_operacion(int socket_memoria, t_operacion cod_op){
 			log_info(logger, "memoria solicitó SELECT");
 			t_paquete_select* select = deserializar_select(socket_memoria);
 			if (tabla_esta_bloqueada(select->nombre_tabla->palabra)){
+				log_info(logger, "La tabla %s esta bloqueada. Creo una nueva instruccion bloqueada para ejecutar dsp", select->nombre_tabla->palabra);
 				agregar_instruccion_bloqueada(crear_instruccion_select_bloqueada(select, socket_memoria), select->nombre_tabla->palabra);
 			}else{
 				status = resolver_select(select->nombre_tabla->palabra, select->key);
@@ -198,6 +241,7 @@ int resolver_operacion(int socket_memoria, t_operacion cod_op){
 			log_info(logger, "memoria solicitó INSERT");
 			t_paquete_insert* consulta_insert = deserealizar_insert(socket_memoria);
 			if (tabla_esta_bloqueada(consulta_insert->nombre_tabla->palabra)){
+				log_info(logger, "La tabla %s esta bloqueada. Creo una nueva instruccion bloqueada para ejecutar dsp", select->nombre_tabla->palabra);
 				agregar_instruccion_bloqueada(crear_instruccion_insert_bloqueada(consulta_insert, socket_memoria), consulta_insert->nombre_tabla->palabra);
 			}else{
 				status = resolver_insert(logger, consulta_insert->nombre_tabla->palabra, consulta_insert->key, consulta_insert->valor->palabra, consulta_insert->timestamp);
@@ -336,7 +380,9 @@ void liberar_bloques_tabla(char* path_tabla){
 	while(entry != NULL){
 		if (( strcmp(entry->d_name, ".")!=0 && strcmp(entry->d_name, "..")!=0 ) && ( archivo_es_del_tipo(entry->d_name,"temp") || archivo_es_del_tipo(entry->d_name,"tempc") || archivo_es_del_tipo(entry->d_name,"bin"))) {
 			char* dir_archivo = string_from_format("%s/%s", path_tabla, entry->d_name);
+			pthread_mutex_lock(&mutexBloques);
 			liberar_bloques_archivo(dir_archivo);
+			pthread_mutex_unlock(&mutexBloques);
 			free(dir_archivo);
 		}
 		entry = readdir(dir);
@@ -353,7 +399,7 @@ void liberar_bloques_archivo(char* path_archivo){
 	while(bloques[ind_bloques]!=NULL){
 		liberar_bloque(atoi(bloques[ind_bloques]));
 		ind_bloques = ind_bloques + 1;
-		free(bloques[ind_bloques]);
+		//free(bloques[ind_bloques]);
 	}
 	free(bloques);
 	config_destroy(archivo);
@@ -364,7 +410,9 @@ void eliminar_tabla_memtable(char* nombre_tabla){
 	int _es_tabla_con_nombre(t_cache_tabla* tabla) {
 		return string_equals_ignore_case(tabla->nombre, nombre_tabla);
 	}
+	pthread_mutex_lock(&mutexMemtable);
 	t_list* tabla_cache_eliminada = list_remove_by_condition(memtable, _es_tabla_con_nombre);
+	pthread_mutex_unlock(&mutexMemtable);
 	if (tabla_cache_eliminada!=NULL){
 		list_destroy(tabla_cache_eliminada);
 	}
@@ -432,7 +480,9 @@ void obtener_tablas_en_lfs(){
 
 void agregar_tabla_logica(char* nombre_tabla){
 	t_tabla_logica* tabla_fisica = crear_tabla_logica(nombre_tabla);
+	pthread_mutex_lock(&mutexTablasLFS);
 	list_add(tablas_en_lfs, tabla_fisica);
+	pthread_mutex_unlock(&mutexTablasLFS);
 }
 
 void eliminar_tabla_logica(char* nombre_tabla){
@@ -440,8 +490,13 @@ void eliminar_tabla_logica(char* nombre_tabla){
 		return string_equals_ignore_case(tabla->nombre, nombre_tabla);
 	}
 
+	t_tabla_logica* tabla_logica1 = list_find(tablas_en_lfs, _es_tabla_con_nombre);
+	pthread_mutex_t mutex = tabla_logica1->mutex_compactacion;
+
+	pthread_mutex_lock(&mutex);
+	pthread_mutex_lock(&mutexTablasLFS);
 	t_tabla_logica* tabla_logica = list_remove_by_condition(tablas_en_lfs, _es_tabla_con_nombre);
-	pthread_mutex_lock(&(tabla_logica->mutex_compactacion));
+	pthread_mutex_unlock(&mutexTablasLFS);
 	if (tabla_logica!=NULL){
 		log_info(logger_compactacion, "Se elimina la tabla %s. Se procede a frenar el hilo.", nombre_tabla);
 		eliminar_parametros_compactacion(tabla_logica->parametros);
@@ -451,6 +506,8 @@ void eliminar_tabla_logica(char* nombre_tabla){
 		free(tabla_logica->nombre);
 		free(tabla_logica);
 	}
+
+	pthread_mutex_unlock(&mutex);
 
 }
 
@@ -473,7 +530,9 @@ t_tabla_logica* crear_tabla_logica(char* nombre_tabla){
 		log_error(logger, "Fallo inicializacion de MutexCompactacion para tabla %s", nombre_tabla);
 	}
 	tabla->mutex_compactacion = mutex_compactacion_tabla;
+	pthread_mutex_lock(&mutexTablasLFS);
 	list_add(tablas_en_lfs, tabla);
+	pthread_mutex_unlock(&mutexTablasLFS);
 	t_parametros_compactacion* parametros = crear_parametros_compactacion(tabla->nombre);
 	pthread_t hilo = crear_hilo_compactacion(parametros);
 	tabla->id_hilo_compactacion = hilo;
@@ -582,7 +641,9 @@ void crear_particiones(char* dir_tabla,int  num_particiones){
 	for(ind =0;ind < num_particiones; ind++){
 		char* dir_particion = string_from_format("%s/%i.bin", dir_tabla, ind);
 		t_list* bloques = list_create();
+		pthread_mutex_lock(&mutexBloques);
 		int num_bloque= obtener_bloque_disponible();
+		pthread_mutex_unlock(&mutexBloques);
 		list_add(bloques, num_bloque);   //paso la direccion de memoria de num_bloque, que adentro tiene el bloque disponible
 
 		crear_archivo(dir_particion, 0, bloques);
@@ -637,8 +698,10 @@ void liberar_bloque(int num_bloque){
 	FILE* fpFile = fopen(dir_bloque,"wb");
 	fclose(fpFile);
 	truncate(dir_bloque, block_size);
+	//pthread_mutex_lock(&mutexBitmap);
 	bitarray_clean_bit(bitarray, num_bloque);
 	msync(bmap, sizeof(bitarray), MS_SYNC);
+	//pthread_mutex_unlock(&mutexBitmap);
 	free(dir_bloque);
 }
 
@@ -646,6 +709,7 @@ int obtener_bloque_disponible(){
 
 	bool esta_ocupado=true;
 	int nro_bloque=0;
+	//pthread_mutex_lock(&mutexBitmap);
 	while(esta_ocupado == true){
 		esta_ocupado = bitarray_test_bit(bitarray, nro_bloque);
 		nro_bloque=nro_bloque+1;
@@ -653,7 +717,7 @@ int obtener_bloque_disponible(){
 	nro_bloque=nro_bloque-1;
 	bitarray_set_bit(bitarray,nro_bloque);
 	msync(bmap, sizeof(bitarray), MS_SYNC);
-
+	//pthread_mutex_unlock(&mutexBitmap);
 	return nro_bloque;
 
 }
@@ -783,7 +847,6 @@ t_registro* crear_registro(char* value, uint16_t key, long timestamp){
 }
 
 void agregar_registro_memtable(t_registro* registro_a_insertar, char * nombre_tabla){
-
 
 	t_cache_tabla* tabla_cache = obtener_tabla_memtable(nombre_tabla);
 
@@ -969,7 +1032,9 @@ char* leer_bloques_de_archivo(char* path_archivo){
 //			long tamanioArchivo = ftell(file);
 //			fseek(file, 0, SEEK_SET);
 			buffer = malloc(size_a_leer+1);
+			pthread_mutex_lock(&mutexBloques);
 			size_t read_count = fread(buffer, sizeof(char), size_a_leer, file);
+			pthread_mutex_unlock(&mutexBloques);
 			buffer[read_count]='\0';
 			string_append(&buffer_bloques, buffer);
 			fclose(file);
@@ -1022,6 +1087,7 @@ t_list* buscar_registros_memtable(char* nombre_tabla, uint16_t key){
 		return registro->key== key;
 	}
 
+	pthread_mutex_lock(&mutexMemtable);
 	t_list* registros_encontrados;
 	t_cache_tabla* tabla_cache= list_find(memtable, (void*) _es_tabla_con_nombre);
 	if(tabla_cache!=NULL){
@@ -1029,7 +1095,7 @@ t_list* buscar_registros_memtable(char* nombre_tabla, uint16_t key){
 	}else{
 		registros_encontrados = list_create();
 	}
-
+	pthread_mutex_unlock(&mutexMemtable);
 	return registros_encontrados;
 }
 

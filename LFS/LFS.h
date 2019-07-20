@@ -81,7 +81,7 @@ char* ip_lfs;
 char* puerto_lfs;
 int tiempo_dump;
 long retardo;
-pthread_mutex_t mutexMemtable, mutexDump;
+pthread_mutex_t mutexMemtable, mutexDump, mutexTablasLFS, mutexBloques, mutexHilosMemoria;
 bool fin_de_programa;
 pthread_t hilo_consola;
 pthread_t hilo_dump;

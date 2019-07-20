@@ -273,6 +273,10 @@ t_registro* obtener_registro(char* registro_serealizado){
 	registro->key =(uint16_t) atol(split[1]);
 	registro->value = malloc(string_size(split[2]));
 	strcpy(registro->value ,split[2]);//, string_size(&(registro->value)));
+	free(split[0]);
+	free(split[1]);
+	free(split[3]);
+	free(split);
 	return registro;
 }
 
