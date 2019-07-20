@@ -630,11 +630,11 @@ void resolver_journal(){
 }
 
 int asignar_consistencia(t_memoria* memoria, t_consistencia consistencia){
-	uint16_t numero_memoria;
+	uint16_t numero_memoria = memoria->numero_memoria;
 	int es_la_memoria(t_memoria* memoria){
 		return memoria->numero_memoria == numero_memoria;
 	}
-	int ya_estaba = 0;
+	int agregada = 0;
 	switch(consistencia){
 		case STRONG:
 			pthread_mutex_lock(&strong_consistency_mutex);
@@ -645,22 +645,22 @@ int asignar_consistencia(t_memoria* memoria, t_consistencia consistencia){
 			pthread_mutex_lock(&strong_hash_consistency_mutex);
 			if(list_find(strong_hash_consistency, (void*) es_la_memoria) == NULL){
 				list_add(strong_hash_consistency, memoria);
-				ya_estaba = 1;
+				agregada = 1;
 			}
 			pthread_mutex_unlock(&strong_hash_consistency_mutex);
-			if(ya_estaba){
+			if(agregada){
 				resolver_journal_hash();
 			}
 
-			return ya_estaba;
+			return agregada;
 		case EVENTUAL:
 			pthread_mutex_lock(&eventual_consistency_mutex);
 			if(list_find(eventual_consistency, (void*) es_la_memoria) == NULL){
 				list_add(eventual_consistency, memoria);
-				ya_estaba = 1;
+				agregada = 1;
 			}
 			pthread_mutex_unlock(&eventual_consistency_mutex);
-			return ya_estaba;
+			return agregada;
 		default:
 			return -1;
 	}
