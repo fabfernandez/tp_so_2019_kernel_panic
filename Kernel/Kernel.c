@@ -48,7 +48,7 @@ int main(void){
 	memcpy(memoria_principal->puerto, PUERTO_MEMORIA, string_size(PUERTO_MEMORIA));
 
 //	memoria_principal->numero_memoria = (uint16_t)malloc(sizeof(int));
-	memoria_principal->numero_memoria = 1;
+	memoria_principal->numero_memoria = (uint16_t)config_get_int_value(archivoconfig, "NUMERO_MEMORIA");
 
 	memorias_disponibles = list_create();
 	strong_consistency = list_create();
@@ -115,9 +115,10 @@ void* iniciar_peticion_tablas(void* memorias_disponibles){
 		} else {
 			int i=0;
 			pthread_mutex_lock(&memorias_disponibles_mutex);
-			int tamanio = tablag->elements_count;
+			int tamanio = list_size(memorias_disponibles);
+			pthread_mutex_unlock(&memorias_disponibles_mutex);
 			while (i < tamanio){
-//				pthread_mutex_lock(&memorias_disponibles_mutex);
+				pthread_mutex_lock(&memorias_disponibles_mutex);
 				t_memoria* memoria_a_pedir = list_get(tablag, i);
 				pthread_mutex_unlock(&memorias_disponibles_mutex);
 
@@ -126,8 +127,9 @@ void* iniciar_peticion_tablas(void* memorias_disponibles){
 					send(socket_memoria_a_pedir,&operacion,sizeof(t_operacion),MSG_WAITALL);
 					recibir_tabla_de_gossiping(socket_memoria_a_pedir);
 					log_info(logger, "FIN PEDIDO DE TABLAS");
-					socket_memoria = crear_conexion(IP_MEMORIA, PUERTO_MEMORIA);
+					socket_memoria = crear_conexion(memoria_a_pedir->ip,memoria_a_pedir->puerto);
 					i = tamanio;
+					close(socket_memoria_a_pedir);
 				} else {
 					i++;
 				}
@@ -819,7 +821,7 @@ void leer_atributos_config(){
 	QUANTUM = config_get_int_value(archivoconfig, "QUANTUM");
 	CANT_EXEC = config_get_int_value(archivoconfig, "NIVEL_MULTIPROCESAMIENTO");
 	SLEEP_EJECUCION = config_get_int_value(archivoconfig, "SLEEP_EJECUCION") / 1000;
-	retardo_gossiping = config_get_int_value(archivoconfig, "RETARDO_GOSSIPING");
+	retardo_gossiping = config_get_int_value(archivoconfig, "RETARDO_GOSSIPING") / 1000;
 }
 
 int generarID(){
