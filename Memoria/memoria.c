@@ -647,7 +647,7 @@ pagina_concreta* traerPaginaDeMemoria(unsigned int posicion,char* memoria_princi
 	pagina_concreta* pagina= malloc(sizeof(pagina_concreta));
 	memcpy(&(pagina->key), &memoria_principal[posicion*tamanio_pagina], sizeof(uint16_t));
 	memcpy(&(pagina->timestamp), &memoria_principal[posicion*tamanio_pagina+sizeof(uint16_t)], sizeof(long));
-	pagina->value = malloc(20);
+	pagina->value = malloc(max_value);
 	strcpy(pagina->value, &memoria_principal[posicion*tamanio_pagina+sizeof(uint16_t)+sizeof(long)]);
 	return pagina;
 	}
