@@ -647,7 +647,7 @@ pagina_concreta* traerPaginaDeMemoria(unsigned int posicion,char* memoria_princi
 	pagina_concreta* pagina= malloc(sizeof(pagina_concreta));
 	memcpy(&(pagina->key), &memoria_principal[posicion*tamanio_pagina], sizeof(uint16_t));
 	memcpy(&(pagina->timestamp), &memoria_principal[posicion*tamanio_pagina+sizeof(uint16_t)], sizeof(long));
-	pagina->value = malloc(20);
+	pagina->value = malloc(max_value);
 	strcpy(pagina->value, &memoria_principal[posicion*tamanio_pagina+sizeof(uint16_t)+sizeof(long)]);
 	return pagina;
 	}
@@ -1041,10 +1041,10 @@ void resolver_describe_para_kernel(int socket_kernel_fd, int socket_conexion_lfs
 			enviar_paquete_metadata(socket_kernel_fd, metadata);
 			eliminar_metadata(metadata);
 		}
-		eliminar_paquete_status(status);
+//		WARNING: Tiene un free de mas que aca estalla y en el resto no
+//		eliminar_paquete_status(status);
 	}
 	eliminar_paquete_drop_describe(consulta_describe);
-
 }
 void resolver_describe_consola(t_instruccion_lql instruccion){
 	t_paquete_drop_describe* consulta = malloc(sizeof(t_paquete_drop_describe));

@@ -139,6 +139,7 @@ void revisar_y_cambiar_en(t_list* lista);
 void revisa_y_cambia_si_encuentra(t_memoria* nodo_viejo, t_list* lista, int indice);
 t_memoria* crear_nuevo_nodo_memoria(t_memoria* memoria);
 void destruir_elementos(t_list* lista);
+int socket_memoria_principal();
 
 
 //				***** REVISAR COMO CREAR LAS CONEXIONES *****					//
