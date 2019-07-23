@@ -13,8 +13,8 @@
 void *compactar(void* nombre_tabla);
 long obtener_tiempo_compactacion(char* path_tabla);
 bool hay_temporales(char* path_tabla);
-int renombrar_archivos_para_compactar(char* path_tabla);
-t_list* leer_registros_temporales(char* path_tabla, int cantidad_temporales);
+t_list* renombrar_archivos_para_compactar(char* path_tabla);
+t_list* leer_registros_temporales(t_list* temporales_a_compactar);
 t_list* leer_registros_particiones(char* path_tabla);
 //t_list* leer_registros_bloques(char* bloques, int size_total);
 //char* leer_registros_char_de_bloque(int bloque);
@@ -27,7 +27,7 @@ void liberar_bloques_archivo(char* path_archivo);
 bool pertenece_a_lista_particiones(t_list* particiones_a_liberar,char* nombre_archivo);
 void realizar_compactacion(char* path_tabla, t_list* registros_filtrados);
 t_list* encontrar_particiones_tocadas(t_list* registros_filtrados);
-t_list* eliminar_temp_y_bin_tabla(char* path_tabla, t_list* particiones_a_liberar);
+t_list* eliminar_temp_y_bin_tabla(char* path_tabla, t_list* registros_por_particion_a_modificar);
 void liberar_bloques_compactacion(t_list* bloques_a_liberar);
 
 
