@@ -369,6 +369,7 @@ int resolver_insert_para_consola(t_instruccion_lql insert,char* memoria_principa
 	char* tabla = insert.parametros.INSERT.tabla;
 	uint16_t key = insert.parametros.INSERT.key;
 	char* dato = insert.parametros.INSERT.value;
+			;
 	segmento* segmentoBuscado = encontrarSegmento(tabla,tablas);
 	int lruu= lru(memoria_principal,tablas);
 	int registroAInsertar = buscarRegistroEnTabla(tabla, key,memoria_principal,tablas);
@@ -725,8 +726,16 @@ void paginaNueva(uint16_t key, char* value, long ts, char* tabla, char* memoria,
 	//log_info(logger,"POSICION EN MMORIA: %i", pagina->posicionEnMemoria);
 	memcpy(&memoria[(pagina->posicionEnMemoria)*tamanio_pagina],&key,sizeof(uint16_t)); 					//deberia ser &key? POR ACA SEGMENTATION FAULT
 	memcpy(&memoria[(pagina->posicionEnMemoria)*tamanio_pagina+sizeof(uint16_t)],&ts,sizeof(long));			// mismo que arriba
-	memcpy(&memoria[(pagina->posicionEnMemoria)*tamanio_pagina+sizeof(uint16_t)+sizeof(long)],value,max_value-1);
-	strcpy(&memoria[(pagina->posicionEnMemoria)*tamanio_pagina+sizeof(uint16_t)+sizeof(long)+max_value-1], "");
+	if(string_size(value)<= max_value){
+		memcpy(&memoria[(pagina->posicionEnMemoria)*tamanio_pagina+sizeof(uint16_t)+sizeof(long)],value,string_size(value));
+	} else {
+		memcpy(&memoria[(pagina->posicionEnMemoria)*tamanio_pagina+sizeof(uint16_t)+sizeof(long)],value,max_value-1);
+		strcpy(&memoria[(pagina->posicionEnMemoria)*tamanio_pagina+sizeof(uint16_t)+sizeof(long)+max_value-1], "");
+	}
+
+	/* memcpy(&memoria[(pagina->posicionEnMemoria)*tamanio_pagina+sizeof(uint16_t)+sizeof(long)],value,max_value-1);
+	strcpy(&memoria[(pagina->posicionEnMemoria)*tamanio_pagina+sizeof(uint16_t)+sizeof(long)+max_value-1], ""); */
+
 	//memcpy(&memoria[(pagina->posicionEnMemoria)*tamanio_pagina+sizeof(uint16_t)+sizeof(long)+max_value-1],'\0',1);
 	//strcpy(&memoria[(pagina->posicionEnMemoria)*tamanio_pagina+sizeof(uint16_t)+sizeof(long)], value);
 	//log_info(logger,"POSICION PROXIMA EN MMORIA DISPONIBLE: %i", posicionProximaLibre);
@@ -737,8 +746,14 @@ void paginaNuevaInsert(uint16_t key, char* value, long ts, char* tabla, char* me
 	//log_info(logger,"POSICION EN MMORIA: %i", pagina->posicionEnMemoria);
 	memcpy(&memoria[(pagina->posicionEnMemoria)*tamanio_pagina],&key,sizeof(uint16_t)); 					//deberia ser &key? POR ACA SEGMENTATION FAULT
 	memcpy(&memoria[(pagina->posicionEnMemoria)*tamanio_pagina+sizeof(uint16_t)],&ts,sizeof(long));			// mismo que arriba
-	memcpy(&memoria[(pagina->posicionEnMemoria)*tamanio_pagina+sizeof(uint16_t)+sizeof(long)],value,max_value-1);
-	strcpy(&memoria[(pagina->posicionEnMemoria)*tamanio_pagina+sizeof(uint16_t)+sizeof(long)+max_value-1], "");
+	if(string_size(value)<= max_value){
+		memcpy(&memoria[(pagina->posicionEnMemoria)*tamanio_pagina+sizeof(uint16_t)+sizeof(long)],value,string_size(value));
+	} else {
+		memcpy(&memoria[(pagina->posicionEnMemoria)*tamanio_pagina+sizeof(uint16_t)+sizeof(long)],value,max_value-1);
+		strcpy(&memoria[(pagina->posicionEnMemoria)*tamanio_pagina+sizeof(uint16_t)+sizeof(long)+max_value-1], "");
+	}
+
+
 	//log_info(logger,"POSICION PROXIMA EN MMORIA DISPONIBLE: %i", posicionProximaLibre);
 	}
 
@@ -1216,9 +1231,9 @@ void resolver_describe_consola(t_instruccion_lql instruccion){
 	log_info(logger, "El nombre de la memoria es %s",nombre_memoria);
 	tamanio_memoria = config_get_int_value(archivoconfig, "TAM_MEM");
 	log_info(logger, "El tamaño de la memoria es: %i",tamanio_memoria);
-	retardo_journaling = config_get_int_value(archivoconfig, "RETARDO_JOURNAL");
+	retardo_journaling = config_get_int_value(archivoconfig, "RETARDO_JOURNAL")/1000;
 	log_info(logger, "El retardo del journaling automatico es: %i",retardo_journaling);
-	retardo_gossiping = config_get_int_value(archivoconfig, "RETARDO_GOSSIPING");
+	retardo_gossiping = config_get_int_value(archivoconfig, "RETARDO_GOSSIPING")/1000;
 	log_info(logger, "El retardo de gossiping automatico es: %i",retardo_gossiping);
 	}
 
