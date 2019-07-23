@@ -263,6 +263,8 @@ char* generar_registro_string(long timestamp, uint16_t key, char* value){
 	string_append(&resultado, key_to_string);
 	string_append(&resultado, ";");
 	string_append(&resultado, value);
+	free(time_to_string);
+	free(key_to_string);
 	return resultado;
 }
 

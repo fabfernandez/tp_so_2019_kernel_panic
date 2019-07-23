@@ -59,15 +59,15 @@ void dump_por_tabla(t_cache_tabla* tabla){
 	string_append(&path_tabla,path_temp);
 
 	log_info(logger_dump, "Se crea el temporal: [%d], en el path: [%s]", num, path_tabla);
-	pthread_mutex_lock(&mutexBloques);
-	escribir_registros_y_crear_archivo(tabla->registros, path_tabla);
-	pthread_mutex_unlock(&mutexBloques);
+	//pthread_mutex_lock(&mutexBloques);
+	escribir_registros_y_crear_archivo(logger_dump,tabla->registros, path_tabla);
+	//pthread_mutex_unlock(&mutexBloques);
 	free(path_temp);
 	free(path_tabla);
 
 }
 
-void escribir_registros_y_crear_archivo(t_list* registros, char* path_archivo_nuevo){
+void escribir_registros_y_crear_archivo(t_log* log_utilizado, t_list* registros, char* path_archivo_nuevo){
 	char * array_registros = string_new();
 
 	while(!list_is_empty(registros)){
@@ -84,9 +84,9 @@ void escribir_registros_y_crear_archivo(t_list* registros, char* path_archivo_nu
 	}
 
 	int size_registros = string_length(array_registros);
-	t_list* bloques_ocupados = bajo_registros_a_blocks(size_registros,array_registros);
+	t_list* bloques_ocupados = bajo_registros_a_blocks(log_utilizado,size_registros,array_registros);
 	free(array_registros);
-
+	log_info(log_utilizado, "Se genera el archivo %s con cantidad de bloques: %d y size= %d", path_archivo_nuevo, list_size(bloques_ocupados), size_registros);
 	crear_archivo(path_archivo_nuevo, size_registros, bloques_ocupados);
 	list_destroy(bloques_ocupados);
 }
@@ -98,10 +98,10 @@ void escribir_registros_y_crear_archivo(t_list* registros, char* path_archivo_nu
  	*          Retorna lista de numeros identificadores de los bloques escritos
  	*
  	*/
-t_list* bajo_registros_a_blocks(int size_registros, char* registros){
+t_list* bajo_registros_a_blocks(t_log* log_utilizado, int size_registros, char* registros){
 
 	int cantidad_bloques = div_redondeada_a_mayor( size_registros,block_size );
-	log_info(logger_dump, "Cantidad de blocks a ocupar: [%d]",cantidad_bloques);
+	log_info(log_utilizado, "Cantidad de blocks a ocupar: [%d]",cantidad_bloques);
 	t_list* bloques = list_create();
 
 	for(int i=0; i < cantidad_bloques; i++){
@@ -112,10 +112,10 @@ t_list* bajo_registros_a_blocks(int size_registros, char* registros){
 		char* datos = string_substring(registros, byte_inicial, tamanio_registros);
 		int bloque = obtener_bloque_disponible();
 
-		log_info(logger_dump, "Se escriben [%d] bytes de registros, en el bloque: [%d]",tamanio_registros,bloque);
+		log_info(log_utilizado, "Se escriben [%d] bytes de registros, en el bloque: [%d]",tamanio_registros,bloque);
 
 		escribir_bloque(bloque, datos);
-		log_info(logger_dump, "Bloque escrito satisfactoriamente");
+		log_info(log_utilizado, "Bloque escrito satisfactoriamente");
 		list_add(bloques, (int) bloque);
 		free(datos);
 	}

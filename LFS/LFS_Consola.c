@@ -35,28 +35,28 @@ int resolver_operacion_por_consola(t_instruccion_lql instruccion){
 		{
 		case SELECT:
 			log_info(logger_consola, "Se solicito SELECT por consola");
-			if (tabla_esta_bloqueada(instruccion.parametros.SELECT.tabla)){
-				t_paquete_select* paquete = crear_paquete_select(instruccion) ;
-				agregar_instruccion_bloqueada(crear_instruccion_select_bloqueada( paquete, NULL), instruccion.parametros.SELECT.tabla);
-				eliminar_paquete_select(paquete);
-			}
-			else{
-				resolver_select_consola(instruccion.parametros.SELECT.tabla, instruccion.parametros.SELECT.key);
-			}
+//			if (tabla_esta_bloqueada(instruccion.parametros.SELECT.tabla)){
+//				t_paquete_select* paquete = crear_paquete_select(instruccion) ;
+//				agregar_instruccion_bloqueada(crear_instruccion_select_bloqueada( paquete, NULL), instruccion.parametros.SELECT.tabla);
+//				eliminar_paquete_select(paquete);
+//			}
+//			else{
+			resolver_select_consola(instruccion.parametros.SELECT.tabla, instruccion.parametros.SELECT.key);
+			//}
 			break;
 		case INSERT:
 			log_info(logger_consola, "Se solicitó INSERT por consola");
-			if (tabla_esta_bloqueada(instruccion.parametros.SELECT.tabla)){
-				t_paquete_insert* paquete = crear_paquete_insert(instruccion);
-				agregar_instruccion_bloqueada(crear_instruccion_insert_bloqueada(paquete, NULL), instruccion.parametros.INSERT.tabla);
-				eliminar_paquete_insert(paquete);
-			}else{
+//			if (tabla_esta_bloqueada(instruccion.parametros.SELECT.tabla)){
+//				t_paquete_insert* paquete = crear_paquete_insert(instruccion);
+//				agregar_instruccion_bloqueada(crear_instruccion_insert_bloqueada(paquete, NULL), instruccion.parametros.INSERT.tabla);
+//				eliminar_paquete_insert(paquete);
+//			}else{
 				status = resolver_insert(logger_consola,instruccion.parametros.INSERT.tabla,
 																	instruccion.parametros.INSERT.key,
 																	instruccion.parametros.INSERT.value,
 																	instruccion.parametros.INSERT.timestamp);
 				eliminar_paquete_status(status);
-			}
+			//}
 			break;
 		case CREATE:
 			log_info(logger_consola, "Se solicitó CREATE por consola");
