@@ -2,6 +2,7 @@
 
 #echo "Se instala Commons"
 #cd ..
+#git clone https://github.com/sisoputnfrba/1C2019-Scripts-lql-entrega.git
 #git clone https://github.com/sisoputnfrba/so-commons-library
 #cd so-commons-library
 #sudo make install
