@@ -51,7 +51,7 @@ t_instruccion_lql parsear_linea(char* line){
 		if(value_ts[1] == NULL){
 
 			ret.parametros.INSERT.timestamp= get_timestamp();//(unsigned long)time(NULL);
-			printf("\n\n TIMESTAMP: %lu as\n\n",(unsigned long)get_timestamp());
+			//printf("\n\n TIMESTAMP: %lu as\n\n",(unsigned long)get_timestamp());
 		} else{
 			ret.parametros.INSERT.timestamp=(long)atol(value_ts[1]);
 		}
