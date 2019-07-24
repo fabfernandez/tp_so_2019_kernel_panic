@@ -13,10 +13,11 @@
 #include <stdio.h>
 #include <commons/string.h>
 #include "protocolos.h"
+#include <time.h>
 
 t_instruccion_lql lanzar_error(char* mensaje);
 t_instruccion_lql parsear_linea(char* line);
 int check_consistencia(char* consistencia_ingresada);
-
+long long get_timestamp();
 
 #endif /* GLOBAL_PARSER_H_ */
