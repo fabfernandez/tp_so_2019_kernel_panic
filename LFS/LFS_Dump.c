@@ -28,15 +28,19 @@ void dump_proceso(){
 		log_info(logger_dump, "DUMP- No hay datos para dumpear.");
 	}else{
 		log_info(logger_dump, "Se realiza dump");
-		t_list* datos = copiar_y_limpiar_memtable();
+		//t_list* datos = copiar_y_limpiar_memtable();
 
-		while(!list_is_empty(datos)){
-			t_cache_tabla* tabla = list_remove(datos, 0);
+
+		pthread_mutex_lock(&mutexMemtable);
+		while(!list_is_empty(memtable)){
+			t_cache_tabla* tabla = list_remove(memtable, 0);
 			log_info(logger_dump, "Se realiza dump para tabla: [%s]",tabla->nombre);
 			dump_por_tabla(tabla);
 			eliminar_tabla(tabla);
 		}
-		list_destroy(datos);
+		list_clean(memtable);
+
+		pthread_mutex_unlock(&mutexMemtable);
 
 	}
 

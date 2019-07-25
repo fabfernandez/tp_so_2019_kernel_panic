@@ -263,32 +263,65 @@ void parsear_y_ejecutar(char* linea, int flag_de_consola){
 	}
 }
 
+void liberar_instruccion(t_instruccion_lql instruccion){
+	int i=0;
+	while(instruccion._raw[i]!=NULL){
+		free(instruccion._raw[i]);
+		i=i+1;
+	}
+	free(instruccion._raw);
+}
+
+void liberar_instruccion_insert(t_instruccion_lql instruccion){
+
+	int i=0;
+	while(instruccion.parametros.INSERT.split_value[i]!=NULL){
+		free(instruccion.parametros.INSERT.split_value[i]);
+		i=i+1;
+	}
+	free(instruccion.parametros.INSERT.split_value);
+	i=0;
+	while(instruccion.parametros.INSERT.split_campos[i]!=NULL){
+		free(instruccion.parametros.INSERT.split_campos[i]);
+		i=i+1;
+	}
+	free(instruccion.parametros.INSERT.split_campos);
+	liberar_instruccion(instruccion);
+}
+
+
 void ejecutar_instruccion(t_instruccion_lql instruccion){
 	t_operacion operacion = instruccion.operacion;
 	switch(operacion) {
 		case SELECT:
 			log_info(logger, "Se solicita SELECT a memoria");
 			resolver_select(instruccion);
+			liberar_instruccion(instruccion);
 			break;
 		case INSERT:
 			log_info(logger, "Kernel solicitó INSERT");
 			resolver_insert(instruccion);
+			liberar_instruccion_insert(instruccion);
 			break;
 		case CREATE:
 			log_info(logger, "Kernel solicitó CREATE");
 			resolver_create(instruccion);
+			liberar_instruccion(instruccion);
 			break;
 		case DESCRIBE:
 			log_info(logger, "Kernel solicitó DESCRIBE");
 			resolver_describe(instruccion);
+			liberar_instruccion(instruccion);
 			break;
 		case DROP:
 			log_info(logger, "Kernel solicitó DROP");
 			resolver_describe_drop(instruccion, DROP);
+			liberar_instruccion(instruccion);
 			break;
 		case RUN:
 			log_info(logger, "Kernel solicitó RUN");
 			resolver_run(instruccion);
+			liberar_instruccion(instruccion);
 			break;
 		case JOURNAL:
 			log_info(logger, "Kernel solicitó JOURNAL");
@@ -301,6 +334,7 @@ void ejecutar_instruccion(t_instruccion_lql instruccion){
 		case ADD:
 			log_info(logger, "Kernel solicitó ADD");
 			resolver_add(instruccion);
+			liberar_instruccion(instruccion);
 			break;
 		default:
 			log_warning(logger, "Operacion desconocida.");
@@ -452,13 +486,14 @@ void resolver_select(t_instruccion_lql instruccion){
 				log_info(logger, "Se ha realizado el JOURNAL a la memoria con socket: %d", socket_memoria_a_usar);
 				enviar_paquete_select(socket_memoria_a_usar, paquete_select);
 				log_info(logger, "Se ha realizado el SELECT nuevamente a la memoria con socket: %d", socket_memoria_a_usar);
-				t_status_solicitud* status = desearilizar_status_solicitud(socket_memoria_a_usar);
+				t_status_solicitud* status2 = desearilizar_status_solicitud(socket_memoria_a_usar);
 				if(status->es_valido){
-					log_info(logger, "Resultado: %s", status->mensaje->palabra);
+					log_info(logger, "Resultado: %s", status2->mensaje->palabra);
 					error = 0;
 				}else{
-					log_error(logger, "Error: %s", status->mensaje->palabra);
+					log_error(logger, "Error: %s", status2->mensaje->palabra);
 				}
+				eliminar_paquete_status(status2);
 
 			}
 			error = 0;

@@ -133,10 +133,13 @@ typedef struct {
 			long timestamp;
 			uint16_t key;
 			char* value;
+			char** split_campos;
+			char** split_value;
 		} INSERT;
 		struct {
 			char* tabla;
 			uint16_t key;
+
 		} SELECT;
 		struct {
 			char* tabla;

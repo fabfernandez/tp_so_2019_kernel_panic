@@ -393,12 +393,20 @@ t_status_solicitud* resolver_drop(t_log* log_a_usar, char* nombre_tabla){
 		pthread_mutex_lock(&(tabla_logica->mutex_compactacion));
 		pthread_mutex_lock(&(tabla_logica->mutex_select_drop));
 		eliminar_tabla_memtable(nombre_tabla);
+		log_info(logger_compactacion, "Se elimina la tabla %s. Se procede a frenar el hilo.", nombre_tabla);
+		eliminar_parametros_compactacion(tabla_logica->parametros);
+		if (pthread_cancel(tabla_logica->id_hilo_compactacion) != 0){
+			log_error(logger_compactacion, "Error al cancelar hilo de compactacion");
+		}
+		pthread_mutex_t mutex = (tabla_logica->mutex_select_drop);
+		pthread_mutex_unlock(&(tabla_logica->mutex_compactacion));
 		eliminar_tabla_logica(nombre_tabla);
 		liberar_bloques_tabla(dir_tabla);
 		eliminar_directorio(dir_tabla);
 		paquete_a_enviar = crear_paquete_status(true, "OK");
-		pthread_mutex_unlock(&(tabla_logica->mutex_select_drop));
-		pthread_mutex_unlock(&(tabla_logica->mutex_compactacion));
+		pthread_mutex_unlock(&mutex);
+
+
 	}else{
 		char * mje_error = string_from_format("La tabla %s no existe", nombre_tabla);
 		log_error(log_a_usar, mje_error);
@@ -533,11 +541,7 @@ void eliminar_tabla_logica(char* nombre_tabla){
 	t_tabla_logica* tabla_logica = list_remove_by_condition(tablas_en_lfs, _es_tabla_con_nombre);
 	pthread_mutex_unlock(&mutexTablasLFS);
 	if (tabla_logica!=NULL){
-		log_info(logger_compactacion, "Se elimina la tabla %s. Se procede a frenar el hilo.", nombre_tabla);
-		eliminar_parametros_compactacion(tabla_logica->parametros);
-		if (pthread_cancel(tabla_logica->id_hilo_compactacion) != 0){
-			log_error(logger_compactacion, "Error al cancelar hilo de compactacion");
-		}
+
 		free(tabla_logica->nombre);
 		free(tabla_logica);
 	}
@@ -868,12 +872,14 @@ t_status_solicitud*  resolver_insert(t_log* log_a_usar, char* nombre_tabla, uint
 	log_info(log_a_usar, "TIMESTAMP: %d",timestamp);
 	if (existe_tabla_fisica(nombre_tabla)){
 		t_tabla_logica* tabla = buscar_tabla_logica_con_nombre(nombre_tabla);
-		pthread_mutex_lock(&tabla->mutex_compac_select);
+		//pthread_mutex_lock(&tabla->mutex_compac_select);
 		//llenar los datos de consistencia, particion que estan en la metadata de la tabla (ingresar al directorio de la tabla) Metadata
+		pthread_mutex_unlock(&mutexMemtable);
 		agregar_registro_memtable(crear_registro(value, key,  timestamp), nombre_tabla);
+		pthread_mutex_unlock(&mutexMemtable);
 		log_info(logger, "Se agregó registro a la Memtable");
 		paquete_a_enviar = crear_paquete_status(true, "OK");
-		pthread_mutex_unlock(&tabla->mutex_compac_select);
+		//pthread_mutex_unlock(&tabla->mutex_compac_select);
 
 	}else{
 		char * mje_error = string_from_format("La tabla %s no existe", nombre_tabla);
@@ -912,9 +918,7 @@ t_cache_tabla* obtener_tabla_memtable(char* nombre_tabla){
 	t_cache_tabla* tabla_cache = buscar_tabla_memtable(nombre_tabla);
 	if(tabla_cache == NULL){
 		tabla_cache = crear_tabla_cache(nombre_tabla);
-		pthread_mutex_lock(&mutexMemtable);
 		list_add(memtable, tabla_cache);
-		pthread_mutex_unlock(&mutexMemtable);
 	}
 	return tabla_cache;
 

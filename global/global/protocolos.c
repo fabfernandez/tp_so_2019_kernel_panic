@@ -277,7 +277,7 @@ t_registro* obtener_registro(char* registro_serealizado){
 	strcpy(registro->value ,split[2]);//, string_size(&(registro->value)));
 	free(split[0]);
 	free(split[1]);
-	free(split[3]);
+	free(split[2]);
 	free(split);
 	return registro;
 }

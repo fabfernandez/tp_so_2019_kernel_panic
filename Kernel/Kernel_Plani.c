@@ -67,7 +67,8 @@ void revisa_new_queue(){
 
 		t_script* nuevo_script = malloc(sizeof(t_script));
 		nuevo_script->id=generarID();
-		nuevo_script->path=new_path;
+		nuevo_script->path = malloc(string_size(new_path));
+		memcpy(nuevo_script->path,new_path, string_size(new_path));
 		nuevo_script->offset=0;
 
 		pthread_mutex_lock(&ready_queue_mutex);

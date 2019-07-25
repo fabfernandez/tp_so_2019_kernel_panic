@@ -39,13 +39,19 @@ t_instruccion_lql parsear_linea(char* line){
 
 	if(string_equals_ignore_case(keyword, INSERT_KEY)){
 		char **insert_split = string_n_split(auxLine, 4, " ");
-		char **value_ts = string_split(insert_split[3], "\"");
+		char* insert_value = string_new();
+		string_append(&insert_value, insert_split[3]);
+		char **value_ts = string_split( insert_value, "\"");
 		ret.operacion = INSERT;
 		if (insert_split[1] == NULL || insert_split[2]== NULL || insert_split[3] == NULL ){
+			free(insert_value);
 			free(value_ts);
+			free(insert_split);
+			free(split);
 			return lanzar_error("Formato incorrecto. INSERT TABLA KEY VALUE TIMESTAMP - El ultimo valor es opcional\n");
 		}
 		string_to_upper(insert_split[1]);
+
 		ret.parametros.INSERT.tabla = insert_split[1];
 		ret.parametros.INSERT.key= (uint16_t)atol(insert_split[2]);
 		if(value_ts[1] == NULL){
@@ -53,8 +59,11 @@ t_instruccion_lql parsear_linea(char* line){
 		} else{
 			ret.parametros.INSERT.timestamp=(long)atol(value_ts[1]);
 		}
-		char* value = value_ts[0];
-		ret.parametros.INSERT.value = value;
+
+		ret.parametros.INSERT.value = value_ts[0];
+		ret.parametros.INSERT.split_campos=insert_split;
+		ret.parametros.INSERT.split_value=value_ts;
+		free(insert_value);
 
 	} else if(string_equals_ignore_case(keyword, SELECT_KEY)){
 		ret.operacion=SELECT;
@@ -80,9 +89,7 @@ t_instruccion_lql parsear_linea(char* line){
 		}
 		ret.parametros.CREATE.consistencia = get_valor_consistencia(split[2]);
 		ret.parametros.CREATE.num_particiones=atoi(split[3]);
-		free(split[3]);
 		ret.parametros.CREATE.compactacion_time=(long)atol(split[4]);
-		free(split[4]);
 	} else if(string_equals_ignore_case(keyword, DESCRIBE_KEY)){
 		ret.operacion=DESCRIBE;
 		if(split[1] !=NULL){
