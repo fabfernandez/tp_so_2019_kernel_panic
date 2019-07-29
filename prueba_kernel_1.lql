@@ -1,0 +1,3 @@
+run /home/utnso/1C2019-Scripts-lql-entrega/scripts/animales.lql
+run /home/utnso/1C2019-Scripts-lql-entrega/scripts/comidas.lql
+run /home/utnso/1C2019-Scripts-lql-entrega/scripts/internet_browser_falla.lql
