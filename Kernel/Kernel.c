@@ -13,7 +13,6 @@ int QUANTUM;
 int socket_memoria;
 int SLEEP_EJECUCION = 0;
 int CANT_EXEC = 0;
-int error = 0;
 int CANT_METRICS = 0;
 char* ARCHIVO_CONFIG = "/home/utnso/tp-2019-1c-Los-Dinosaurios-Del-Libro/Kernel/kernel.config";
 
@@ -263,6 +262,17 @@ void parsear_y_ejecutar(char* linea, int flag_de_consola){
 	}
 }
 
+void parsear_y_ejecutar_script(char* linea, int flag_de_consola, t_script* script_a_ejecutar){
+	t_instruccion_lql instruccion = parsear_linea(linea);
+	if (instruccion.valido) {
+		ejecutar_instruccion_script(instruccion, script_a_ejecutar);
+	}else{
+		if (flag_de_consola){
+			log_error(logger, "Reingrese correctamente la instruccion");
+		}
+	}
+}
+
 void ejecutar_instruccion(t_instruccion_lql instruccion){
 	t_operacion operacion = instruccion.operacion;
 	switch(operacion) {
@@ -308,6 +318,51 @@ void ejecutar_instruccion(t_instruccion_lql instruccion){
 		}
 }
 
+
+void ejecutar_instruccion_script(t_instruccion_lql instruccion, t_script* script_a_ejecutar){
+	t_operacion operacion = instruccion.operacion;
+	switch(operacion) {
+		case SELECT:
+			log_info(logger, "Se solicita SELECT a memoria");
+			resolver_select(instruccion);
+			break;
+		case INSERT:
+			log_info(logger, "Kernel solicitó INSERT");
+			resolver_insert_script(instruccion, script_a_ejecutar);
+			break;
+		case CREATE:
+			log_info(logger, "Kernel solicitó CREATE");
+			resolver_create_script(instruccion, script_a_ejecutar);
+			break;
+		case DESCRIBE:
+			log_info(logger, "Kernel solicitó DESCRIBE");
+			resolver_describe(instruccion);
+			break;
+		case DROP:
+			log_info(logger, "Kernel solicitó DROP");
+			resolver_describe_drop(instruccion, DROP);
+			break;
+		case RUN:
+			log_info(logger, "Kernel solicitó RUN");
+			resolver_run(instruccion);
+			break;
+		case JOURNAL:
+			log_info(logger, "Kernel solicitó JOURNAL");
+			resolver_journal();
+			break;
+		case METRICS:
+			log_info(logger, "Kernel solicitó METRICS");
+			resolver_metrics();
+			break;
+		case ADD:
+			log_info(logger, "Kernel solicitó ADD");
+			resolver_add(instruccion);
+			break;
+		default:
+			log_warning(logger, "Operacion desconocida.");
+			break;
+		}
+}
 void resolver_describe_drop(t_instruccion_lql instruccion, t_operacion operacion){
 	//separar entre describe y drop
 	t_paquete_drop_describe* paquete_describe = crear_paquete_drop_describe(instruccion);
@@ -409,10 +464,8 @@ void resolver_create(t_instruccion_lql instruccion){
 	t_status_solicitud* status = desearilizar_status_solicitud(socket_memoria_a_usar);
 	if(status->es_valido){
 		log_info(logger, "Resultado: %s", status->mensaje->palabra);
-		error = 0;
 	}else{
 		log_error(logger, "Error: %s", status->mensaje->palabra);
-		error = 1;
 	}
 
 	guardar_consistencia_tabla(instruccion.parametros.CREATE.tabla, instruccion.parametros.CREATE.consistencia);
@@ -420,6 +473,29 @@ void resolver_create(t_instruccion_lql instruccion){
 	eliminar_paquete_status(status);
 	eliminar_paquete_create(paquete_create);
 }
+
+void resolver_create_script(t_instruccion_lql instruccion, t_script* script_a_ejecutar){
+	t_paquete_create* paquete_create = crear_paquete_create(instruccion);
+
+	t_memoria* memoria_a_usar = obtener_memoria_segun_consistencia(instruccion.parametros.CREATE.consistencia, 0);
+	int socket_memoria_a_usar = crear_conexion(memoria_a_usar->ip, memoria_a_usar->puerto);
+
+	enviar_paquete_create(socket_memoria_a_usar, paquete_create);
+	t_status_solicitud* status = desearilizar_status_solicitud(socket_memoria_a_usar);
+	if(status->es_valido){
+		log_info(logger, "Resultado: %s", status->mensaje->palabra);
+		script_a_ejecutar->error = 0;
+	}else{
+		log_error(logger, "Error: %s", status->mensaje->palabra);
+		script_a_ejecutar->error = 1;
+	}
+
+	guardar_consistencia_tabla(instruccion.parametros.CREATE.tabla, instruccion.parametros.CREATE.consistencia);
+
+	eliminar_paquete_status(status);
+	eliminar_paquete_create(paquete_create);
+}
+
 
 void resolver_select(t_instruccion_lql instruccion){
 
@@ -443,7 +519,6 @@ void resolver_select(t_instruccion_lql instruccion){
 		t_status_solicitud* status = desearilizar_status_solicitud(socket_memoria_a_usar);
 		if(status->es_valido){
 			log_info(logger, "Resultado: %s", status->mensaje->palabra);
-			error = 0;
 		}else{
 			log_error(logger, "Error: %s", status->mensaje->palabra);
 			if (strcmp(status->mensaje->palabra, "Memoria full" )==0){
@@ -455,13 +530,11 @@ void resolver_select(t_instruccion_lql instruccion){
 				t_status_solicitud* status = desearilizar_status_solicitud(socket_memoria_a_usar);
 				if(status->es_valido){
 					log_info(logger, "Resultado: %s", status->mensaje->palabra);
-					error = 0;
 				}else{
 					log_error(logger, "Error: %s", status->mensaje->palabra);
 				}
 
 			}
-			error = 0;
 		}
 		clock_gettime(CLOCK_REALTIME, &spec);
 		int timestamp_destino = spec.tv_sec;
@@ -475,7 +548,7 @@ void resolver_select(t_instruccion_lql instruccion){
 	}
 }
 
-void resolver_insert (t_instruccion_lql instruccion){
+void resolver_insert(t_instruccion_lql instruccion){
 	t_paquete_insert* paquete_insert = crear_paquete_insert(instruccion);
 
 	char* nombre_tabla = paquete_insert->nombre_tabla->palabra;
@@ -483,10 +556,8 @@ void resolver_insert (t_instruccion_lql instruccion){
 
 	if(memoria_a_usar == -1){
 		log_error(logger, "No se pudo realizar el INSERT ya que no se ha encontrado la tabla.");
-		error = 1;
 	}else if(memoria_a_usar == -2){
 		log_error(logger, "No se pudo realizar el INSERT ya que no se ha encontrado Memoria");
-		error = 1;
 	}else{
 		int socket_memoria_a_usar = crear_conexion(memoria_a_usar->ip, memoria_a_usar->puerto);
 		struct timespec spec;
@@ -499,7 +570,6 @@ void resolver_insert (t_instruccion_lql instruccion){
 		recv(socket_memoria_a_usar,&respuesta,sizeof(bool),MSG_WAITALL);
 		if(respuesta) {
 			log_info(logger, "Insert OK");
-			error = 0;
 		} else {
 			int largo;
 			recv(socket_memoria_a_usar,&largo,sizeof(int),MSG_WAITALL);
@@ -523,9 +593,71 @@ void resolver_insert (t_instruccion_lql instruccion){
 					recv(socket_memoria_a_usar,mensaje,largo,MSG_WAITALL);
 					log_error(logger, "%s",mensaje);
 				}
-				error = 0;
+			}
+
+			free(mensaje);
+
+		}
+
+		clock_gettime(CLOCK_REALTIME, &spec);
+		int timestamp_destino = spec.tv_sec;
+		int diferencia_timestamp = timestamp_destino - timestamp_origen;
+
+		registrar_metricas_insert(memoria_a_usar->numero_memoria, diferencia_timestamp);
+		liberar_conexion(socket_memoria_a_usar);
+		eliminar_paquete_insert(paquete_insert);
+	}
+}
+
+void resolver_insert_script(t_instruccion_lql instruccion, t_script* script_a_ejecutar){
+	t_paquete_insert* paquete_insert = crear_paquete_insert(instruccion);
+
+	char* nombre_tabla = paquete_insert->nombre_tabla->palabra;
+	t_memoria* memoria_a_usar = conseguir_memoria(nombre_tabla, paquete_insert->key);
+
+	if(memoria_a_usar == -1){
+		log_error(logger, "No se pudo realizar el INSERT ya que no se ha encontrado la tabla.");
+		script_a_ejecutar->error = 1;
+	}else if(memoria_a_usar == -2){
+		log_error(logger, "No se pudo realizar el INSERT ya que no se ha encontrado Memoria");
+		script_a_ejecutar->error = 1;
+	}else{
+		int socket_memoria_a_usar = crear_conexion(memoria_a_usar->ip, memoria_a_usar->puerto);
+		struct timespec spec;
+		clock_gettime(CLOCK_REALTIME, &spec);
+		int timestamp_origen = spec.tv_sec;
+
+		enviar_paquete_insert(socket_memoria_a_usar, paquete_insert);
+
+		bool respuesta;
+		recv(socket_memoria_a_usar,&respuesta,sizeof(bool),MSG_WAITALL);
+		if(respuesta) {
+			log_info(logger, "Insert OK");
+		} else {
+			int largo;
+			recv(socket_memoria_a_usar,&largo,sizeof(int),MSG_WAITALL);
+			char* mensaje = malloc(largo);
+			recv(socket_memoria_a_usar,mensaje,largo,MSG_WAITALL);
+			log_error(logger, "%s",mensaje);
+			if (strcmp(mensaje, "Memoria full" )==0){
+				t_operacion operacion_a_enviar = JOURNAL;
+				send(socket_memoria_a_usar, &operacion_a_enviar, sizeof(t_operacion), MSG_WAITALL);
+				log_info(logger, "Se ha realizado el JOURNAL a la memoria con socket: %d", socket_memoria_a_usar);
+				enviar_paquete_insert(socket_memoria_a_usar, paquete_insert);
+				log_info(logger, "Se ha realizado el SELECT nuevamente a la memoria con socket: %d", socket_memoria_a_usar);
+				bool respuesta;
+				recv(socket_memoria_a_usar,&respuesta,sizeof(bool),MSG_WAITALL);
+				if(respuesta) {
+					log_info(logger, "Insert OK");
+				} else {
+					int largo;
+					recv(socket_memoria_a_usar,&largo,sizeof(int),MSG_WAITALL);
+					char* mensaje = malloc(largo);
+					recv(socket_memoria_a_usar,mensaje,largo,MSG_WAITALL);
+					log_error(logger, "%s",mensaje);
+				}
 			}else{
-				error = 1;
+				script_a_ejecutar->error = 1;
 			}
 
 			free(mensaje);
@@ -543,20 +675,19 @@ void resolver_insert (t_instruccion_lql instruccion){
 }
 
 
-
 void ejecutar_script(t_script* script_a_ejecutar){
 	char* path = script_a_ejecutar->path;
 	FILE* archivo = fopen(path,"r");
 
 		fseek(archivo, script_a_ejecutar->offset, SEEK_SET);
 
-		char ultimo_caracter_leido = leer_archivo(archivo);
+		char ultimo_caracter_leido = leer_archivo(archivo, script_a_ejecutar);
 
-		if(ultimo_caracter_leido != EOF && error == 0){
+		if(ultimo_caracter_leido != EOF && script_a_ejecutar->error == 0){
 			script_a_ejecutar->offset = ftell(archivo) - 1;
 		} else {
 			script_a_ejecutar->offset = NULL;
-			error = 0;
+			script_a_ejecutar->error= 0;
 		}
 
 		fclose(archivo);
@@ -810,12 +941,12 @@ int get_random(int maximo){
 	return indice;
 }
 
-char leer_archivo(FILE* archivo){
+char leer_archivo(FILE* archivo, t_script* script_en_ejecucion){
 	char* linea = NULL;
 	int lineas_leidas = 0;
 	int i;
 	char letra;
-	while((letra = fgetc(archivo)) != EOF && lineas_leidas < QUANTUM && error != 1){
+	while((letra = fgetc(archivo)) != EOF && lineas_leidas < QUANTUM && script_en_ejecucion->error != 1){
 		linea = (char*)realloc(NULL, sizeof(char));
 		i = 0;
 		do{
@@ -826,7 +957,7 @@ char leer_archivo(FILE* archivo){
 
 		linea = (char*)realloc(linea, (i+1));
 		linea[i] = 0;
-		parsear_y_ejecutar(linea, 0);
+		parsear_y_ejecutar_script(linea, 0, script_en_ejecucion);
 		free(linea);
 		lineas_leidas++;
 		linea = NULL;

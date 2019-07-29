@@ -69,6 +69,7 @@ void revisa_new_queue(){
 		nuevo_script->id=generarID();
 		nuevo_script->path=new_path;
 		nuevo_script->offset=0;
+		nuevo_script->error=0;
 
 		pthread_mutex_lock(&ready_queue_mutex);
 		queue_push(ready_queue, nuevo_script);

@@ -59,6 +59,7 @@ typedef struct script{
 	int id;
 	char* path;
 	long int offset;
+	int error;
 } t_script ;
 
 typedef struct consistencia_tabla{
@@ -114,9 +115,11 @@ void terminar_programa(int conexion);
 int generarID();
 int asignar_consistencia(t_memoria* memoria, t_consistencia consistencia);
 char* tipo_consistencia(t_consistencia consistencia);
-char leer_archivo(FILE* archivo);
+char leer_archivo(FILE* archivo, t_script* script_en_ejecucion);
 void ejecutar_instruccion(t_instruccion_lql instruccion);
+void ejecutar_instruccion_script(t_instruccion_lql instruccion, t_script* script_en_ejecucion);
 void parsear_y_ejecutar(char* linea, int flag_de_consola);
+void parsear_y_ejecutar_script(char* linea, int flag_de_consola, t_script* script_en_ejecucion);
 void* iniciar_peticion_tablas(void* tablaGossiping);
 void iniciarHiloGossiping(t_list* tablaGossiping);
 void ejecutar_script(t_script* script_a_ejecutar);
@@ -132,6 +135,11 @@ uint16_t convertir_string_a_int(char* string);
 void resolver_describe(t_instruccion_lql instruccion);
 void resolver_metrics();
 void resolver_journal();
+void resolver_create(t_instruccion_lql instruccion);
+void resolver_create_script(t_instruccion_lql instruccion, t_script* script_en_ejecucion);
+void resolver_insert(t_instruccion_lql instruccion);
+void resolver_insert_script(t_instruccion_lql instruccion, t_script* script_en_ejecucion);
+
 void iniciar_hilo_inotify();
 void iniciar_inotify();
 void cambiar_nodos_viejos_por_nuevos();
