@@ -279,28 +279,28 @@ void ejecutar_API_desde_consola(t_instruccion_lql instruccion,char* memoria,t_li
 	t_operacion operacion = instruccion.operacion;
 	switch(operacion) {
 		case SELECT:
-			log_info(logger, "Se solicita SELECT a memoria");
+			log_info(logger, "Se solicita SELECT desde consola");
 			pthread_mutex_lock(&mutexMemoria);
 			if(resolver_select_para_consola(instruccion,memoria,tablas)==-1){resolver_select_para_consola(instruccion,memoria,tablas);}
 			pthread_mutex_unlock(&mutexMemoria);
 			break;
 		case INSERT:
 			pthread_mutex_lock(&mutexMemoria);
-			log_info(logger, "Se solicitó INSERT");
+			log_info(logger, "Se solicitó INSERT desde consola");
 			if(resolver_insert_para_consola(instruccion,memoria,tablas)==-1){resolver_insert_para_consola(instruccion,memoria,tablas);}
 			pthread_mutex_unlock(&mutexMemoria);
 			break;
 		case CREATE:
-			log_info(logger, "Se solicitó CREATE");
+			log_info(logger, "Se solicitó CREATE desde consola");
 			//aca debería enviarse el mensaje a LFS con CREATE
 			break;
 		case DESCRIBE:
-			log_info(logger, "Se solicitó DESCRIBE");
+			log_info(logger, "Se solicitó DESCRIBE desde consola");
 			resolver_describe_consola(instruccion);
 			//aca debería enviarse el mensaje a LFS con DESCRIBE
 			break;
 		case DROP:
-			log_info(logger, "Se solicitó DROP");
+			log_info(logger, "Se solicitó DROP desde consola");
 			resolver_drop_consola(instruccion);
 			//aca debería enviarse el mensaje a LFS con DROP
 			break;
@@ -507,7 +507,7 @@ int resolver_select_para_kernel (int socket_kernel_fd, int socket_conexion_lfs,c
 								} else { paginaNueva(key,registro->value,registro->timestamp,tabla,memoria_principal,tablas); }
 
 							enviar_status_resultado(status, socket_kernel_fd);
-							log_info(logger, "[ENVIO RESULTADO A KERNEL] OK - EXITO");
+							//log_info(logger, "[ENVIO RESULTADO A KERNEL] OK - EXITO");
 							free(registro->value);
 							free(registro);
 							eliminar_paquete_select(consulta_select);
@@ -528,7 +528,7 @@ int resolver_select_para_kernel (int socket_kernel_fd, int socket_conexion_lfs,c
 			}	else {
 					pagina_concreta* paginalala= traerPaginaDeMemoria(reg,memoria_principal);
 					log_info(logger, "[REGISTRO EN MEMORIA] Posicion %i: (%i,%s,%i) | (KEY;VALUE;TS)", reg,paginalala->key, paginalala->value,paginalala->timestamp);
-					log_info(logger, "[ENVIO RESULTADO A KERNEL] OK - EXITO");
+					//log_info(logger, "[ENVIO RESULTADO A KERNEL] OK - EXITO");
 					char* resultado = generar_registro_string(paginalala->timestamp, paginalala->key, paginalala->value);
 					t_status_solicitud* status = crear_paquete_status(true, resultado);
 					enviar_status_resultado(status, socket_kernel_fd);
@@ -698,7 +698,7 @@ pagina* crearPaginaInsert(){
 	}
 	paginaa->posicionEnMemoria=posicionDondePonerElDatoEnMemoria;
 	paginaa->ultimaLectura=(unsigned)time(NULL);;
-	log_info(logger,"[INSERT EXITOSO] OK", paginaa->modificado);
+	//log_info(logger,"[INSERT EXITOSO] OK", paginaa->modificado);
 	return paginaa;
 }
 void eliminarPagina(int posicionDondePonerElDatoEnMemoria, char* memoria_princial, t_list* tablas) {
@@ -1158,44 +1158,44 @@ void resolver_describe_consola(t_instruccion_lql instruccion){
 	switch(cod_op)
 				{
 				case HANDSHAKE:
-					log_info(logger, "Inicia handshake con %i", socket_memoria);
+					//log_info(logger, "Inicia handshake con %i", socket_memoria);
 					recibir_mensaje(logger, socket_memoria);
 					enviar_handshake(socket_memoria, "OK");
 					log_info(logger_mostrado, "Conexion exitosa con KERNEL stocket %i OK", socket_memoria);
 					break;
 				case SELECT:
-					log_info(logger, "%i solicitó SELECT", socket_memoria);
+					//log_info(logger, "%i solicitó SELECT", socket_memoria);
 					//resolver_select_para_kernel(socket_memoria, socket_conexion_lfs,memoria_principal,tablas);
 					pthread_mutex_lock(&mutexMemoria);
 					if(resolver_select_para_kernel(socket_memoria, socket_conexion_lfs,memoria_principal,tablas)==-1){resolver_despues_de_journaling(socket_memoria,consulta_select_a_usar,socket_conexion_lfs,memoria_principal, tablas);}
 					pthread_mutex_unlock(&mutexMemoria);
-					log_info(logger, "SELECT Desde KERNEL OK");
+					//log_info(logger, "SELECT Desde KERNEL OK");
 					//aca debería enviarse el mensaje a LFS con SELECT
 					break;
 				case INSERT:
-					log_info(logger, "%i solicitó INSERT", socket_memoria);
+					//log_info(logger, "%i solicitó INSERT", socket_memoria);
 					pthread_mutex_lock(&mutexMemoria);
 					if(resolver_insert_para_kernel(socket_memoria, socket_conexion_lfs,memoria_principal, tablas)==-1) {resolver_insert_despues_de_journaling(consulta_insert_a_usar, socket_conexion_lfs,memoria_principal,tablas);}
 					pthread_mutex_unlock(&mutexMemoria);
-					log_info(logger, "INSERT Desde KERNEL OK");
+					//log_info(logger, "INSERT Desde KERNEL OK");
 					//aca debería enviarse el mensaje a LFS con INSERT
 					break;
 				case CREATE:
-					log_info(logger, "%i solicitó CREATE", socket_memoria);
+					//log_info(logger, "%i solicitó CREATE", socket_memoria);
 					resolver_create(socket_memoria, socket_conexion_lfs);
-					log_info(logger, "CREATE Desde KERNEL OK");
+					//log_info(logger, "CREATE Desde KERNEL OK");
 					//aca debería enviarse el mensaje a LFS con CREATE
 					break;
 				case DESCRIBE:
-					log_info(logger, "%i solicitó DESCRIBE", socket_memoria);
+					//log_info(logger, "%i solicitó DESCRIBE", socket_memoria);
 					resolver_describe_para_kernel(socket_memoria, socket_conexion_lfs, "DESCRIBE");
-					log_info(logger, "DESCRIBE Desde KERNEL OK");
+					//log_info(logger, "DESCRIBE Desde KERNEL OK");
 					//aca debería enviarse el mensaje a LFS con DESCRIBE
 					break;
 				case DROP:
-					log_info(logger, "%i solicitó DROP", socket_memoria);
+					//log_info(logger, "%i solicitó DROP", socket_memoria);
 					resolver_describe_drop(socket_memoria, socket_conexion_lfs, "DROP");
-					log_info(logger, "DROP Desde KERNEL OK");
+					//log_info(logger, "DROP Desde KERNEL OK");
 					//aca debería enviarse el mensaje a LFS con DROP
 					break;
 				case SOLICITUD_TABLA_GOSSIPING:
@@ -1203,12 +1203,12 @@ void resolver_describe_consola(t_instruccion_lql instruccion){
 					log_info(logger, "Tablas de GOSSIPING enviadas a KERNEL OK");
 					break;
 				case GOSSPING:
-					log_info(logger, "La memoria %i solicitó GOSSIPING", socket_memoria);
+					//log_info(logger, "La memoria %i solicitó GOSSIPING", socket_memoria);
 					resolver_gossiping(socket_memoria);
-					log_info(logger, "GOSSIPING de %i OK", socket_memoria);
+					//log_info(logger, "GOSSIPING de %i OK", socket_memoria);
 					break;
 				case JOURNAL:
-					log_info(logger, "Se soilicito Journaling");
+					//log_info(logger, "Se soilicito Journaling");
 					pthread_mutex_lock(&mutexMemoria);
 					journaling(memoria_principal,tablas);
 					pthread_mutex_unlock(&mutexMemoria);
@@ -1396,7 +1396,7 @@ void resolver_describe_consola(t_instruccion_lql instruccion){
 										{    // actualizar el máximo
 										fdmax = memoriaNuevaAceptada;
 										}
-									log_info(logger,"[NUEVA CONEXION] %i",memoriaNuevaAceptada);
+									//log_info(logger,"[NUEVA CONEXION] %i",memoriaNuevaAceptada);
 									} else 				// // gestionar datos de un cliente
 									{
 										int cod_op;
@@ -1405,7 +1405,7 @@ void resolver_describe_consola(t_instruccion_lql instruccion){
 											// error o conexión cerrada por el cliente
 											if (nbytes == 0) {
 											// conexión cerrada
-												log_error(logger, "[CONEXION TERMINADA] %i", i);
+												//log_error(logger, "[CONEXION TERMINADA] %i", i);
 											} else {
 												perror("recv");
 											}
@@ -1431,7 +1431,7 @@ void resolver_describe_consola(t_instruccion_lql instruccion){
 	*
 	*/
 void journaling(char* memoria_principal,t_list* tablas){
-	log_info(logger,"[JOURNALING] INICIO");
+	log_info(logger,"[JOURNALING AUTOMATICO] INICIO");
 	for(int i=0;i<tablas->elements_count;i++){
 		segmento* unSegmento=list_get(tablas,i);
 		//log_info(logger,"[CHEQUEANDO TABLA] TABLA : %s ",unSegmento->nombreTabla);
@@ -1476,7 +1476,7 @@ void journaling(char* memoria_principal,t_list* tablas){
 
 	} 	posicionProximaLibre=0;
 		//log_info(logger,"CANTIDAD DE TABLAS: %",tablas->elements_count);
-		log_info(logger,"[JOURNALING] FIN");
+		log_info(logger,"[JOURNALING AUTOMATICO] FIN");
 }
 
 /**
