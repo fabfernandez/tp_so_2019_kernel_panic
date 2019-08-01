@@ -70,6 +70,7 @@ void revisa_new_queue(){
 		nuevo_script->path = malloc(string_size(new_path));
 		memcpy(nuevo_script->path,new_path, string_size(new_path));
 		nuevo_script->offset=0;
+		nuevo_script->error=0;
 
 		pthread_mutex_lock(&ready_queue_mutex);
 		queue_push(ready_queue, nuevo_script);
@@ -126,6 +127,7 @@ void revisa_exec_queue(){
 		if (script_a_ejecutar->offset==NULL) {
 			queue_push(exit_queue, script_a_ejecutar);
 			log_info(logger, "El archivo %s pasa a estado EXIT", script_a_ejecutar->path);
+			sem_post(&ready_queue_consumer);
 		} else {
 			pthread_mutex_lock(&ready_queue_mutex);
 			queue_push(ready_queue, script_a_ejecutar);

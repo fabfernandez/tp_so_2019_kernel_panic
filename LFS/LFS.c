@@ -874,7 +874,7 @@ t_status_solicitud*  resolver_insert(t_log* log_a_usar, char* nombre_tabla, uint
 		t_tabla_logica* tabla = buscar_tabla_logica_con_nombre(nombre_tabla);
 		//pthread_mutex_lock(&tabla->mutex_compac_select);
 		//llenar los datos de consistencia, particion que estan en la metadata de la tabla (ingresar al directorio de la tabla) Metadata
-		pthread_mutex_unlock(&mutexMemtable);
+		pthread_mutex_lock(&mutexMemtable);
 		agregar_registro_memtable(crear_registro(value, key,  timestamp), nombre_tabla);
 		pthread_mutex_unlock(&mutexMemtable);
 		log_info(logger, "Se agregó registro a la Memtable");

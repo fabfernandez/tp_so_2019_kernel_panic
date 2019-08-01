@@ -55,7 +55,9 @@ t_instruccion_lql parsear_linea(char* line){
 		ret.parametros.INSERT.tabla = insert_split[1];
 		ret.parametros.INSERT.key= (uint16_t)atol(insert_split[2]);
 		if(value_ts[1] == NULL){
-			ret.parametros.INSERT.timestamp= (unsigned long)time(NULL);
+
+			ret.parametros.INSERT.timestamp= get_timestamp();//(unsigned long)time(NULL);
+			//printf("\n\n TIMESTAMP: %lu as\n\n",(unsigned long)get_timestamp());
 		} else{
 			ret.parametros.INSERT.timestamp=(long)atol(value_ts[1]);
 		}
@@ -169,4 +171,10 @@ t_instruccion_lql lanzar_error(char* mensaje){
 	t_instruccion_lql error;
 	error.valido=false;
 	return error;
+}
+long long get_timestamp() {
+    struct timespec spec;
+    clock_gettime(CLOCK_REALTIME, &spec);
+    long long ms = spec.tv_nsec / (long) 1000000 + (spec.tv_sec * (long) 1000);
+    return ms;
 }
