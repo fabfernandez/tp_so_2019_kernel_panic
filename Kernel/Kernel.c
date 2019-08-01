@@ -16,6 +16,7 @@ int CANT_EXEC = 0;
 int error = 0;
 int CANT_METRICS = 0;
 char* ARCHIVO_CONFIG = "/home/utnso/tp-2019-1c-Los-Dinosaurios-Del-Libro/Kernel/kernel.config";
+int contador=0;
 
 
 int main(void){
@@ -833,16 +834,16 @@ int funcion_hash_magica(uint16_t ki){
 }
 
 int get_random(int maximo){
-	int indice = maximo, cant = 0;
+	int tamanio = maximo;
 
-	while(indice >= maximo){
-		indice = rand();
-		cant++;
-		if(cant > 2){
-			indice /= cant;
+	for(int i = 0; i < tamanio; i++){
+		if(contador!=tamanio-1){
+			contador++;
+		} else {
+			contador = 0;
 		}
+		return contador;
 	}
-	return indice;
 }
 
 char leer_archivo(FILE* archivo, t_script* script_en_ejecucion){
