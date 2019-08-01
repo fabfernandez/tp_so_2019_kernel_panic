@@ -278,51 +278,6 @@ void parsear_y_ejecutar(char* linea, int flag_de_consola, char* memoria, t_list*
 void ejecutar_API_desde_consola(t_instruccion_lql instruccion,char* memoria,t_list* tablas){
 	t_operacion operacion = instruccion.operacion;
 	switch(operacion) {
-<<<<<<< HEAD
-	case SELECT:
-		log_info(logger, "Se solicita SELECT a memoria");
-		pthread_mutex_lock(&mutexMemoria);
-		if(resolver_select_para_consola(instruccion,memoria,tablas)==-1){resolver_select_para_consola(instruccion,memoria,tablas);}
-		pthread_mutex_unlock(&mutexMemoria);
-		break;
-	case INSERT:
-		pthread_mutex_lock(&mutexMemoria);
-		log_info(logger, "Se solicitó INSERT");
-		if(resolver_insert_para_consola(instruccion,memoria,tablas)==-1){resolver_insert_para_consola(instruccion,memoria,tablas);}
-		pthread_mutex_unlock(&mutexMemoria);
-		break;
-	case CREATE:
-		log_info(logger, "Se solicitó CREATE");
-		//aca debería enviarse el mensaje a LFS con CREATE
-		break;
-	case DESCRIBE:
-		log_info(logger, "Se solicitó DESCRIBE");
-		resolver_describe_consola(instruccion);
-		//aca debería enviarse el mensaje a LFS con DESCRIBE
-		break;
-	case DROP:
-		log_info(logger, "Se solicitó DROP");
-		resolver_drop_consola(instruccion);
-		//aca debería enviarse el mensaje a LFS con DROP
-		break;
-	case RUN:
-		log_info(logger, "Se solicitó RUN");
-		break;
-	case GOSSPING:
-		log_info(logger, "Se solicitó GOSSIPING");
-		gossiping_consola();
-		break;
-	case JOURNAL:
-		log_info(logger, "Se solicitó Journaling");
-		pthread_mutex_lock(&mutexMemoria);
-		journaling(memoria, tablas);
-		pthread_mutex_unlock(&mutexMemoria);
-		break;
-	default:
-		log_warning(logger, "Operacion desconocida.");
-		break;
-	}
-=======
 		case SELECT:
 			log_info(logger, "Se solicita SELECT desde consola");
 			pthread_mutex_lock(&mutexMemoria);
@@ -366,7 +321,7 @@ void ejecutar_API_desde_consola(t_instruccion_lql instruccion,char* memoria,t_li
 			log_warning(logger, "Operacion desconocida.");
 			break;
 		}
->>>>>>> d6f358baec62a8238d30f82b6ca23ffa34168982
+
 }
 void gossiping_consola(){
 	for(int j=0;seeds[j]!=NULL;j++){ // CHEQUEO SEEDS
@@ -375,15 +330,9 @@ void gossiping_consola(){
 			enviar_gossiping(ssocketMemoriaSeed);
 			close(ssocketMemoriaSeed);
 		} else {
-<<<<<<< HEAD
-			log_error(logger_mostrado,"Seed no responde");
-			log_error(logger_g,"Seed no responde");
-		}
-=======
 			//log_error(logger_mostrado,"[SEED DESCONECTADA]Seed no responde");
 			log_error(logger_g,"[SEED DESCONECTADA] Seed no responde");
  		}
->>>>>>> d6f358baec62a8238d30f82b6ca23ffa34168982
 	}
 	for(int i=0;i<tablaGossiping->elements_count;i++){
 		t_gossip* memoria = list_get(tablaGossiping,i);
@@ -440,19 +389,11 @@ int resolver_insert_para_consola(t_instruccion_lql insert,char* memoria_principa
 				paginaNuevaInsert(key,dato,tsss,tabla,memoria_principal,tablas);
 				return 1;
 			} else { // existe el segmento, agrego la pagina al segmento
-<<<<<<< HEAD
-				log_error(logger, "no encontre el registro en la tabla");
-				paginaNuevaInsert(key,dato,tsss,tabla,memoria_principal,tablas);
-				return 1;
-			}
-		} else // el registro con esa key ya existe
-=======
 					log_error(logger, "[REGISTRO INEXISTENTE] No existe el registro, se procede a crear el mismo");
 					paginaNuevaInsert(key,dato,tsss,tabla,memoria_principal,tablas);
 					return 1;
 					}
 	} else // el registro con esa key ya existe
->>>>>>> d6f358baec62a8238d30f82b6ca23ffa34168982
 			//modificarRegistro(key,dato,(unsigned)time(NULL),reg2,memoria_principal,tablas);
 			modificarRegistro(key,dato,tsss,registroAInsertar,memoria_principal,tablas);
 		cambiarBitModificado(tabla, key,tablas, memoria_principal);
@@ -477,16 +418,6 @@ int resolver_select_para_consola(t_instruccion_lql instruccion_select,char* memo
 		//log_info(logger, "El registro con key '%d' NO se encuentra en memoria principal", key);
 		int lruu = lru(memoria_principal,tablas);
 		if(posicionProximaLibre>=cantidad_paginas&&(lruu==-1)){ //
-<<<<<<< HEAD
-			/*
-			 * NO HAY ESPACIO PROXIMO DISPONIBLE Y LRU DICE QUE ESTÁ TODO OCPUADO
-			 * -> hay que hacer journaling
-			 *
-			 */
-			log_error(logger, "No hay lugar en la memoria, debe realizarse JOURNAL", tabla);
-			journaling(memoria_principal, tablas);
-			return -1;
-=======
 								/*
 								 * NO HAY ESPACIO PROXIMO DISPONIBLE Y LRU DICE QUE ESTÁ TODO OCPUADO
 								 * -> hay que hacer journaling
@@ -495,7 +426,6 @@ int resolver_select_para_consola(t_instruccion_lql instruccion_select,char* memo
 								log_error(logger_mostrado, "[MEMORIA FULL] No hay lugar en la memoria, debe realizarse JOURNAL(automatico)", tabla);
 								journaling(memoria_principal, tablas);
 								return -1;
->>>>>>> d6f358baec62a8238d30f82b6ca23ffa34168982
 		} else {
 			log_info(logger, "Hay espacio en memoria, se procede a realizar la peticion a LFS", key);
 			enviar_paquete_select_consola(socket_conexion_lfs, instruccion_select);
@@ -504,17 +434,6 @@ int resolver_select_para_consola(t_instruccion_lql instruccion_select,char* memo
 				t_registro* registro = obtener_registro(status->mensaje->palabra);
 				log_warning(logger_mostrado, "[REGISTRO TRAIDO DESDE LFS] %s ; %d ; %s ; %i | (TABLA;KEY;VALUE;TS)", tabla, registro->key, registro->value,registro->timestamp);
 				segmento* segmentoBuscado = encontrarSegmento(tabla,tablas);
-<<<<<<< HEAD
-				if(segmentoBuscado==NULL)
-				{
-					log_info(logger, "No existe el segmento: %s", tabla);
-					list_add(tablas, crearSegmento(tabla));
-					paginaNueva(key,registro->value,registro->timestamp,tabla,memoria_principal,tablas);
-				} else { paginaNueva(key,registro->value,registro->timestamp,tabla,memoria_principal,tablas); }
-				free(registro->value);
-				free(registro);
-				return 1;
-=======
 					if(segmentoBuscado==NULL)
 						{
 							log_info(logger, "[SEGMENTO INEXISTENTE] Segmento: %s", tabla);
@@ -524,7 +443,6 @@ int resolver_select_para_consola(t_instruccion_lql instruccion_select,char* memo
 					free(registro->value);
 					free(registro);
 					return 1;
->>>>>>> d6f358baec62a8238d30f82b6ca23ffa34168982
 			}
 			else{
 				//para que esta este else??????
@@ -534,19 +452,12 @@ int resolver_select_para_consola(t_instruccion_lql instruccion_select,char* memo
 			}
 		}
 	}	else {
-<<<<<<< HEAD
-		pagina_concreta* paginalala= traerPaginaDeMemoria(reg,memoria_principal);
-		log_info(logger, "Posicion %i: (%i,%s,%i)", reg,paginalala->key, paginalala->value,paginalala->timestamp);
-		free(paginalala->value);
-		free(paginalala);
-		return 1;
-=======
 			pagina_concreta* paginalala= traerPaginaDeMemoria(reg,memoria_principal);
 			log_warning(logger_mostrado, "[REGISTRO EN MEMORIA] Posicion %i: (%i,%s,%i) | (KEY;VALUE;TS)", reg,paginalala->key, paginalala->value,paginalala->timestamp);
 			free(paginalala->value);
 			free(paginalala);
 			return 1;
->>>>>>> d6f358baec62a8238d30f82b6ca23ffa34168982
+
 	}
 }
 /**
@@ -555,68 +466,6 @@ int resolver_select_para_consola(t_instruccion_lql instruccion_select,char* memo
  *
  */
 int resolver_select_para_kernel (int socket_kernel_fd, int socket_conexion_lfs,char* memoria_principal, t_list* tablas){
-<<<<<<< HEAD
-	log_info(logger, "Se realiza SELECT a pedido de Kernel--");
-	t_paquete_select* consulta_select = deserializar_select(socket_kernel_fd);
-
-	log_info(logger_mostrado, "SELECT");
-	log_info(logger_mostrado, "TABLA: %s KEY %d", consulta_select->nombre_tabla->palabra, consulta_select->key);
-
-	char* tabla = consulta_select->nombre_tabla->palabra;
-	uint16_t key = consulta_select->key;
-	int reg = 0;
-	reg = buscarRegistroEnTabla(tabla, key,memoria_principal,tablas);
-
-	if(reg==-1){
-		log_info(logger, "El registro con key '%d' NO se encuentra en memoria principal", key);
-		int lruu = lru(memoria_principal,tablas);
-		if(posicionProximaLibre>=cantidad_paginas&&(lruu==-1)){ //
-			/*
-			 * NO HAY ESPACIO PROXIMO DISPONIBLE Y LRU DICE QUE ESTÁ TODO OCPUADO
-			 * -> hay que hacer journaling
-			 *
-			 */
-			log_error(logger, "No hay lugar en la memoria, debe realizarse JOURNAL", tabla);
-			//journaling(memoria_principal, tablas);
-			//consulta_select_a_usar = consulta_select;
-			char* mensaje = "Memoria full";
-			t_status_solicitud* status = crear_paquete_status(false,mensaje);
-			enviar_status_resultado(status, socket_kernel_fd);
-			eliminar_paquete_select(consulta_select);
-			return 1;
-		}  else {
-			log_info(logger, "Hay espacio en memoria, se procede a realizar la peticion a LFS", key);
-			enviar_paquete_select(socket_conexion_lfs, consulta_select);
-			t_status_solicitud* status= desearilizar_status_solicitud(socket_conexion_lfs);
-			if(status->es_valido){
-				t_registro* registro = obtener_registro(status->mensaje->palabra);
-				log_info(logger, "%s ; %d ; %s ; %i | (TABLA;KEY;VALUE;TS)", tabla, registro->key, registro->value,registro->timestamp);
-				segmento* segmentoBuscado = encontrarSegmento(tabla,tablas);
-				if(segmentoBuscado==NULL)
-				{
-					log_info(logger, "No existe el segmento: %s", tabla);
-					list_add(tablas, crearSegmento(tabla));
-					paginaNueva(key,registro->value,registro->timestamp,tabla,memoria_principal,tablas);
-				} else { paginaNueva(key,registro->value,registro->timestamp,tabla,memoria_principal,tablas); }
-
-				enviar_status_resultado(status, socket_kernel_fd);
-				log_info(logger, "ACA ENVIE STATUS DSP DE LFS");
-				free(registro->value);
-				free(registro);
-				eliminar_paquete_select(consulta_select);
-
-				return 1;
-			}
-			else{
-				//para que esta este else??????
-				log_error(logger, "No existe el registro buscado");
-				log_info(logger, "Se procede a enviar el error a kernel");
-				enviar_status_resultado(status, socket_kernel_fd);
-				eliminar_paquete_select(consulta_select);
-
-				return 1;
-				//Mostrar el status.mensaje o enviarlo a Kernel
-=======
 		//log_info(logger, "Se realiza SELECT a pedido de Kernel--");
 		t_paquete_select* consulta_select = deserializar_select(socket_kernel_fd);
 
@@ -643,6 +492,7 @@ int resolver_select_para_kernel (int socket_kernel_fd, int socket_conexion_lfs,c
 										char* mensaje = "Memoria full";
 										t_status_solicitud* status = crear_paquete_status(false,mensaje);
 										enviar_status_resultado(status, socket_kernel_fd);
+										eliminar_paquete_select(consulta_select);
 										return 1;
 				}  else {
 					//log_info(logger, "Hay espacio en memoria, se procede a realizar la peticion a LFS", key);
@@ -690,24 +540,9 @@ int resolver_select_para_kernel (int socket_kernel_fd, int socket_conexion_lfs,c
 					eliminar_paquete_select(consulta_select);
 
 					return 1;
->>>>>>> d6f358baec62a8238d30f82b6ca23ffa34168982
 			}
 		}
-	}	else {
-		pagina_concreta* paginalala= traerPaginaDeMemoria(reg,memoria_principal);
-		log_info(logger, "Posicion %i: (%i,%s,%i)", reg,paginalala->key, paginalala->value,paginalala->timestamp);
-		log_info(logger, "Se procede a enviar el dato a kernel");
-		char* resultado = generar_registro_string(paginalala->timestamp, paginalala->key, paginalala->value);
-		t_status_solicitud* status = crear_paquete_status(true, resultado);
-		enviar_status_resultado(status, socket_kernel_fd);
-		free(paginalala->value);
-		free(paginalala);
-		free(resultado);
-		eliminar_paquete_select(consulta_select);
 
-		return 1;
-	}
-}
 void resolver_despues_de_journaling (int socket_kernel_fd, t_paquete_select* consulta_select ,int socket_conexion_lfs,char* memoria_principal, t_list* tablas){
 	log_info(logger, "Se realiza SELECT");
 	log_info(logger, "Consulta en la tabla: %s", consulta_select->nombre_tabla->palabra);
@@ -805,15 +640,10 @@ void resolver_despues_de_journaling (int socket_kernel_fd, t_paquete_select* con
  *
  */
 void buscarSegmento(char* segment,t_list* tablas){
-<<<<<<< HEAD
-	segmento* unS = encontrarSegmento(segment, tablas);
-	log_info(logger,"SEGMENTO ENCONTRADO: %s", unS->nombreTabla);
-}
-=======
 		segmento* unS = encontrarSegmento(segment, tablas);
 		//log_info(logger,"SEGMENTO ENCONTRADO: %s", unS->nombreTabla);
 	}
->>>>>>> d6f358baec62a8238d30f82b6ca23ffa34168982
+
 /**
  * @NAME: traerPaginaDeMemoria
  * @DESC: pasando una posicion y la memoria devuelve el dato contenido en el mismo
@@ -863,13 +693,6 @@ pagina* crearPaginaInsert(){
 	if(posicionProximaLibre>=cantidad_paginas){
 		posicionDondePonerElDatoEnMemoria = lru(memoria_principal, tablas);
 		eliminarPagina(posicionDondePonerElDatoEnMemoria, memoria_principal,tablas); // hay q eliminar la pagina!
-<<<<<<< HEAD
-		log_info(logger,"posicionProxima:%i, cantidad:%i(lru encontro espacio)-> %i", posicionProximaLibre,cantidad_paginas,posicionDondePonerElDatoEnMemoria);
-	} else {
-		posicionDondePonerElDatoEnMemoria=posicionProximaLibre;
-		log_info(logger,"posicionProxima:%i, cantidad:%i(hay espacio de una)", posicionProximaLibre,cantidad_paginas-posicionProximaLibre);
-		posicionProximaLibre+=1;
-=======
 		log_info(logger,"[REEMPLAZO DE PAGINA LRU] Posicion elegida:%i | PosicionProx: %i - CantPagsDisdp: %i",posicionDondePonerElDatoEnMemoria, posicionProximaLibre,cantidad_paginas-posicionProximaLibre);
 		// log_info(logger,"[REEMPLAZO DE PAGINA LRU] posicionProxima:%i, cantidad:%i(lru encontro espacio)-> %i", posicionProximaLibre,cantidad_paginas,posicionDondePonerElDatoEnMemoria);
 		} else {
@@ -877,7 +700,6 @@ pagina* crearPaginaInsert(){
 			log_info(logger,"[CREACION DE PAGINA POR ESPACIO DISPOBILE] Posicion en memoria:%i | CantPagsDisp: %i", posicionProximaLibre,cantidad_paginas-posicionProximaLibre);
 			//log_info(logger,"[CREACION DE PAGINA POR ESPACIO DISPOBILE] posicionProxima:%i, cantidad:%i(hay espacio de una)", posicionProximaLibre,cantidad_paginas-posicionProximaLibre);
 			posicionProximaLibre+=1;
->>>>>>> d6f358baec62a8238d30f82b6ca23ffa34168982
 	}
 	paginaa->posicionEnMemoria=posicionDondePonerElDatoEnMemoria;
 	paginaa->ultimaLectura=(unsigned)time(NULL);;
@@ -975,26 +797,6 @@ segmento* crearSegmento(char* nombreTabla)
  */
 
 int buscarRegistroEnTabla(char* tabla, uint16_t key, char* memoria_principal,t_list* tablas){
-<<<<<<< HEAD
-	segmento* segment = encontrarSegmento(tabla,tablas);
-	if(segment==NULL){
-		log_error(logger,"El registro no se encuentra en memoria");
-		return -1;}
-	for(int i=0 ; i < segment->paginas->elements_count ; i++)
-	{
-		pagina* pagin = list_get(segment->paginas,i);
-		uint16_t pos = pagin->posicionEnMemoria;
-		//log_info(logger,"Posicion en memoria: %i",pagin->posicionEnMemoria);
-		pagina_concreta * pagc = traerPaginaDeMemoria(pos,memoria_principal);
-		//log_info(logger,"Pagina Key: %i",pagc->key);
-		int posicion=pagin->posicionEnMemoria;
-		if(pagc->key == key){
-			log_info(logger,"Ultima lectura anterior: %i",pagin->ultimaLectura);
-			sleep(1); // si no hago sleep el ts es el mismo pq la ejecucion es super veloz jaja
-			pagin->ultimaLectura=(unsigned)time(NULL);;
-			log_info(logger,"TS: %i",(unsigned)time(NULL));
-			log_info(logger,"Ultima lectura(actual): %i",pagin->ultimaLectura);
-=======
 		segmento* segment = encontrarSegmento(tabla,tablas);
 		if(segment==NULL){
 			log_error(logger,"[REGISTRO INEXISTENTE] El registro no se encuentra en memoria");
@@ -1017,21 +819,12 @@ int buscarRegistroEnTabla(char* tabla, uint16_t key, char* memoria_principal,t_l
 				free(pagc);
 				return posicion;
 			}
->>>>>>> d6f358baec62a8238d30f82b6ca23ffa34168982
 			free(pagc->value);
 			free(pagc);
 			return posicion;
 		}
-<<<<<<< HEAD
-		free(pagc->value);
-		free(pagc);
-	}
-	log_error(logger,"El registro no se encuentra en memoria");
-	return -1;
-=======
 		log_error(logger,"[REGISTRO INEXISTENTE] El registro no se encuentra en memoria");
 		return -1;
->>>>>>> d6f358baec62a8238d30f82b6ca23ffa34168982
 }
 /**
  * @NAME: resolver_insert_para_kernel
@@ -1076,23 +869,7 @@ int resolver_insert_para_kernel(int socket_kernel_fd, int socket_conexion_lfs,ch
 				send(socket_kernel_fd,&respuesta,sizeof(bool),MSG_WAITALL);
 				return 1;
 			} else { // existe el segmento, agrego la pagina al segmento
-<<<<<<< HEAD
-				log_error(logger, "no encontre el registro en la tabla");
-				paginaNuevaInsert(key,dato,tsss,tabla,memoria_principal,tablas);
-				eliminar_paquete_insert(consulta_insert);
-				bool respuesta = true;
-				send(socket_kernel_fd,&respuesta,sizeof(bool),MSG_WAITALL);
-				return 1;
-			}
-		} else // el registro con esa key ya existe
-			//modificarRegistro(key,dato,(unsigned)time(NULL),reg2,memoria_principal,tablas);
-			modificarRegistro(key,dato,tsss,registroAInsertar,memoria_principal,tablas);
-		cambiarBitModificado(tabla, key,tablas, memoria_principal);
-		eliminar_paquete_insert(consulta_insert);
-		bool respuesta = true;
-		send(socket_kernel_fd,&respuesta,sizeof(bool),MSG_WAITALL);
-		return 1;
-=======
+
 					//log_error(logger, "no encontre el registro en la tabla");
 					paginaNuevaInsert(key,dato,tsss,tabla,memoria_principal,tablas);
 					eliminar_paquete_insert(consulta_insert);
@@ -1110,7 +887,6 @@ int resolver_insert_para_kernel(int socket_kernel_fd, int socket_conexion_lfs,ch
 			send(socket_kernel_fd,&respuesta,sizeof(bool),MSG_WAITALL);
 			log_error(logger, "[INSERT] La key existe en memoria, se modifico en memoria. OK.");
 			return 1;
->>>>>>> d6f358baec62a8238d30f82b6ca23ffa34168982
 	}
 	/*}
 	if(posicionProximaLibre+1>cantidad_paginas){
@@ -1185,25 +961,6 @@ void resolver_insert_despues_de_journaling(t_paquete_insert* consulta_insert, in
 	}
 }
 
-<<<<<<< HEAD
-void cambiarBitModificado(char* tabla, uint16_t key,t_list* tablas, char* memoria_principal){
-	segmento* segment = encontrarSegmento(tabla,tablas);
-	if(segment==NULL){log_error(logger,"No existe el segmento");}
-	for(int i=0 ; i < segment->paginas->elements_count ; i++)
-	{
-		pagina* pagin = list_get(segment->paginas,i);
-		uint16_t pos = pagin->posicionEnMemoria;
-		pagina_concreta * pagc = malloc(sizeof(pagina_concreta));
-		pagc = traerPaginaDeMemoria(pos,memoria_principal);
-		if(pagc->key == key){
-			pagin->ultimaLectura=(unsigned)time(NULL);;
-			pagin->modificado=1;
-			log_info(logger,"Pagina con posicion en memoria %i modificada, ultimo acceso: %i , Bit de MOD = %i",pagin->posicionEnMemoria,pagin->ultimaLectura, pagin->modificado);
-			log_info(logger,"vuelta %i",i);
-		}
-		free(pagc->value);
-		free(pagc);
-=======
 	void cambiarBitModificado(char* tabla, uint16_t key,t_list* tablas, char* memoria_principal){
 			segmento* segment = encontrarSegmento(tabla,tablas);
 			if(segment==NULL){log_error(logger,"No existe el segmento");}
@@ -1227,14 +984,8 @@ void cambiarBitModificado(char* tabla, uint16_t key,t_list* tablas, char* memori
 		memcpy(&memoria_principal[posicion*tamanio_pagina],&key,sizeof(uint16_t)); 					//deberia ser &key? POR ACA SEGMENTATION FAULT
 		memcpy(&memoria_principal[posicion*tamanio_pagina+sizeof(uint16_t)],&tss,sizeof(long));			// mismo que arriba
 		strcpy(&memoria_principal[posicion*tamanio_pagina+sizeof(uint16_t)+sizeof(long)], dato);
->>>>>>> d6f358baec62a8238d30f82b6ca23ffa34168982
+
 	}
-}
-void modificarRegistro(uint16_t key,char* dato,long tss,int posicion, char* memoria_principal, t_list* tablas){
-	memcpy(&memoria_principal[posicion*tamanio_pagina],&key,sizeof(uint16_t)); 					//deberia ser &key? POR ACA SEGMENTATION FAULT
-	memcpy(&memoria_principal[posicion*tamanio_pagina+sizeof(uint16_t)],&tss,sizeof(long));			// mismo que arriba
-	strcpy(&memoria_principal[posicion*tamanio_pagina+sizeof(uint16_t)+sizeof(long)], dato);
-}
 
 
 /*void resolver_insert2(int socket_kernel_fd, int socket_conexion_lfs){
@@ -1414,72 +1165,6 @@ void terminar_programa(int conexionKernel, int conexionALFS)
  */
 void ejecutar_API_desde_Kernel(int socket_memoria, t_operacion cod_op,char* memoria_principal, t_list* tablas){
 	switch(cod_op)
-<<<<<<< HEAD
-	{
-	case HANDSHAKE:
-		log_info(logger, "Inicia handshake con %i", socket_memoria);
-		recibir_mensaje(logger, socket_memoria);
-		enviar_handshake(socket_memoria, "OK");
-		log_info(logger_mostrado, "Conexion exitosa con KERNEL stocket %i OK", socket_memoria);
-		break;
-	case SELECT:
-		log_info(logger, "%i solicitó SELECT", socket_memoria);
-		//resolver_select_para_kernel(socket_memoria, socket_conexion_lfs,memoria_principal,tablas);
-		pthread_mutex_lock(&mutexMemoria);
-		if(resolver_select_para_kernel(socket_memoria, socket_conexion_lfs,memoria_principal,tablas)==-1){resolver_despues_de_journaling(socket_memoria,consulta_select_a_usar,socket_conexion_lfs,memoria_principal, tablas);}
-		pthread_mutex_unlock(&mutexMemoria);
-		log_info(logger_mostrado, "SELECT Desde KERNEL OK");
-		//aca debería enviarse el mensaje a LFS con SELECT
-		break;
-	case INSERT:
-		log_info(logger, "%i solicitó INSERT", socket_memoria);
-		pthread_mutex_lock(&mutexMemoria);
-		if(resolver_insert_para_kernel(socket_memoria, socket_conexion_lfs,memoria_principal, tablas)==-1) {resolver_insert_despues_de_journaling(consulta_insert_a_usar, socket_conexion_lfs,memoria_principal,tablas);}
-		pthread_mutex_unlock(&mutexMemoria);
-		log_info(logger_mostrado, "INSERT Desde KERNEL OK");
-		//aca debería enviarse el mensaje a LFS con INSERT
-		break;
-	case CREATE:
-		log_info(logger, "%i solicitó CREATE", socket_memoria);
-		resolver_create(socket_memoria, socket_conexion_lfs);
-		log_info(logger_mostrado, "CREATE Desde KERNEL OK");
-		//aca debería enviarse el mensaje a LFS con CREATE
-		break;
-	case DESCRIBE:
-		log_info(logger, "%i solicitó DESCRIBE", socket_memoria);
-		resolver_describe_para_kernel(socket_memoria, socket_conexion_lfs, "DESCRIBE");
-		log_info(logger_mostrado, "DESCRIBE Desde KERNEL OK");
-		//aca debería enviarse el mensaje a LFS con DESCRIBE
-		break;
-	case DROP:
-		log_info(logger, "%i solicitó DROP", socket_memoria);
-		resolver_describe_drop(socket_memoria, socket_conexion_lfs, "DROP");
-		log_info(logger_mostrado, "DROP Desde KERNEL OK");
-		//aca debería enviarse el mensaje a LFS con DROP
-		break;
-	case SOLICITUD_TABLA_GOSSIPING:
-		enviar_mi_tabla_de_gossiping(socket_memoria);
-		log_info(logger_mostrado, "Tablas de GOSSIPING enviadas a KERNEL OK");
-		break;
-	case GOSSPING:
-		log_info(logger, "La memoria %i solicitó GOSSIPING", socket_memoria);
-		resolver_gossiping(socket_memoria);
-		log_info(logger_mostrado, "GOSSIPING de %i OK", socket_memoria);
-		break;
-	case JOURNAL:
-		log_info(logger, "Se soilicito Journaling");
-		pthread_mutex_lock(&mutexMemoria);
-		journaling(memoria_principal,tablas);
-		pthread_mutex_unlock(&mutexMemoria);
-		log_info(logger_mostrado, "JOURNAL Desde KERNEL OK");
-		break;
-	case -1:
-		log_error(logger, "el cliente se desconecto. Terminando conexion con %i", socket_memoria);
-		break;
-	default:
-		log_error(logger_mostrado, "OPERACION DESCONOCIDA");
-		break;
-=======
 				{
 				case HANDSHAKE:
 					//log_info(logger, "Inicia handshake con %i", socket_memoria);
@@ -1545,8 +1230,7 @@ void ejecutar_API_desde_Kernel(int socket_memoria, t_operacion cod_op,char* memo
 					log_error(logger_mostrado, "OPERACION DESCONOCIDA");
 					break;
 				}
->>>>>>> d6f358baec62a8238d30f82b6ca23ffa34168982
-	}
+
 }
 /**
  * @NAME: levantar_datos_memoria
@@ -1589,14 +1273,7 @@ void intentar_handshake_a_lfs(int alguien){
 	char* mensaje_env = malloc(strlen(mensajee)+strlen(nombre_memoria)+1);
 	memcpy(mensaje_env,mensajee,strlen(mensajee));
 	memcpy(mensaje_env+strlen(mensajee),nombre_memoria,strlen(nombre_memoria)+1);
-<<<<<<< HEAD
-	log_info(logger, "Trato de realizar un hasdshake");
-	if (enviar_handshake(alguien,mensaje_env)){
-		log_info(logger, "Se envió el mensaje %s", mensaje_env);
-		free(mensaje_env);
-		recibir_datos(logger, alguien);
-		log_info(logger_mostrado,"Conexion exitosa con LFS");
-=======
+
 		log_info(logger, "[SOLICITUD HANDSHAKE]Trato de realizar un hasdshake");
 		if (enviar_handshake(alguien,mensaje_env)){
 			log_warning(logger, "Se envió el mensaje %s", mensaje_env);
@@ -1604,8 +1281,7 @@ void intentar_handshake_a_lfs(int alguien){
 			recibir_datos(logger, alguien);
 			log_warning(logger_mostrado,"Conexion exitosa con LFS");
 		}
->>>>>>> d6f358baec62a8238d30f82b6ca23ffa34168982
-	}
+
 }
 
 /**
@@ -1720,35 +1396,7 @@ void select_esperar_conexiones_o_peticiones(char* memoria_principal,t_list* tabl
 			log_error(logger_mostrado, "Fallo accion select.");;
 			exit(1);
 		}
-		// explorar conexiones existentes en busca de datos que leer
-		for(int i = 0; i <= fdmax; i++) {
-			if (FD_ISSET(i, &read_fds)) //  pregunta si "i" está en el conjunto ¡¡tenemos datos!! read_fds es como una lista de sockets con conexiones entrantes
-			{
-				if (i == server_memoria) // si estoy parado en el socket que espera conexiones nuevas (listen)
-				{
-					memoriaNuevaAceptada = esperar_cliente(server_memoria);
-					FD_SET(memoriaNuevaAceptada, &master); // añadir al conjunto maestro
-					if (memoriaNuevaAceptada > fdmax)
-					{    // actualizar el máximo
-						fdmax = memoriaNuevaAceptada;
-					}
-<<<<<<< HEAD
-					log_info(logger,"Nueva conexion desde %i",memoriaNuevaAceptada);
-				} else 				// // gestionar datos de un cliente
-				{
-					int cod_op;
-					nbytes = recv(i, &cod_op, sizeof(int), 0);
-					if (nbytes <= 0) {
-						// error o conexión cerrada por el cliente
-						if (nbytes == 0) {
-							// conexión cerrada
-							log_error(logger, "el cliente se desconecto. Terminando conexion con %i", i);
-						} else {
-							perror("recv");
-						}
-						close(i); // bye!
-						FD_CLR(i, &master); // eliminar del conjunto maestro
-=======
+
 					// explorar conexiones existentes en busca de datos que leer
 					for(int i = 0; i <= fdmax; i++) {
 						if (FD_ISSET(i, &read_fds)) //  pregunta si "i" está en el conjunto ¡¡tenemos datos!! read_fds es como una lista de sockets con conexiones entrantes
@@ -1784,16 +1432,8 @@ void select_esperar_conexiones_o_peticiones(char* memoria_principal,t_list* tabl
 
 										}}
 							}
->>>>>>> d6f358baec62a8238d30f82b6ca23ffa34168982
-					}
-					else {
-						// tenemos datos de algún cliente
-						ejecutar_API_desde_Kernel(i,cod_op,memoria_principal,tablas);
-						log_info(logger, "Se recibio una operacion de %i", i);
-
-					}}
 			}
-		}
+
 	}
 }
 
@@ -1850,51 +1490,6 @@ void journaling(char* memoria_principal,t_list* tablas){
 		//log_info(logger, "[Paginas en segmento %s : %i]", unSegmento->nombreTabla, unSegmento->paginas->elements_count);
 
 	} 	posicionProximaLibre=0;
-<<<<<<< HEAD
-	//log_info(logger,"CANTIDAD DE TABLAS: %",tablas->elements_count);
-	log_info(logger_mostrado,"Journaling OK");
-}
-
-/**
- * @NAME: lru
- * @DESC: Se ejecuta el algoritmo de sustitucion, recorre todas las paginas, si encuentra
- *  paginas sin modificar las compara y devuelve la que tenga el ts mas antiguo, si no
- *  devuelve -1, lo que significa que estan todas las paginas modificadas y hay que hacer un journal.
- *
- */
-int lru(char* memoria_principal, t_list* tablas){
-	unsigned int posicionMemo=-1;
-	long ultimaLectura=-1;
-	int segment=0;
-	int pagg=0;
-	log_info(logger, "[TABLAS= %i ]",tablas->elements_count);
-	for(int i=0; i<(tablas->elements_count); i++){	// recorro segmentos
-		segmento* segmente = list_get(tablas, i);
-		log_info(logger, "[Ciclo segmento %i , cant pags= %i ]",i, segmente->paginas->elements_count);
-		for(int j=0; j<segmente->paginas->elements_count; j++) {// en un segmento i, recorro sus paginas
-			pagina* pag = list_get(segmente->paginas, j);		// traigo pagina
-			if(ultimaLectura==-1 && pag->modificado==0)
-			{			// si es la primer pagina que leo sin modificar
-				posicionMemo=pag->posicionEnMemoria;			// asigno la posicion de memoria para retornarla
-				ultimaLectura=pag->ultimaLectura;				// guardo su ultima lectura para seguir comparando.
-				log_info(logger, "[PM=-1 // PRIMER VUELTA J=%i]Ultima lectura %i",j,ultimaLectura);
-				log_info(logger, "[PM=-1 // PRIMER VUELTA J=%i]Posicion memo %i",j,posicionMemo);
-				segment=i;										// determino el segmento y
-				pagg=j;											// la pagina para despues poder eliminarla de mis tablas
-
-			} else if(pag->modificado==0)
-			{// si no es la primer pagina que leo sin modificar y aparte hace mas tiempo que no se lee
-				if(pag->ultimaLectura<ultimaLectura){
-					posicionMemo=pag->posicionEnMemoria;							// asigo la posicion de memoria para retornarla
-					ultimaLectura=pag->ultimaLectura;								// guardo su ultima lectura para seguir comparando
-					log_info(logger, "[CICLO PAG J=%i]Ultima lectura %i",j,ultimaLectura);
-					log_info(logger, "[CICLO PAG J=%i]Posicion memo %i",j,posicionMemo);
-					segment=i;														// determino el segmento y
-					pagg=j;
-				}// la pagina para despues poder eliminarla de mis tablas
-			} else log_info(logger, "NO CUMPLE");
-		}
-=======
 		//log_info(logger,"CANTIDAD DE TABLAS: %",tablas->elements_count);
 		log_info(logger,"[JOURNALING AUTOMATICO] FIN");
 }
@@ -1945,14 +1540,6 @@ int lru(char* memoria_principal, t_list* tablas){
 		//list_remove(segm->paginas, pagg);				// elimino de la lista de paginas del segmento a la pagina indicada
 		//log_info(logger, "TERMINE CICLOS? %i",posicionMemo);
 		return posicionMemo;							// retorno la direccion en memoria sobre el que voy a escribir mi nuevo registro dato.
->>>>>>> d6f358baec62a8238d30f82b6ca23ffa34168982
-	}
-	// termino de recorrer las tablas
-	if(ultimaLectura==-1) { return ultimaLectura; }	// si la posicion es -1 significa que no encontro ni una pagina que no estuviera modificada, devuevlo -1, hay que hacer journal
-	//segmento* segm = list_get(tablas,segment);		// si sigue la ejecucion, es que encontro paginas, procedo a eliminar esa pagina que va a ser sustituda, traigo el segmento
-	//list_remove(segm->paginas, pagg);				// elimino de la lista de paginas del segmento a la pagina indicada
-	log_info(logger, "TERMINE CICLOS? %i",posicionMemo);
-	return posicionMemo;							// retorno la direccion en memoria sobre el que voy a escribir mi nuevo registro dato.
 }
 
 
@@ -2055,17 +1642,9 @@ void* iniciar_inotify(char **argv){
 void iniciar_hilo_inotify_memoria(char **argv){
 	pthread_t hilo_inotify;
 	if (pthread_create(&hilo_inotify, 0, iniciar_inotify, argv) !=0){
-<<<<<<< HEAD
-		log_error(logger_mostrado, "Error al crear el hilo de Inotify");
-	}
-	if (pthread_detach(hilo_inotify) != 0){
-		log_error(logger_mostrado, "Murio el hilo de inotify");
-	}
-=======
 			log_error(logger_mostrado, "[INOTIFY ERROR] Error al crear el hilo de Inotify");
 		}
 	if (pthread_detach(hilo_inotify) != 0){
 			log_error(logger_mostrado, "[INOTIFY ERROR] Murio el hilo de inotify");
 		}
->>>>>>> d6f358baec62a8238d30f82b6ca23ffa34168982
 }

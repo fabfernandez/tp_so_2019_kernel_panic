@@ -585,7 +585,7 @@ void ejecutar_script(t_script* script_a_ejecutar){
 
 		fseek(archivo, script_a_ejecutar->offset, SEEK_SET);
 
-		char ultimo_caracter_leido = leer_archivo(archivo);
+		char ultimo_caracter_leido = leer_archivo(archivo, script_a_ejecutar);
 
 		if(ultimo_caracter_leido != EOF && error == 0){
 			script_a_ejecutar->offset = ftell(archivo) - 1;
@@ -845,7 +845,7 @@ int get_random(int maximo){
 	return indice;
 }
 
-char leer_archivo(FILE* archivo){
+char leer_archivo(FILE* archivo, t_script* script_en_ejecucion){
 	char* linea = NULL;
 	int lineas_leidas = 0;
 	int i;
