@@ -537,6 +537,8 @@ int resolver_select_para_kernel (int socket_kernel_fd, int socket_conexion_lfs,c
 					enviar_status_resultado(status, socket_kernel_fd);
 					free(paginalala->value);
 					free(paginalala);
+
+					free(resultado);
 					eliminar_paquete_select(consulta_select);
 
 					return 1;
@@ -968,8 +970,8 @@ void resolver_insert_despues_de_journaling(t_paquete_insert* consulta_insert, in
 			{
 				pagina* pagin = list_get(segment->paginas,i);
 				uint16_t pos = pagin->posicionEnMemoria;
-				pagina_concreta * pagc = malloc(sizeof(pagina_concreta));
-				pagc = traerPaginaDeMemoria(pos,memoria_principal);
+
+				pagina_concreta *pagc = traerPaginaDeMemoria(pos,memoria_principal);
 				if(pagc->key == key){
 					pagin->ultimaLectura=(unsigned)time(NULL);;
 					pagin->modificado=1;
