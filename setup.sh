@@ -1,7 +1,7 @@
 #!/bin/bash
 
 echo "Se instala el repo de Configs"
-cd..
+cd ..
 git clone https://github.com/chaloxc/FINAL.git
 echo "Se instala Commons"
 git clone https://github.com/sisoputnfrba/1C2019-Scripts-lql-entrega.git
