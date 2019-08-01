@@ -833,16 +833,10 @@ int funcion_hash_magica(uint16_t ki){
 }
 
 int get_random(int maximo){
-	int indice = maximo, cant = 0;
 
-	while(indice >= maximo){
-		indice = rand();
-		cant++;
-		if(cant > 2){
-			indice /= cant;
-		}
-	}
-	return indice;
+	srand(time(0));
+	int num = (rand() %  (maximo+ 1));
+	return num;
 }
 
 char leer_archivo(FILE* archivo){
