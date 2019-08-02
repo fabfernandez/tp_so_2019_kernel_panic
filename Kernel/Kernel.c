@@ -265,11 +265,11 @@ void parsear_y_ejecutar(char* linea, int flag_de_consola){
 }
 
 void liberar_instruccion(t_instruccion_lql instruccion){
-//	int i=0;
-//	while(instruccion._raw[i]!=NULL){
-//		free(instruccion._raw[i]);
-//		i=i+1;
-//	}
+	int i=0;
+	while(instruccion._raw[i]!=NULL){
+		free(instruccion._raw[i]);
+		i=i+1;
+	}
 	free(instruccion._raw);
 }
 
@@ -312,7 +312,7 @@ void ejecutar_instruccion(t_instruccion_lql instruccion){
 		case DESCRIBE:
 			log_info(logger, "Kernel solicitó DESCRIBE");
 			resolver_describe(instruccion);
-			liberar_instruccion(instruccion);
+			//liberar_instruccion(instruccion);
 			break;
 		case DROP:
 			log_info(logger, "Kernel solicitó DROP");
