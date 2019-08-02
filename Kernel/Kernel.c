@@ -257,7 +257,7 @@ void parsear_y_ejecutar(char* linea, int flag_de_consola){
 	t_instruccion_lql instruccion = parsear_linea(linea);
 	if (instruccion.valido) {
 		ejecutar_instruccion(instruccion);
-		liberar_instruccion(instruccion);
+		//liberar_instruccion(instruccion);
 	}else{
 		if (flag_de_consola){
 			log_error(logger, "Reingrese correctamente la instruccion");
