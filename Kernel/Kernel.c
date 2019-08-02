@@ -270,7 +270,7 @@ void liberar_instruccion(t_instruccion_lql instruccion){
 		free(instruccion._raw[i]);
 		i=i+1;
 	}
-	free(instruccion._raw);
+	//free(instruccion._raw);
 }
 
 void liberar_instruccion_insert(t_instruccion_lql instruccion){
@@ -312,7 +312,7 @@ void ejecutar_instruccion(t_instruccion_lql instruccion){
 		case DESCRIBE:
 			log_info(logger, "Kernel solicitó DESCRIBE");
 			resolver_describe(instruccion);
-			//liberar_instruccion(instruccion);
+			liberar_instruccion(instruccion);
 			break;
 		case DROP:
 			log_info(logger, "Kernel solicitó DROP");
