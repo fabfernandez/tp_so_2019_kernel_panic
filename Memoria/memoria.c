@@ -292,6 +292,7 @@ void ejecutar_API_desde_consola(t_instruccion_lql instruccion,char* memoria,t_li
 			break;
 		case CREATE:
 			log_info(logger, "Se solicitó CREATE desde consola");
+			resolver_create_consola(socket_conexion_lfs,instruccion);
 			//aca debería enviarse el mensaje a LFS con CREATE
 			break;
 		case DESCRIBE:
@@ -1007,8 +1008,26 @@ void resolver_create (int socket_kernel_fd, int socket_conexion_lfs){
 	//eliminar_paquete_status(status);
 	eliminar_paquete_create(consulta_create);
 }
+void resolver_create_consola(int scoket_conexion_lfs, t_instruccion_lql instruccion_create){
+	t_paquete_create* consulta_create = crear_paquete_create(instruccion_create);
+	log_info(logger_mostrado, "[SOLICITUD CREATE]");
+		log_warning(logger_mostrado, "TABLA: %s", consulta_create->nombre_tabla->palabra);
+		log_warning(logger_mostrado, "PARTICIONES: %d", consulta_create->num_particiones);
+		log_warning(logger_mostrado, "TIEMPO COMPACTACION: %d", consulta_create->tiempo_compac);
+		log_warning(logger_mostrado, "CONSISTENCIA: %d", consulta_create->consistencia);
+		enviar_paquete_create(socket_conexion_lfs, consulta_create);
+		t_status_solicitud* status = desearilizar_status_solicitud(socket_conexion_lfs);
+		if(status->es_valido){
+		log_info(logger_mostrado,"[SOLICITUD CREATE] OK");
+		} else {
+			log_error(logger_mostrado,"[SOLICITUD CREATE] FALLO EN CREATE");
+			log_error(logger_mostrado,"[SOLICITUD CREATE] Mensaje: %s",status->mensaje->palabra);
+		}
+		eliminar_paquete_status(status);
+		eliminar_paquete_create(consulta_create);
+}
 
-void resolver_describe_drop(int socket_kernel_fd, int socket_conexion_lfs, char* operacion){
+void resolver_describe_drop_consola(int socket_kernel_fd, int socket_conexion_lfs, char* operacion){
 	t_paquete_drop_describe* consulta_describe_drop = deserealizar_drop_describe(socket_kernel_fd);
 	//log_info(logger, "Se realiza %s", operacion);
 	log_info(logger, "[SOLICITUD DROP] KERNEL");
@@ -1028,12 +1047,7 @@ void resolver_describe_drop(int socket_kernel_fd, int socket_conexion_lfs, char*
 void resolver_drop_consola(t_instruccion_lql instruccion){
 	log_info(logger, "[SOLICITUD DROP] CONSOLA");
 	log_warning(logger, "Tabla: %s", instruccion.parametros.DROP.tabla);
-	t_paquete_drop_describe* consulta = malloc(sizeof(t_paquete_drop_describe));
-	consulta->nombre_tabla = malloc(sizeof(t_buffer));
-	consulta->nombre_tabla->size = strlen(instruccion.parametros.DROP.tabla)+1;
-	consulta->nombre_tabla->palabra= malloc(strlen(instruccion.parametros.DROP.tabla)+1);
-	memcpy(consulta->nombre_tabla->palabra,&(instruccion.parametros.DROP.tabla),consulta->nombre_tabla->size);
-	consulta->codigo_operacion=DROP;
+	t_paquete_drop_describe* consulta = crear_paquete_drop_describe(instruccion);
 	enviar_paquete_drop_describe(socket_conexion_lfs, consulta);
 	eliminar_paquete_drop_describe(consulta);
 }

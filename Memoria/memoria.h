@@ -58,6 +58,7 @@ void journaling(char* memoria_principal,t_list* tablas);
 void agregarEnMemoriaElRegistro(char* key,char* value,long timestamp);
 int buscarRegistroEnTabla(char* tabla, uint16_t key, char* memoria_principal,t_list* tablas);
 void traerPaginaDeMemoria2(unsigned int posicion,char* memoria_principal,pagina_concreta* pagina);
+void resolver_create_consola(int scoket_conexion_lfs, t_instruccion_lql instruccion_create);
 char* memoria_principal;
 int nbytes;
 int primeraVuelta = 0;
