@@ -1027,7 +1027,7 @@ void resolver_create_consola(int scoket_conexion_lfs, t_instruccion_lql instrucc
 		eliminar_paquete_create(consulta_create);
 }
 
-void resolver_describe_drop_consola(int socket_kernel_fd, int socket_conexion_lfs, char* operacion){
+void resolver_describe_drop(int socket_kernel_fd, int socket_conexion_lfs, char* operacion){
 	t_paquete_drop_describe* consulta_describe_drop = deserealizar_drop_describe(socket_kernel_fd);
 	//log_info(logger, "Se realiza %s", operacion);
 	log_info(logger, "[SOLICITUD DROP] KERNEL");
@@ -1045,8 +1045,8 @@ void resolver_describe_drop_consola(int socket_kernel_fd, int socket_conexion_lf
 	eliminar_paquete_drop_describe(consulta_describe_drop);
 }
 void resolver_drop_consola(t_instruccion_lql instruccion){
-	log_info(logger, "[SOLICITUD DROP] CONSOLA");
-	log_warning(logger, "Tabla: %s", instruccion.parametros.DROP.tabla);
+	log_info(logger_mostrado, "[SOLICITUD DROP] CONSOLA");
+	log_warning(logger_mostrado, "Tabla: %s", instruccion.parametros.DROP.tabla);
 	t_paquete_drop_describe* consulta = crear_paquete_drop_describe(instruccion);
 	enviar_paquete_drop_describe(socket_conexion_lfs, consulta);
 	eliminar_paquete_drop_describe(consulta);
@@ -1240,6 +1240,7 @@ void resolver_describe_consola(t_instruccion_lql instruccion){
 					break;
 				}
 	}
+
 /**
 	* @NAME: levantar_datos_memoria
 	* @DESC: levanto datos desde el archivo de configuracion(mi puerto, mi ip, mi nombre, mi tamaño)
