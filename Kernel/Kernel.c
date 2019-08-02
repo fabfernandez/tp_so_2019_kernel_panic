@@ -257,6 +257,7 @@ void parsear_y_ejecutar(char* linea, int flag_de_consola){
 	t_instruccion_lql instruccion = parsear_linea(linea);
 	if (instruccion.valido) {
 		ejecutar_instruccion(instruccion);
+		liberar_instruccion(instruccion);
 	}else{
 		if (flag_de_consola){
 			log_error(logger, "Reingrese correctamente la instruccion");
@@ -270,7 +271,7 @@ void liberar_instruccion(t_instruccion_lql instruccion){
 		free(instruccion._raw[i]);
 		i=i+1;
 	}
-	//free(instruccion._raw);
+	free(instruccion._raw);
 }
 
 void liberar_instruccion_insert(t_instruccion_lql instruccion){
@@ -297,32 +298,32 @@ void ejecutar_instruccion(t_instruccion_lql instruccion){
 		case SELECT:
 			log_info(logger, "Se solicita SELECT a memoria");
 			resolver_select(instruccion);
-			liberar_instruccion(instruccion);
+			//liberar_instruccion(instruccion);
 			break;
 		case INSERT:
 			log_info(logger, "Kernel solicitó INSERT");
 			resolver_insert(instruccion);
-			liberar_instruccion_insert(instruccion);
+			//liberar_instruccion_insert(instruccion);
 			break;
 		case CREATE:
 			log_info(logger, "Kernel solicitó CREATE");
 			resolver_create(instruccion);
-			liberar_instruccion(instruccion);
+
 			break;
 		case DESCRIBE:
 			log_info(logger, "Kernel solicitó DESCRIBE");
 			resolver_describe(instruccion);
-			liberar_instruccion(instruccion);
+			//liberar_instruccion(instruccion);
 			break;
 		case DROP:
 			log_info(logger, "Kernel solicitó DROP");
 			resolver_describe_drop(instruccion, DROP);
-			liberar_instruccion(instruccion);
+			//liberar_instruccion(instruccion);
 			break;
 		case RUN:
 			log_info(logger, "Kernel solicitó RUN");
 			resolver_run(instruccion);
-			liberar_instruccion(instruccion);
+			//liberar_instruccion(instruccion);
 			break;
 		case JOURNAL:
 			log_info(logger, "Kernel solicitó JOURNAL");
@@ -335,7 +336,7 @@ void ejecutar_instruccion(t_instruccion_lql instruccion){
 		case ADD:
 			log_info(logger, "Kernel solicitó ADD");
 			resolver_add(instruccion);
-			liberar_instruccion(instruccion);
+			//liberar_instruccion(instruccion);
 			break;
 		default:
 			log_warning(logger, "Operacion desconocida.");
