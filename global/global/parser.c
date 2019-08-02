@@ -35,7 +35,8 @@ t_instruccion_lql parsear_linea(char* line){
 
 	char* keyword = split[0];
 
-	ret._raw = split;
+	memcpy(ret._raw, split, sizeof(char**));
+	//ret._raw = split;
 
 	if(string_equals_ignore_case(keyword, INSERT_KEY)){
 		char **insert_split = string_n_split(auxLine, 4, " ");
