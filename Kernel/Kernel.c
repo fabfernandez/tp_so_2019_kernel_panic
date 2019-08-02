@@ -268,10 +268,12 @@ void parsear_y_ejecutar(char* linea, int flag_de_consola){
 void liberar_instruccion(t_instruccion_lql instruccion){
 	int i=0;
 	while(instruccion._raw[i]!=NULL){
+		instruccion._raw[i] = realloc(instruccion._raw, 0);
 		free(instruccion._raw[i]);
 		i=i+1;
 	}
-//	free(instruccion._raw);
+	instruccion._raw = realloc(instruccion._raw, 0);
+	free(instruccion._raw);
 }
 
 void liberar_instruccion_insert(t_instruccion_lql instruccion){
