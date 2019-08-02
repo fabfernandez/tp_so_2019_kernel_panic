@@ -612,7 +612,7 @@ void resolver_run(t_instruccion_lql instruccion){
 	} else {
 		fclose(archivo);
 		queue_push(new_queue,path);
-		log_info(logger, "El archivo %s pasa a estado NEW", path);
+		log_info(log_plani, "El archivo %s pasa a estado NEW", path);
 		sem_post(&new_queue_consumer);
 	}
 }
@@ -874,11 +874,11 @@ char leer_archivo(FILE* archivo, t_script* script_en_ejecucion){
 }
 
 void iniciar_logger() { 							// CREACION DE LOG
-	logger = crear_log("/home/utnso/tp-2019-1c-Los-Dinosaurios-Del-Libro/Kernel/kernel.log");
+	logger = crear_log("/home/utnso/tp-2019-1c-Los-Dinosaurios-Del-Libro/Kernel/kernel.log", 1);
 }
 
-t_log* crear_log(char* path){
-	return log_create(path, "kernel", 1, LOG_LEVEL_INFO);
+t_log* crear_log(char* path, int debe_aparecer_en_consola){
+	return log_create(path, "kernel", debe_aparecer_en_consola, LOG_LEVEL_INFO);
 }
 
 void leer_config() {								// APERTURA DE CONFIG

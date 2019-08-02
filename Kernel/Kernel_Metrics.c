@@ -21,7 +21,7 @@ void iniciar_hilo_metrics(){
 
 
 void loguear_y_borrar(){
-	log_metrics = crear_log("/home/utnso/tp-2019-1c-Los-Dinosaurios-Del-Libro/Kernel/Kernel_Metrics.log");
+	log_metrics = crear_log("/home/utnso/tp-2019-1c-Los-Dinosaurios-Del-Libro/Kernel/Kernel_Metrics.log", 0);
 
 	while(1){
 		sleep(30);
