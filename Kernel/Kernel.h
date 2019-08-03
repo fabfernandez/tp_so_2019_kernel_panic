@@ -27,6 +27,8 @@
 							// ******* TIPOS NECESARIOS ******* //
 t_log* logger;
 t_log* log_metrics;
+t_log* log_plani;
+t_log* log_consultas;
 t_config* archivoconfig;
 t_list* tablaGossiping;
 int retardo_gossiping;
@@ -86,12 +88,18 @@ int SLEEP_EJECUCION;
 
 
 							// ******* API KERNEL ******* //
-void resolver_describe_drop(t_instruccion_lql instruccion, t_operacion operacion);
-void resolver_create(t_instruccion_lql instruccion);
-void resolver_insert(t_instruccion_lql instruccion);
-void resolver_select(t_instruccion_lql instruccion);
-void resolver_run(t_instruccion_lql instruccion);
 void resolver_add (t_instruccion_lql instruccion);
+void resolver_run(t_instruccion_lql instruccion);
+void resolver_create(t_instruccion_lql instruccion, t_script* script_en_ejecucion);
+void resolver_describe(t_instruccion_lql instruccion, t_script* script_en_ejecucion);
+void resolver_describe_drop(t_instruccion_lql instruccion, t_operacion operacion, t_script* script_en_ejecucion);
+void resolver_insert(t_instruccion_lql instruccion, t_script* script_en_ejecucion);
+void resolver_select(t_instruccion_lql instruccion, t_script* script_en_ejecucion);
+void resolver_metrics();
+void resolver_journal();
+
+void resolver_create_script(t_instruccion_lql instruccion, t_script* script_en_ejecucion);
+void resolver_insert_script(t_instruccion_lql instruccion, t_script* script_en_ejecucion);
 
 int insert(char* tabla, uint16_t key, long timestamp); 	// INSERT PROTOTIPO (1)
 t_valor select_(char* tabla, uint16_t key); 			// SELECT PROTOTIPO (2)
@@ -109,7 +117,7 @@ int add(int memoria, t_consistencia consistencia);		// ADD PROTOTIPO	(8)
 							// ******* DEFINICION DE FUNCIONES A UTILIZAR ******* //
 void chequearSocket(int socketin);
 void iniciar_logger(void);
-t_log* crear_log(char* path);
+t_log* crear_log(char* path, int debe_ser_activo_en_consola);
 void leer_config(void);
 void leer_atributos_config();
 void terminar_programa(int conexion);
@@ -117,7 +125,7 @@ int generarID();
 int asignar_consistencia(t_memoria* memoria, t_consistencia consistencia);
 char* tipo_consistencia(t_consistencia consistencia);
 char leer_archivo(FILE* archivo, t_script* script_en_ejecucion);
-void ejecutar_instruccion(t_instruccion_lql instruccion);
+void ejecutar_instruccion(t_instruccion_lql instruccion, t_script* script_en_ejecucion);
 void ejecutar_instruccion_script(t_instruccion_lql instruccion, t_script* script_en_ejecucion);
 void parsear_y_ejecutar(char* linea, int flag_de_consola);
 void parsear_y_ejecutar_script(char* linea, int flag_de_consola, t_script* script_en_ejecucion);
@@ -133,13 +141,6 @@ t_memoria* obtener_memoria_segun_consistencia(t_consistencia consistencia, uint1
 int funcion_hash_magica(uint16_t ki);
 int get_random(int maximo);
 uint16_t convertir_string_a_int(char* string);
-void resolver_describe(t_instruccion_lql instruccion);
-void resolver_metrics();
-void resolver_journal();
-void resolver_create(t_instruccion_lql instruccion);
-void resolver_create_script(t_instruccion_lql instruccion, t_script* script_en_ejecucion);
-void resolver_insert(t_instruccion_lql instruccion);
-void resolver_insert_script(t_instruccion_lql instruccion, t_script* script_en_ejecucion);
 
 void iniciar_hilo_inotify();
 void iniciar_inotify();
