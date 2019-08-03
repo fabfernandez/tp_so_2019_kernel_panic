@@ -1049,6 +1049,8 @@ void resolver_drop_consola(t_instruccion_lql instruccion){
 	log_warning(logger_mostrado, "Tabla: %s", instruccion.parametros.DROP.tabla);
 	t_paquete_drop_describe* consulta = crear_paquete_drop_describe(instruccion);
 	enviar_paquete_drop_describe(socket_conexion_lfs, consulta);
+	t_status_solicitud* status =  desearilizar_status_solicitud(socket_conexion_lfs);
+	log_info(logger_mostrado, "Respuesta: %s", status->mensaje->palabra);
 	eliminar_paquete_drop_describe(consulta);
 }
 
