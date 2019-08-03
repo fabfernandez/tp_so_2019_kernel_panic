@@ -18,9 +18,9 @@ void *compactar(void* args){
 	while(1){
 		log_info(logger_compactacion, "%i", tiempo_compactacion);
 		sleep(tiempo_compactacion/1000);
-		log_info(logger_compactacion,  "previo mutex mutex_compactacion en compactar : %d", tabla_logica->mutex_compactacion);
+		//log_info(logger_compactacion,  "previo mutex mutex_compactacion en compactar : %d", tabla_logica->mutex_compactacion);
 		pthread_mutex_lock(&(tabla_logica->mutex_compactacion));
-		log_info(logger_compactacion,  "previo mutex compac select en compactar : %d", tabla_logica->mutex_compac_select);
+		//log_info(logger_compactacion,  "previo mutex compac select en compactar : %d", tabla_logica->mutex_compac_select);
 		pthread_mutex_lock(&(tabla_logica->mutex_compac_select));
 		log_info(logger_compactacion,  "Pase todos los mutex en compactacion: %d", tabla_logica->mutex_compac_select);
 		if (!hay_temporales(path_tabla)) {

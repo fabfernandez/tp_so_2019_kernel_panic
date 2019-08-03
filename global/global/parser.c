@@ -38,28 +38,30 @@ t_instruccion_lql parsear_linea(char* line){
 	ret._raw = split;
 
 	if(string_equals_ignore_case(keyword, INSERT_KEY)){
-		char **insert_split = string_n_split(auxLine, 4, " ");
-		char* insert_value = string_new();
-		string_append(&insert_value, insert_split[3]);
-		char **value_ts = string_split( insert_value, "\"");
 		ret.operacion = INSERT;
-		if (insert_split[1] == NULL || insert_split[2]== NULL || insert_split[3] == NULL ){
-			free(insert_value);
-			free(value_ts);
+		if (split[1] == NULL || split[2]== NULL || split[3] == NULL ){
+			free(split);
+			return lanzar_error("Formato incorrecto. INSERT TABLA KEY VALUE TIMESTAMP - El ultimo valor es opcional\n");
+		}
+		char **insert_split = string_n_split(auxLine, 5, " ");
+		if (insert_split[1] == NULL || insert_split[2]== NULL || insert_split[3] == NULL || string_is_empty(insert_split[3])){
 			free(insert_split);
 			free(split);
 			return lanzar_error("Formato incorrecto. INSERT TABLA KEY VALUE TIMESTAMP - El ultimo valor es opcional\n");
 		}
+		char* insert_value = string_new();
+		string_append(&insert_value, insert_split[3]);
+		char **value_ts = string_split( insert_value, "\"");
 		string_to_upper(insert_split[1]);
 
 		ret.parametros.INSERT.tabla = insert_split[1];
 		ret.parametros.INSERT.key= (uint16_t)atol(insert_split[2]);
-		if(value_ts[1] == NULL){
+		if(insert_split[4] == NULL){
 
 			ret.parametros.INSERT.timestamp= get_timestamp();//(unsigned long)time(NULL);
 			//printf("\n\n TIMESTAMP: %lu as\n\n",(unsigned long)get_timestamp());
 		} else{
-			ret.parametros.INSERT.timestamp=(long)atol(value_ts[1]);
+			ret.parametros.INSERT.timestamp=(long)atol(insert_split[4]);
 		}
 
 		ret.parametros.INSERT.value = value_ts[0];

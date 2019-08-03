@@ -78,7 +78,7 @@ t_log* logger_compactacion;
 t_log* logger_consola;
 t_config* archivoconfig;
 char* path_montaje;
-int  max_size_value, block_size, blocks;
+int  max_size_value, block_size, blocks, bloques_disponibles;
 char* ip_lfs;
 char* puerto_lfs;
 int tiempo_dump;

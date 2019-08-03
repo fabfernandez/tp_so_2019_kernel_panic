@@ -601,9 +601,15 @@ void obtener_bitmap(){
         close(fd);
     }
 
-
+    bloques_disponibles=0;
     bmap = mmap(NULL, size_bitmap.st_size, PROT_READ | PROT_WRITE, MAP_SHARED,	fd, 0);
 	bitarray = bitarray_create_with_mode(bmap, blocks/8, MSB_FIRST);
+	for(int i=0;i< bitarray_get_max_bit(bitarray);i++){
+		 if(bitarray_test_bit(bitarray, i) == 0){
+			 bloques_disponibles = bloques_disponibles+1;
+		 }
+	}
+	log_info(logger, "Cantidad de bloques disponibles: %d", bloques_disponibles);
 	free(nombre_bitmap);
 }
 
@@ -666,19 +672,28 @@ t_status_solicitud* resolver_create (t_log* log_a_usar,char* nombre_tabla, t_con
 		status = crear_paquete_status(false, mje_error);
 		free(mje_error);
 	}else{
-		char* dir_tabla = string_from_format("%s/Tables/%s", path_montaje, nombre_tabla);
-		if (crear_directorio_tabla(dir_tabla)){
-			crear_archivo_metadata_tabla(dir_tabla, num_particiones, compactacion, consistencia);
-			crear_particiones(dir_tabla, num_particiones);
-			crear_tabla_logica(nombre_tabla);
-			status = crear_paquete_status(true, "OK");
-		}else{
-			char * mje_error = string_from_format("No pudo crearse la tabla %s", nombre_tabla);
+
+		if (bloques_disponibles < num_particiones ){
+			char * mje_error = string_from_format("No hay suficientes bloques disponibles para crear la tabla %s", nombre_tabla);
 			log_error(log_a_usar, mje_error);
 			status = crear_paquete_status(false, mje_error);
 			free(mje_error);
+		}else{
+			char* dir_tabla = string_from_format("%s/Tables/%s", path_montaje, nombre_tabla);
+			if (crear_directorio_tabla(dir_tabla)){
+				crear_archivo_metadata_tabla(dir_tabla, num_particiones, compactacion, consistencia);
+				crear_particiones(dir_tabla, num_particiones);
+				crear_tabla_logica(nombre_tabla);
+				status = crear_paquete_status(true, "OK");
+			}else{
+				char * mje_error = string_from_format("No pudo crearse la tabla %s", nombre_tabla);
+				log_error(log_a_usar, mje_error);
+				status = crear_paquete_status(false, mje_error);
+				free(mje_error);
+			}
+			free(dir_tabla);
 		}
-		free(dir_tabla);
+
 
 	}
 
@@ -754,6 +769,8 @@ void liberar_bloque(int num_bloque){
 	truncate(dir_bloque, block_size);
 	bitarray_clean_bit(bitarray, num_bloque);
 	msync(bmap, sizeof(bitarray), MS_SYNC);
+	bloques_disponibles=bloques_disponibles+1;
+	log_info(logger, "Cantidad de bloques disponibles: %d", bloques_disponibles);
 	free(dir_bloque);
 }
 
@@ -767,6 +784,8 @@ int obtener_bloque_disponible(){
 	}
 	nro_bloque=nro_bloque-1;
 	bitarray_set_bit(bitarray,nro_bloque);
+	bloques_disponibles = bloques_disponibles -1;
+	log_info(logger, "Cantidad de bloques disponibles: %d", bloques_disponibles);
 	log_info(logger_compactacion, "Se ocupa bloque %d", nro_bloque);
 	msync(bmap, sizeof(bitarray), MS_SYNC);
 	pthread_mutex_unlock(&mutexBitmap);
@@ -1148,10 +1167,10 @@ t_list* obtener_registros_de_buffer(char* buffer){
 	//log_info(logger, "1118. BUFFER recibido en los bloques  %s", buffer);
 	int ind_registros=0;
 	while (array_buffer_registro[ind_registros]!=NULL){
-		log_info(logger, "nuevo buffer registro");
-		log_info(logger, "1120. aca puede romper %s", array_buffer_registro[ind_registros]);
+//		log_info(logger, "nuevo buffer registro");
+//		log_info(logger, "1120. aca puede romper %s", array_buffer_registro[ind_registros]);
 		char** string_registro = string_split(array_buffer_registro[ind_registros], ";");
-		log_info(logger, "1122. aca puede romper %s", string_registro[1]);
+		//log_info(logger, "1122. aca puede romper %s", string_registro[1]);
 		uint16_t key = (uint16_t) atol(string_registro[1]);
 		long timestamp = (long)atol(string_registro[0]);
 		t_registro* registro= crear_registro(string_registro[2], key, timestamp);
